@@ -1,0 +1,33 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Esp32Controller;
+use App\Http\Controllers\Esp32MessageController;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "api" middleware group. Make something great!
+|
+*/
+
+// Endpoints for ESP32 controller
+// Note: Routes in api.php are automatically prefixed with /api
+Route::match(['get', 'post'], '/http-post', [Esp32Controller::class, 'receivePost']);
+Route::match(['get'], '/http-get', [Esp32Controller::class, 'sendGet']);
+
+// Endpoint for ESP32 JSON data
+Route::match(['post'], '/arduino-json', [Esp32Controller::class, 'handleArduinoJson']);
+
+// API endpoints for ESP32 messages
+Route::prefix('esp32')->group(function () {
+    // Store a new message from ESP32
+    Route::post('/messages', [Esp32MessageController::class, 'store']);
+    
+    // Get recent messages (for control panel)
+    Route::get('/messages/recent', [Esp32MessageController::class, 'getMessages']);
+});
