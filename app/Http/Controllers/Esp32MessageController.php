@@ -159,4 +159,58 @@ class Esp32MessageController extends Controller
             ], 500);
         }
     }
+    
+    /**
+     * Get system status for the control panel.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getStatus(): JsonResponse
+    {
+        try {
+            // Get the most recent message
+            $lastMessage = Esp32Message::latest('created_at')->first();
+            
+            // Count total messages
+            $messageCount = Esp32Message::count();
+            
+            // Check if we have any recent activity (within the last 5 minutes)
+            $recentActivity = $lastMessage && $lastMessage->created_at->gt(now()->subMinutes(5));
+            
+            // Get the last message time as a timestamp
+            $lastMessageTime = $lastMessage ? $lastMessage->created_at->toIso8601String() : null;
+            
+            // Get recent messages (last 5)
+            $recentMessages = Esp32Message::latest('created_at')
+                ->limit(5)
+                ->get()
+                ->map(function ($message) {
+                    return [
+                        'id' => $message->id,
+                        'content' => $message->content,
+                        'direction' => $message->direction,
+                        'created_at' => $message->created_at->toIso8601String(),
+                    ];
+                });
+            
+            return response()->json([
+                'status' => 'success',
+                'connected' => $recentActivity,
+                'last_message_time' => $lastMessageTime,
+                'message_count' => $messageCount,
+                'recent_messages' => $recentMessages,
+                'server_time' => now()->toIso8601String(),
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error getting system status: ' . $e->getMessage());
+            
+            return response()->json([
+                'status' => 'error',
+                'connected' => false,
+                'message' => 'Failed to retrieve system status',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+    }
 }

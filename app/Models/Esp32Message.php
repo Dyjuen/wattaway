@@ -17,6 +17,8 @@ class Esp32Message extends Model
         'direction',
         'metadata',
         'ip_address',
+        'arduino_time',
+        'led_state',
     ];
 
     /**
@@ -27,6 +29,7 @@ class Esp32Message extends Model
     protected $casts = [
         'metadata' => 'array',
         'created_at' => 'datetime',
+        'arduino_time' => 'datetime',
     ];
 
     /**
@@ -72,11 +75,20 @@ class Esp32Message extends Model
      */
     public static function createIncoming($content, $metadata = [])
     {
+        // Extract arduino_time and led_state from metadata if they exist
+        $arduinoTime = $metadata['arduino_time'] ?? null;
+        $ledState = $metadata['led_state'] ?? null;
+        
+        // Remove these from metadata to avoid duplication
+        unset($metadata['arduino_time'], $metadata['led_state']);
+        
         return static::create([
             'content' => is_string($content) ? $content : json_encode($content),
             'direction' => 'incoming',
             'metadata' => $metadata,
             'ip_address' => Request::ip(),
+            'arduino_time' => $arduinoTime,
+            'led_state' => $ledState,
         ]);
     }
 

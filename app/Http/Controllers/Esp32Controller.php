@@ -11,11 +11,9 @@ use Illuminate\Support\Facades\Response;
 
 class Esp32Controller extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
+    use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+    use \Illuminate\Foundation\Validation\ValidatesRequests;
+    
     /**
      * Create a new controller instance.
      *
@@ -23,37 +21,15 @@ class Esp32Controller extends Controller
      */
     public function __construct()
     {
-        // Add CORS headers for all responses
-        $this->middleware(function ($request, $next) {
-            $response = $next($request);
-            
-            $response->headers->set('Access-Control-Allow-Origin', '*');
-            $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-            $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, X-Auth-Token, Origin');
-            
-            return $response;
-        });
-        
-        // Handle preflight OPTIONS request
-        if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-            return Response::make('OK', 200, [
-                'Access-Control-Allow-Origin' => '*',
-                'Access-Control-Allow-Methods' => 'GET, POST, OPTIONS',
-                'Access-Control-Allow-Headers' => 'Content-Type, X-Auth-Token, Origin',
-            ]);
-        }
+        // No middleware needed here as CORS is handled by the CorsMiddleware
     }
     /**
      * Handle POST request from ESP32
-     * Example payload from ESP32:
+     * Expected payload format:
      * {
-     *   "sensor": "gps",
-     *   "time": 1351824120,
-     *   "data": [48.756080, 2.302038]
+     *   "time": "2025-08-08T10:30:00Z",  // ISO 8601 format
+     *   "led_state": "on"                // or "off"
      * }
-     */
-    /**
-     * Handle POST request from ESP32
      * 
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
@@ -66,35 +42,32 @@ class Esp32Controller extends Controller
             // Log the received data
             Log::info('Received data from ESP32:', $data);
             
-            // Store the raw message in the database
+            // Validate the incoming data
+            $validated = $request->validate([
+                'time' => 'required|date',
+                'led_state' => 'required|in:on,off',
+            ]);
+            
+            // Store the message in the database
             $message = Esp32Message::createIncoming(
                 json_encode($data),
                 [
                     'endpoint' => '/api/http-post',
                     'user_agent' => $request->userAgent(),
                     'ip_address' => $request->ip(),
+                    'arduino_time' => $validated['time'],
+                    'led_state' => $validated['led_state']
                 ]
             );
-            
-            // Handle the specific format from ESP32
-            $state = $data['state'] ?? [];
-            $reported = $state['reported'] ?? [];
-            $location = $reported['location'] ?? [];
-            
-            // Extract location data
-            $latitude = $location['latitude'] ?? null;
-            $longitude = $location['longitude'] ?? null;
-            
-            // Here you can process/store the location data as needed
             
             // Return a success response
             return response()->json([
                 'status' => 'success',
-                'message' => 'Location data received',
+                'message' => 'Arduino data received',
                 'data' => [
-                    'latitude' => $latitude,
-                    'longitude' => $longitude,
-                    'received_at' => now()->toDateTimeString()
+                    'arduino_time' => $validated['time'],
+                    'led_state' => $validated['led_state'],
+                    'server_time' => now()->toIso8601String()
                 ]
             ]);
             
@@ -126,21 +99,11 @@ class Esp32Controller extends Controller
 
     /**
      * Handle JSON data from ESP32
-     * Example payload:
+     * Expected payload format:
      * {
-     *   "state": {
-     *     "reported": {
-     *       "location": {
-     *         "latitude": 22.54,
-     *         "longitude": 88.72
-     *       }
-     *     },
-     *     "desired": {}
-     *   }
+     *   "time": "2025-08-08T10:30:00Z",  // ISO 8601 format
+     *   "led_state": "on"                // or "off"
      * }
-     */
-    /**
-     * Handle JSON data from ESP32
      * 
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
@@ -151,33 +114,66 @@ class Esp32Controller extends Controller
             $data = $request->json()->all();
             Log::info('Received JSON data from ESP32:', $data);
             
-            // Store the raw message in the database
+            // Handle nested state.reported structure
+            $state = $data['state'] ?? null;
+            $reported = $state['reported'] ?? null;
+            
+            if (!$reported) {
+                // If the data doesn't have the expected structure, try to process it directly
+                $reported = $data;
+                Log::warning('Using direct data structure instead of state.reported');
+            }
+            
+            // Extract time and led_state from the reported data
+            $arduinoTime = $reported['time'] ?? null;
+            $ledState = $reported['led_state'] ?? 'off';
+            
+            // If time is not in the root, check in the reported object
+            if (!$arduinoTime && isset($reported['state']['reported']['time'])) {
+                $arduinoTime = $reported['state']['reported']['time'];
+                $ledState = $reported['state']['reported']['led_state'] ?? $ledState;
+            }
+            
+            // Validate the data
+            if (!$arduinoTime || !strtotime($arduinoTime)) {
+                // If time is not valid, use current time
+                $arduinoTime = now()->toIso8601String();
+                Log::warning('Using server time as Arduino time was not provided or invalid');
+            }
+            
+            // Ensure led_state is valid
+            $ledState = in_array(strtolower($ledState), ['on', 'off']) ? strtolower($ledState) : 'off';
+            
+            // Store the message in the database
             $message = Esp32Message::createIncoming(
                 json_encode($data),
                 [
                     'endpoint' => '/api/arduino-json',
-                    'user_agent' => $request->userAgent(),
-                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->userAgent() ?: 'ESP32HTTPClient',
+                    'ip_address' => $request->ip() ?: '127.0.0.1',
+                    'arduino_time' => $arduinoTime,
+                    'led_state' => $ledState
                 ]
             );
             
-            // Extract location data if available
-            $location = $data['state']['reported']['location'] ?? null;
+            // Log successful storage
+            Log::info('Successfully stored ESP32 message', [
+                'message_id' => $message->id,
+                'arduino_time' => $arduinoTime,
+                'led_state' => $ledState
+            ]);
             
-            if ($location) {
-                Log::info('Location data received:', [
-                    'latitude' => $location['latitude'] ?? null,
-                    'longitude' => $location['longitude'] ?? null,
-                    'received_at' => now()->toDateTimeString()
-                ]);
-            }
-
+            // Return a success response
             return response()->json([
                 'status' => 'success',
-                'message' => 'Data received successfully',
-                'timestamp' => now()->toDateTimeString()
+                'message' => 'Arduino data received and processed',
+                'data' => [
+                    'arduino_time' => $arduinoTime,
+                    'led_state' => $ledState,
+                    'server_time' => now()->toIso8601String(),
+                    'message_id' => $message->id
+                ]
             ]);
-
         } catch (\Exception $e) {
             Log::error('Error processing Arduino JSON: ' . $e->getMessage());
             return response()->json([

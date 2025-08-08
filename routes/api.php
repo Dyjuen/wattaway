@@ -28,6 +28,12 @@ Route::prefix('esp32')->group(function () {
     // Store a new message from ESP32
     Route::post('/messages', [Esp32MessageController::class, 'store']);
     
+    // Get recent messages
+    Route::get('/messages', [Esp32MessageController::class, 'index']);
+    
     // Get recent messages (for control panel)
     Route::get('/messages/recent', [Esp32MessageController::class, 'getMessages']);
+    
+    // Get system status
+    Route::get('/status', [Esp32MessageController::class, 'getStatus']);
 });
