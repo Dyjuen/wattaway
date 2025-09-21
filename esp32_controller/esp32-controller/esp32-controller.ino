@@ -25,11 +25,13 @@
 #include <BLE2902.h>
 #include <Preferences.h> // Used for saving credentials to Non-Volatile Storage (NVS)
 
-#define HOST "https://30f3479327fa.ngrok-free.app"  // No trailing slash
+#define HOST "https://06b99a5aea28.ngrok-free.app"  // No trailing slash
 
 // -- BLE DEFINITIONS FOR PROVISIONING --
 #define SERVICE_UUID           "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
 #define CHARACTERISTIC_UUID_WIFI "beb5483e-36e1-4688-b7f5-ea07361b26a8"
+// Read-only + notify status characteristic to report provisioning state to clients
+#define CHARACTERISTIC_UUID_STATUS "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
 
 // Preferences object to store credentials
 Preferences preferences;
@@ -38,6 +40,19 @@ Preferences preferences;
 StaticJsonDocument<200> doc;
 StaticJsonDocument<200> postJson;
 
+// Global status characteristic pointer so we can update status from anywhere
+BLECharacteristic* gStatusChar = nullptr;
+
+// Helper to set and (if subscribed) notify status updates
+void setProvisioningStatus(const char* statusMsg) {
+  Serial.print("[STATUS] ");
+  Serial.println(statusMsg);
+  if (gStatusChar != nullptr) {
+    gStatusChar->setValue((uint8_t*)statusMsg, strlen(statusMsg));
+    // Notify if a client has subscribed
+    gStatusChar->notify();
+  }
+}
 
 // Callback class to handle incoming BLE data
 class MyCharacteristicCallbacks: public BLECharacteristicCallbacks {
@@ -67,18 +82,22 @@ class MyCharacteristicCallbacks: public BLECharacteristicCallbacks {
                 preferences.putString("password", password);
                 preferences.end();
 
+                setProvisioningStatus("Received Credentials");
+
                 Serial.println("Credentials saved. Restarting device in 3 seconds...");
+                setProvisioningStatus("Restarting");
                 delay(3000);
                 ESP.restart();
             } else {
                 Serial.println("Invalid data format. Should be: ssid,password");
+                setProvisioningStatus("Invalid Format");
             }
             Serial.println("*********");
         }
     }
 };
 
-void startBleProvisioning() {
+void startBleProvisioning(const char* initialStatus = "Waiting for Credentials") {
   Serial.println("Starting BLE Server for WiFi Configuration");
   
   BLEDevice::init("ESP32_WiFi_Config");
@@ -91,6 +110,15 @@ void startBleProvisioning() {
                                        );
 
   pCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
+
+  // Create status characteristic (READ + NOTIFY)
+  gStatusChar = pService->createCharacteristic(
+                    CHARACTERISTIC_UUID_STATUS,
+                    BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY
+                 );
+  // Add Client Characteristic Configuration descriptor to enable notifications from clients
+  gStatusChar->addDescriptor(new BLE2902());
+  gStatusChar->setValue(initialStatus);
   pService->start();
 
   BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
@@ -102,6 +130,9 @@ void startBleProvisioning() {
   
   Serial.println("Characteristic defined. Ready for BLE connection.");
   Serial.println("Send WiFi credentials in the format: Your_SSID,Your_Password");
+
+  // Broadcast initial status
+  setProvisioningStatus(initialStatus);
 }
 
 
@@ -119,6 +150,12 @@ void setup()
   bool connected = false;
   if (ssid.length() > 0) {
     Serial.printf("Found saved credentials. Connecting to: %s\n", ssid.c_str());
+    // Initialize BLE so client can see status while attempting to connect
+    if (gStatusChar == nullptr) {
+      startBleProvisioning("Connecting...");
+    } else {
+      setProvisioningStatus("Connecting...");
+    }
     WiFi.begin(ssid.c_str(), password.c_str());
     
     // Wait for connection with a 15-second timeout
@@ -131,6 +168,12 @@ void setup()
 
     if (WiFi.status() == WL_CONNECTED) {
       connected = true;
+      setProvisioningStatus("Connected");
+      // Optional: stop advertising to save power once connected
+      BLEAdvertising* adv = BLEDevice::getAdvertising();
+      if (adv) adv->stop();
+    } else {
+      setProvisioningStatus("Connection Failed");
     }
   }
 
@@ -160,7 +203,12 @@ void setup()
     // ---- PROVISIONING MODE ----
     Serial.println("\nCould not connect to WiFi.");
     WiFi.disconnect(); // Ensure WiFi is off
-    startBleProvisioning();
+    // Start/ensure BLE is running and show waiting state for new credentials
+    if (gStatusChar == nullptr) {
+      startBleProvisioning("Waiting for Credentials");
+    } else {
+      setProvisioningStatus("Waiting for Credentials");
+    }
   }
 }
 

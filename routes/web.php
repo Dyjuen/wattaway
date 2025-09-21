@@ -23,6 +23,10 @@ Route::get('/control', function () {
     return view('esp32.control');
 })->name('esp32.control');
 
+Route::get('/wifisetup', function () {
+    return view('esp32.wifisetup');
+})->name('esp32.wifisetup');
+
 // ESP32 Messages Management
 Route::prefix('esp32/messages')->group(function () {
     Route::get('/', [Esp32MessageController::class, 'index'])->name('esp32.messages.index');

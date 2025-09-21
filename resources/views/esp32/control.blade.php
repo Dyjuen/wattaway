@@ -9,6 +9,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="bg-gray-100">
+    <!-- Top Navigation -->
+    <nav class="bg-white border-b border-gray-200">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="text-sm text-gray-600">
+                <span class="font-semibold">ESP32</span> Dashboard
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('esp32.wifisetup') }}" class="inline-flex items-center px-3 py-1.5 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700">
+                    Wi‑Fi Setup (BLE)
+                </a>
+            </div>
+        </div>
+    </nav>
     <div class="container mx-auto px-4 py-8">
         <h1 class="text-3xl font-bold mb-8 text-center">ESP32 Control Panel</h1>
         
