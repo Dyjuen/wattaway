@@ -18,6 +18,10 @@ Route::get('/', function () {
     return view('home');
 });
 
+Route::get('/faq', function () {
+    return view('faq');
+});
+
 // ESP32 Control Panel
 Route::get('/control', function () {
     return view('esp32.control');

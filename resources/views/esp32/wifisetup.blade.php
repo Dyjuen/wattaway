@@ -38,6 +38,22 @@
         <div>
           <label for="bleSsidInput" class="block text-sm font-medium text-gray-700 mb-1">SSID</label>
           <input id="bleSsidInput" type="text" placeholder="Your Wi‑Fi SSID" class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          <div class="mt-3 flex flex-col sm:flex-row gap-3">
+            <button id="bleScanBtn" type="button" class="inline-flex items-center gap-2 px-3 py-2 border rounded hover:bg-gray-50">
+              <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M3 4.5A1.5 1.5 0 014.5 3h11A1.5 1.5 0 0117 4.5V6a.5.5 0 01-1 0V4.5a.5.5 0 00-.5-.5h-11a.5.5 0 00-.5.5v11a.5.5 0 00.5.5H6a.5.5 0 010 1H4.5A1.5 1.5 0 013 15.5v-11z" clip-rule="evenodd"/><path d="M6 8a1 1 0 011-1h7a1 1 0 110 2H7a1 1 0 01-1-1zM6 12a1 1 0 011-1h5a1 1 0 110 2H7a1 1 0 01-1-1z"/></svg>
+              Scan Networks
+            </button>
+            <div class="flex-1">
+              <select id="bleSsidSelect" class="w-full border rounded px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="">Select scanned network…</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 mt-1 text-xs text-gray-500">
+            <div id="bleScanHint" class="hidden">Scanning… please wait</div>
+            <div id="bleScanCooldown" class="hidden">Rescan available in <span id="bleScanCooldownSec">0</span>s</div>
+            <button id="bleScanHelp" type="button" class="ml-auto underline hover:text-gray-700" title="Android requires Location to be ON for BLE scanning. Ensure Bluetooth and Location are enabled.">Help</button>
+          </div>
         </div>
         <div>
           <label for="blePasswordInput" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
@@ -77,6 +93,8 @@
       const SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
       const WIFI_CHAR_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
       const STATUS_CHAR_UUID = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
+      const SCAN_CMD_UUID = '6e400010-b5a3-f393-e0a9-e50e24dcca9e';
+      const SCAN_RESULTS_UUID = '6e400011-b5a3-f393-e0a9-e50e24dcca9e';
 
       // UI elements
       const el = {
@@ -85,11 +103,17 @@
         connectBtn: document.getElementById('bleConnectBtn'),
         saveBtn: document.getElementById('bleSaveBtn'),
         ssid: document.getElementById('bleSsidInput'),
+        ssidSelect: document.getElementById('bleSsidSelect'),
+        scanBtn: document.getElementById('bleScanBtn'),
         password: document.getElementById('blePasswordInput'),
         showPassword: document.getElementById('bleShowPassword'),
         statusText: document.getElementById('bleStatusText'),
         statusLog: document.getElementById('bleStatusLog'),
         clearLog: document.getElementById('bleClearLog'),
+        scanHint: document.getElementById('bleScanHint'),
+        scanCooldown: document.getElementById('bleScanCooldown'),
+        scanCooldownSec: document.getElementById('bleScanCooldownSec'),
+        scanHelp: document.getElementById('bleScanHelp'),
       };
 
       // BLE state
@@ -98,6 +122,11 @@
       let service = null;
       let wifiChar = null;
       let statusChar = null;
+      let scanCmdChar = null;
+      let scanResultsChar = null;
+      let scanning = false;
+      const networks = new Map(); // SSID -> { rssi, sec }
+      let cooldownTimer = null;
 
       function log(line) {
         const now = new Date().toLocaleTimeString();
@@ -174,6 +203,9 @@
           // Characteristics
           wifiChar = await service.getCharacteristic(WIFI_CHAR_UUID);
           statusChar = await service.getCharacteristic(STATUS_CHAR_UUID);
+          // Scan characteristics
+          try { scanCmdChar = await service.getCharacteristic(SCAN_CMD_UUID); } catch (e) { scanCmdChar = null; }
+          try { scanResultsChar = await service.getCharacteristic(SCAN_RESULTS_UUID); } catch (e) { scanResultsChar = null; }
 
           // Subscribe to status notifications
           await statusChar.startNotifications();
@@ -193,6 +225,151 @@
         } catch (err) {
           setBadge('Error', 'red');
           log('Connect error: ' + err.message);
+        }
+      }
+
+      function clearNetworks() {
+        networks.clear();
+        while (el.ssidSelect.options.length > 1) el.ssidSelect.remove(1);
+      }
+
+      function setScanning(on) {
+        scanning = on;
+        if (on) {
+          el.scanHint.classList.remove('hidden');
+          el.scanBtn.disabled = true;
+          setBadge('Scanning…', 'blue');
+        } else {
+          el.scanHint.classList.add('hidden');
+          el.scanBtn.disabled = false;
+        }
+      }
+
+      function startScanCooldown(seconds = 10) {
+        clearInterval(cooldownTimer);
+        let remaining = seconds;
+        if (remaining <= 0) {
+          el.scanCooldown.classList.add('hidden');
+          el.scanBtn.disabled = false;
+          return;
+        }
+        el.scanCooldown.classList.remove('hidden');
+        el.scanBtn.disabled = true;
+        el.scanCooldownSec.textContent = remaining;
+        cooldownTimer = setInterval(() => {
+          remaining -= 1;
+          if (remaining <= 0) {
+            clearInterval(cooldownTimer);
+            el.scanCooldown.classList.add('hidden');
+            el.scanBtn.disabled = false;
+          } else {
+            el.scanCooldownSec.textContent = remaining;
+          }
+        }, 1000);
+      }
+
+      function rssiToBars(rssi) {
+        // Approximate conversion to 0..4 bars based on RSSI (dBm)
+        if (isNaN(rssi)) return 0;
+        if (rssi >= -50) return 4;     // excellent
+        if (rssi >= -60) return 3;     // good
+        if (rssi >= -70) return 2;     // fair
+        if (rssi >= -80) return 1;     // weak
+        return 0;                       // very weak
+      }
+
+      function barsToGlyph(bars) {
+        // Simple ASCII bars 0..4
+        const glyphs = ['▁▁▁▁', '▂▁▁▁', '▂▃▁▁', '▂▃▅▁', '▂▃▅▇'];
+        return glyphs[Math.max(0, Math.min(4, bars))];
+      }
+
+      function formatNetworkLabel(ssid, info) {
+        const bars = rssiToBars(info.rssi);
+        const glyph = barsToGlyph(bars);
+        return `${ssid} [${glyph}] (${info.sec}, ${info.rssi} dBm)`;
+      }
+
+      function applyNetworksToDropdown() {
+        // Convert to array and sort by RSSI descending (higher is better, closer to 0)
+        const arr = Array.from(networks.entries()) // [ssid, {rssi, sec}]
+          .sort((a, b) => b[1].rssi - a[1].rssi);
+        clearNetworks(); // Leaves placeholder
+        for (const [ssid, info] of arr) {
+          const opt = document.createElement('option');
+          opt.value = ssid;
+          opt.textContent = formatNetworkLabel(ssid, info);
+          el.ssidSelect.appendChild(opt);
+        }
+      }
+
+      function onScanResultsChanged(event) {
+        const line = decodeValue(event).replace(/\0+$/, '').trim();
+        if (!line) return;
+        if (line === 'SCAN_START') {
+          clearNetworks();
+          log('Scan started');
+          return;
+        }
+        if (line === 'SCAN_DONE') {
+          log('Scan completed');
+          applyNetworksToDropdown();
+          setScanning(false);
+          setBadge('Connected', 'green');
+          // Start a short cooldown before allowing another scan
+          startScanCooldown(10);
+          return;
+        }
+        if (line.startsWith('SCAN_ERROR')) {
+          log(line);
+          setScanning(false);
+          setBadge('Connected', 'green');
+          return;
+        }
+        if (line === 'SCAN_BUSY') {
+          log('Device is busy scanning; try again shortly.');
+          setScanning(false);
+          setBadge('Connected', 'green');
+          return;
+        }
+        // Parse SSID|RSSI|SEC
+        const parts = line.split('|');
+        if (parts.length >= 3) {
+          const ssid = parts[0];
+          const rssi = parseInt(parts[1], 10);
+          const sec = parts[2];
+          if (!ssid) return;
+          const prev = networks.get(ssid);
+          if (!prev || rssi > prev.rssi) {
+            networks.set(ssid, { rssi, sec });
+          }
+        }
+      }
+
+      async function startScan() {
+        try {
+          if (!server || !service || !scanCmdChar) {
+            alert('Please connect to the device first.');
+            return;
+          }
+          if (scanResultsChar) {
+            try {
+              await scanResultsChar.startNotifications();
+              // Ensure single listener
+              scanResultsChar.removeEventListener('characteristicvaluechanged', onScanResultsChanged);
+              scanResultsChar.addEventListener('characteristicvaluechanged', onScanResultsChanged);
+            } catch (e) {
+              log('Unable to start scan notifications: ' + e.message);
+            }
+          }
+          clearNetworks();
+          setScanning(true);
+          const encoder = new TextEncoder();
+          await scanCmdChar.writeValue(encoder.encode('SCAN'));
+          log('Scan command sent');
+        } catch (e) {
+          setScanning(false);
+          log('Scan error: ' + e.message);
         }
       }
 
@@ -248,6 +425,14 @@
       el.saveBtn.addEventListener('click', writeCredentials);
       el.showPassword.addEventListener('click', togglePassword);
       el.clearLog.addEventListener('click', clearLog);
+      el.scanBtn.addEventListener('click', startScan);
+      el.ssidSelect.addEventListener('change', () => {
+        const chosen = el.ssidSelect.value;
+        if (chosen) el.ssid.value = chosen;
+      });
+      el.scanHelp.addEventListener('click', () => {
+        alert('Tips for scanning on Android:\n\n- Enable Bluetooth and Location services.\n- Keep Chrome/Edge up to date.\n- Ensure the ESP32 is advertising and in provisioning mode.');
+      });
 
       // Initial badge
       setBadge('Idle', 'gray');

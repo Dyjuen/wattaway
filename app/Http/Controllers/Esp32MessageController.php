@@ -6,6 +6,7 @@ use App\Models\Esp32Message;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 
 class Esp32MessageController extends Controller
 {
@@ -35,8 +36,15 @@ class Esp32MessageController extends Controller
             }
             
             // Get messages since a specific timestamp (for polling)
-            if ($since = $request->input('since')) {
-                $query->where('created_at', '>', date('Y-m-d H:i:s', $since));
+            if (($since = $request->input('since')) !== null) {
+                try {
+                    $sinceDt = is_numeric($since)
+                        ? Carbon::createFromTimestamp((int) $since)
+                        : Carbon::parse($since);
+                    $query->where('created_at', '>', $sinceDt);
+                } catch (\Exception $e) {
+                    Log::warning('Invalid since parameter provided', ['since' => $since, 'error' => $e->getMessage()]);
+                }
             }
             
             // Order by creation date, newest first

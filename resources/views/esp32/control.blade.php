@@ -53,6 +53,14 @@
                         <span class="px-2 py-1 rounded-full text-xs bg-gray-200 text-gray-800">UNKNOWN</span>
                     </div>
                 </div>
+                <div class="bg-gray-50 p-4 rounded">
+                    <div class="text-sm text-gray-500">Port Current</div>
+                    <div id="portCurrent" class="text-lg font-medium">-- A</div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded">
+                    <div class="text-sm text-gray-500">Port Voltage</div>
+                    <div id="portVoltage" class="text-lg font-medium">-- V</div>
+                </div>
             </div>
         </div>
 
@@ -285,6 +293,26 @@
                         updateLedState(reportedData.led_state);
                     } else if (messageData.led_state) {
                         updateLedState(messageData.led_state);
+                    }
+
+                    // Update Port sensor values if available
+                    try {
+                        const sensors = reportedData.sensors || messageData.sensors;
+                        const port = sensors?.port;
+                        if (port) {
+                            const curr = port.current_A_approx ?? port.current_A ?? port.current ?? null;
+                            const volt = port.voltage_V_approx ?? port.voltage_V ?? port.voltage ?? null;
+                            if (curr !== null && !isNaN(curr)) {
+                                const currEl = document.getElementById('portCurrent');
+                                currEl.textContent = `${Number(curr).toFixed(2)} A`;
+                            }
+                            if (volt !== null && !isNaN(volt)) {
+                                const voltEl = document.getElementById('portVoltage');
+                                voltEl.textContent = `${Number(volt).toFixed(2)} V`;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Sensor parse error:', e);
                     }
                 }
                 

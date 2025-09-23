@@ -18,20 +18,29 @@
 #include <ArduinoJson.h>
 #include <time.h>
 
-// Libraries for BLE Provisioning
-#include <BLEDevice.h>
-#include <BLEServer.h>
-#include <BLEUtils.h>
-#include <BLE2902.h>
+// Libraries for BLE Provisioning (using NimBLE to reduce flash size)
+#include <NimBLEDevice.h> // Single include is sufficient; exposes NimBLEServer, NimBLE2902, etc.
 #include <Preferences.h> // Used for saving credentials to Non-Volatile Storage (NVS)
 
-#define HOST "https://06b99a5aea28.ngrok-free.app"  // No trailing slash
+#define HOST "https://ad7191626096.ngrok-free.app"  // No trailing slash
+
+// -- DEFAULT (HARDCODED) WIFI CREDENTIALS --
+#define DEFAULT_WIFI_SSID      "anak kost 2.4G"
+#define DEFAULT_WIFI_PASSWORD  "sekotique"
 
 // -- BLE DEFINITIONS FOR PROVISIONING --
 #define SERVICE_UUID           "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
 #define CHARACTERISTIC_UUID_WIFI "beb5483e-36e1-4688-b7f5-ea07361b26a8"
 // Read-only + notify status characteristic to report provisioning state to clients
 #define CHARACTERISTIC_UUID_STATUS "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
+// SSID scan command (write) and streaming results (read/notify)
+#define CHARACTERISTIC_UUID_SCAN_CMD     "6e400010-b5a3-f393-e0a9-e50e24dcca9e"
+#define CHARACTERISTIC_UUID_SCAN_RESULTS "6e400011-b5a3-f393-e0a9-e50e24dcca9e"
+
+// -- ANALOG SENSOR PINS (ADC1 ONLY; RELIABLE WITH WIFI) --
+// Basic defaults so the controller can read sensors now; adjust later if needed
+#define PIN_CURRENT_ADC   34   // GPIO34 (ADC1)
+#define PIN_VOLTAGE_ADC   35   // GPIO35 (ADC1)
 
 // Preferences object to store credentials
 Preferences preferences;
@@ -41,7 +50,14 @@ StaticJsonDocument<200> doc;
 StaticJsonDocument<200> postJson;
 
 // Global status characteristic pointer so we can update status from anywhere
-BLECharacteristic* gStatusChar = nullptr;
+NimBLECharacteristic* gStatusChar = nullptr;
+// Scan characteristics
+NimBLECharacteristic* gScanResultsChar = nullptr;
+volatile bool gScanRequested = false;
+volatile bool gScanBusy = false;
+
+// Forward decl
+void performWifiScanAndNotify();
 
 // Helper to set and (if subscribed) notify status updates
 void setProvisioningStatus(const char* statusMsg) {
@@ -54,13 +70,48 @@ void setProvisioningStatus(const char* statusMsg) {
   }
 }
 
-// Callback class to handle incoming BLE data
-class MyCharacteristicCallbacks: public BLECharacteristicCallbacks {
-    void onWrite(BLECharacteristic *pCharacteristic) {
-        std::string value = pCharacteristic->getValue();
+// --- SIMPLE ANALOG SENSOR READS (PLACEHOLDER APPROXIMATIONS) ---
+static inline uint16_t readAdcAveraged(int pin, int samples = 16) {
+  uint32_t sum = 0;
+  for (int i = 0; i < samples; ++i) {
+    sum += analogRead(pin);
+    delayMicroseconds(500);
+  }
+  return (uint16_t)(sum / (uint32_t)samples);
+}
 
-        if (value.length() > 0) {
-            String receivedData = String(value.c_str());
+// Convert ADC counts to voltage at ADC pin. With 11dB attenuation, full-scale is approx ~3.3–3.6V; we'll use 3.3V.
+static inline float adcCountsToVolts(uint16_t counts) {
+  return (counts / 4095.0f) * 3.3f;
+}
+
+// Approximate current (A) from analog sensor connected to PIN_CURRENT_ADC.
+// Without sensor specifics, we return raw and an uncalibrated centered estimate.
+// Assumes midpoint ~1.65V corresponds to 0 A (typical hall sensors); sensitivity placeholder 0.1 V/A.
+static inline float readCurrentApproxA(uint16_t &rawCounts) {
+  rawCounts = readAdcAveraged(PIN_CURRENT_ADC);
+  float v = adcCountsToVolts(rawCounts);
+  const float VREF = 1.65f; // midpoint for 3.3V supply
+  const float SENS = 0.10f; // V/A placeholder (adjust per sensor)
+  return (v - VREF) / SENS;
+}
+
+// Approximate external voltage using a simple divider to ADC pin.
+// Without known divider, we return the ADC pin voltage as "approx".
+static inline float readVoltageApproxV(uint16_t &rawCounts) {
+  rawCounts = readAdcAveraged(PIN_VOLTAGE_ADC);
+  float vAdc = adcCountsToVolts(rawCounts);
+  // If using a divider: Vext = vAdc * ((R1 + R2) / R2). For now, report vAdc as approximate.
+  return vAdc;
+}
+
+// Callback class to handle incoming BLE data
+class MyCharacteristicCallbacks: public NimBLECharacteristicCallbacks {
+    void onWrite(NimBLECharacteristic *pCharacteristic) {
+        // Build Arduino String from underlying buffer for compatibility across core versions
+        String receivedData = String(pCharacteristic->getValue().c_str());
+
+        if (receivedData.length() > 0) {
             Serial.println("*********");
             Serial.print("Received Value: ");
             Serial.println(receivedData);
@@ -97,16 +148,41 @@ class MyCharacteristicCallbacks: public BLECharacteristicCallbacks {
     }
 };
 
+// Callback for scan command writes
+class MyScanCmdCallbacks: public NimBLECharacteristicCallbacks {
+    void onWrite(NimBLECharacteristic *pCharacteristic) {
+      String cmd = String(pCharacteristic->getValue().c_str());
+      cmd.trim();
+      if (gScanBusy) {
+        if (gScanResultsChar) {
+          const char* busy = "SCAN_BUSY";
+          gScanResultsChar->setValue((uint8_t*)busy, strlen(busy));
+          gScanResultsChar->notify();
+        }
+        return;
+      }
+      if (cmd.equalsIgnoreCase("SCAN") || cmd.equalsIgnoreCase("START") || cmd.length() == 0) {
+        gScanRequested = true; // handled in loop()
+      } else {
+        if (gScanResultsChar) {
+          String msg = String("SCAN_ERROR:Unknown command '") + cmd + "'";
+          gScanResultsChar->setValue((uint8_t*)msg.c_str(), msg.length());
+          gScanResultsChar->notify();
+        }
+      }
+    }
+};
+
 void startBleProvisioning(const char* initialStatus = "Waiting for Credentials") {
   Serial.println("Starting BLE Server for WiFi Configuration");
   
-  BLEDevice::init("ESP32_WiFi_Config");
-  BLEServer *pServer = BLEDevice::createServer();
-  BLEService *pService = pServer->createService(SERVICE_UUID);
+  NimBLEDevice::init("ESP32_WiFi_Config");
+  NimBLEServer *pServer = NimBLEDevice::createServer();
+  NimBLEService *pService = pServer->createService(SERVICE_UUID);
   
-  BLECharacteristic *pCharacteristic = pService->createCharacteristic(
+  NimBLECharacteristic *pCharacteristic = pService->createCharacteristic(
                                          CHARACTERISTIC_UUID_WIFI,
-                                         BLECharacteristic::PROPERTY_WRITE
+                                         NIMBLE_PROPERTY::WRITE
                                        );
 
   pCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
@@ -114,19 +190,28 @@ void startBleProvisioning(const char* initialStatus = "Waiting for Credentials")
   // Create status characteristic (READ + NOTIFY)
   gStatusChar = pService->createCharacteristic(
                     CHARACTERISTIC_UUID_STATUS,
-                    BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_NOTIFY
+                    (NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY)
                  );
-  // Add Client Characteristic Configuration descriptor to enable notifications from clients
-  gStatusChar->addDescriptor(new BLE2902());
   gStatusChar->setValue(initialStatus);
+
+  // Create scan command characteristic (WRITE)
+  NimBLECharacteristic* pScanCmd = pService->createCharacteristic(
+                                   CHARACTERISTIC_UUID_SCAN_CMD,
+                                   NIMBLE_PROPERTY::WRITE
+                               );
+  pScanCmd->setCallbacks(new MyScanCmdCallbacks());
+
+  // Create scan results characteristic (READ + NOTIFY)
+  gScanResultsChar = pService->createCharacteristic(
+                         CHARACTERISTIC_UUID_SCAN_RESULTS,
+                         (NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY)
+                      );
+  gScanResultsChar->setValue("SCAN_IDLE");
   pService->start();
 
-  BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+  NimBLEAdvertising *pAdvertising = NimBLEDevice::getAdvertising();
   pAdvertising->addServiceUUID(SERVICE_UUID);
-  pAdvertising->setScanResponse(true);
-  pAdvertising->setMinPreferred(0x06);
-  pAdvertising->setMinPreferred(0x12);
-  BLEDevice::startAdvertising();
+  NimBLEDevice::startAdvertising();
   
   Serial.println("Characteristic defined. Ready for BLE connection.");
   Serial.println("Send WiFi credentials in the format: Your_SSID,Your_Password");
@@ -141,6 +226,11 @@ void setup()
   Serial.begin(115200);
   Serial.println("\nESP32 Starting...");
   
+  // Configure ADC for analog sensors (approximate; fine-tune later)
+  analogReadResolution(12); // 0..4095
+  analogSetPinAttenuation(PIN_CURRENT_ADC, ADC_11db); // wider range (~3.3V)
+  analogSetPinAttenuation(PIN_VOLTAGE_ADC, ADC_11db);
+
   // Try to connect to WiFi with saved credentials
   preferences.begin("wifi-creds", true); // Read-only mode
   String ssid = preferences.getString("ssid", "");
@@ -170,10 +260,38 @@ void setup()
       connected = true;
       setProvisioningStatus("Connected");
       // Optional: stop advertising to save power once connected
-      BLEAdvertising* adv = BLEDevice::getAdvertising();
+      NimBLEAdvertising* adv = NimBLEDevice::getAdvertising();
       if (adv) adv->stop();
     } else {
       setProvisioningStatus("Connection Failed");
+    }
+  } else {
+    // No saved credentials; try default hardcoded ones first
+    ssid = String(DEFAULT_WIFI_SSID);
+    password = String(DEFAULT_WIFI_PASSWORD);
+    Serial.printf("No saved credentials. Trying default SSID: %s\n", ssid.c_str());
+    if (gStatusChar == nullptr) {
+      startBleProvisioning("Connecting (Default)...");
+    } else {
+      setProvisioningStatus("Connecting (Default)...");
+    }
+    WiFi.begin(ssid.c_str(), password.c_str());
+
+    // Wait for connection with a 15-second timeout
+    int timeout_counter = 0;
+    while (WiFi.status() != WL_CONNECTED && timeout_counter < 30) {
+      delay(500);
+      Serial.print(".");
+      timeout_counter++;
+    }
+
+    if (WiFi.status() == WL_CONNECTED) {
+      connected = true;
+      setProvisioningStatus("Connected (Default)");
+      NimBLEAdvertising* adv = NimBLEDevice::getAdvertising();
+      if (adv) adv->stop();
+    } else {
+      setProvisioningStatus("Connection Failed (Default)");
     }
   }
 
@@ -221,57 +339,77 @@ void loop()
   } else {
     // If not connected, we are in BLE provisioning mode.
     // The device will restart automatically once credentials are received.
+    // Handle deferred Wi-Fi scans requested via BLE
+    if (gScanRequested && !gScanBusy) {
+      gScanRequested = false;
+      performWifiScanAndNotify();
+    }
     Serial.println("In BLE provisioning mode. Waiting for credentials...");
     delay(5000);
   }
 }
 
-void httPost() {
-  HTTPClient httPost;
-  httPost.begin(String(HOST) + "/api/http-post");
-  httPost.addHeader("Content-Type", "application/json");
-  int httpResponceCode = httPost.POST("{\n\"sensor\":\"gps\",\n\"time\":1351824120,\n\"data\":[\n48.756080,\n2.302038\n]\n}");
-  if (httpResponceCode > 0) {
-    String response = httPost.getString();
-    Serial.println(httpResponceCode);
-    Serial.println(response);
-  } else {
-    Serial.print("err:");
-    Serial.println(httpResponceCode);
-  }
-  httPost.end();
-}
+// Perform a Wi-Fi scan and stream results over BLE scan results characteristic
+void performWifiScanAndNotify() {
+  if (gScanResultsChar == nullptr) return;
+  gScanBusy = true;
+  setProvisioningStatus("Scanning...");
 
-void httpGet() {
-  if (WiFi.status() == WL_CONNECTED) {
-    HTTPClient http;
-    http.begin(String(HOST) + "/api/http-get");
-    int httpResponceCode = http.GET();
-    if (httpResponceCode > 0) {
-      String response = http.getString();
-      Serial.println(httpResponceCode);
-      Serial.println(response);
-      DeserializationError error = deserializeJson(doc, response);
-      if (error) {
-        Serial.print("deserializeJson() failed: ");
-        Serial.println(error.c_str());
-        return;
+  // Announce start
+  const char* startMsg = "SCAN_START";
+  gScanResultsChar->setValue((uint8_t*)startMsg, strlen(startMsg));
+  gScanResultsChar->notify();
+
+  // Ensure station mode for scanning
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect(true);
+  delay(100);
+
+  int n = WiFi.scanNetworks(/*async=*/false, /*hidden=*/true);
+  if (n < 0) {
+    String err = String("SCAN_ERROR:") + WiFi.status();
+    gScanResultsChar->setValue((uint8_t*)err.c_str(), err.length());
+    gScanResultsChar->notify();
+  } else {
+    for (int i = 0; i < n; ++i) {
+      String ssid = WiFi.SSID(i);
+      if (ssid.length() == 0) {
+        // skip hidden
+        continue;
       }
-      const char* retval1 = doc["data"][0];
-      const char* retval2 = doc["data"][1];
-      Serial.println("Parsed data : ");
-      Serial.println(retval1);
-      Serial.println(retval2);
-
-    } else {
-      Serial.print("err:");
-      Serial.println(httpResponceCode);
+      int32_t rssi = WiFi.RSSI(i);
+      wifi_auth_mode_t auth = (wifi_auth_mode_t)WiFi.encryptionType(i);
+      const char* sec;
+      switch (auth) {
+        case WIFI_AUTH_OPEN: sec = "OPEN"; break;
+        case WIFI_AUTH_WEP: sec = "WEP"; break;
+        case WIFI_AUTH_WPA_PSK: sec = "WPA"; break;
+        case WIFI_AUTH_WPA2_PSK: sec = "WPA2"; break;
+        case WIFI_AUTH_WPA_WPA2_PSK: sec = "WPA/WPA2"; break;
+        case WIFI_AUTH_WPA2_ENTERPRISE: sec = "WPA2-ENT"; break;
+        case WIFI_AUTH_WPA3_PSK: sec = "WPA3"; break;
+        case WIFI_AUTH_WPA2_WPA3_PSK: sec = "WPA2/WPA3"; break;
+        default: sec = "UNKNOWN"; break;
+      }
+      // Build line: SSID|RSSI|SEC
+      String line = ssid + "|" + String(rssi) + "|" + String(sec);
+      gScanResultsChar->setValue((uint8_t*)line.c_str(), line.length());
+      gScanResultsChar->notify();
+      delay(30);
     }
-    http.end();
-  } else {
-    Serial.println("wifi err");
   }
+
+  // Done marker
+  const char* doneMsg = "SCAN_DONE";
+  gScanResultsChar->setValue((uint8_t*)doneMsg, strlen(doneMsg));
+  gScanResultsChar->notify();
+
+  // Reset busy and restore waiting status
+  gScanBusy = false;
+  setProvisioningStatus("Waiting for Credentials");
 }
+
+// Removed unused httpGet() and httPost() to reduce binary size
 
 void jsonDataPost() {
   // Create JSON data
@@ -294,6 +432,17 @@ void jsonDataPost() {
   JsonObject locationObj = reportedObj.createNestedObject("location");
   locationObj["latitude"] = 22.54;
   locationObj["longitude"] = 88.72;
+
+  // Read sensors (approximate) and include
+  uint16_t rawCurrent = 0, rawVoltage = 0;
+  float currentA = readCurrentApproxA(rawCurrent);
+  float voltageV = readVoltageApproxV(rawVoltage);
+  JsonObject sensorsObj = reportedObj.createNestedObject("sensors");
+  JsonObject portObj = sensorsObj.createNestedObject("port");
+  portObj["current_raw"] = rawCurrent;
+  portObj["voltage_raw"] = rawVoltage;
+  portObj["current_A_approx"] = currentA;
+  portObj["voltage_V_approx"] = voltageV;
   
   char jsonBuffer[512];
   serializeJson(jsonDoc, jsonBuffer);
