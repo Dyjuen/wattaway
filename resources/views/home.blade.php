@@ -13,6 +13,7 @@
 
     <!-- Animations -->
     <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
+    <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
 
 
     <!-- Styles -->
@@ -49,7 +50,7 @@
         <x-navbar />
 
         <!-- Main content -->
-        <main id="top" class="hero-section flex-grow w-full max-w-7xl mx-auto flex flex-col items-center justify-center text-center mt-16 z-10 px-6">
+        <main id="top" class="hero-section flex-grow w-full max-w-7xl mx-auto flex flex-col items-center justify-center text-center mt-16 z-10 px-6 stagger-container">
             <!-- Hero Section -->
             <h2 class="text-2xl md:text-3xl text-gray-300 hero-subtitle">Welcome!</h2>
             <h1 class="font-brand text-7xl md:text-9xl font-black my-4 bg-gradient-to-b from-white to-gray-400 bg-clip-text text-transparent hero-title" style="text-shadow: 0 5px 15px rgba(0,0,0,0.3);">
@@ -58,17 +59,17 @@
 
             <div class="relative mt-8 md:mt-4 w-full flex flex-col md:flex-row justify-center items-center">
                 <!-- Mascot Image -->
-                <img src="{{ asset('images/mascot.png') }}" alt="WattAway Mascot" class="w-96 h-96 md:w-[40rem] md:h-[40rem] object-contain z-0 hero-mascot">
+                <img src="{{ asset('images/mascot.png') }}" alt="WattAway Mascot" class="w-96 h-96 md:w-[40rem] md:h-[40rem] object-contain z-0 hero-mascot stagger-item">
 
                 <!-- Left Text Box -->
-                <div class="hidden md:block absolute md:left-8 lg:left-[5%] top-1/2 -translate-y-1/2 bg-black/20 backdrop-blur-md border border-white/10 rounded-3xl p-6 max-w-xs shadow-2xl -rotate-6 transform z-10">
+                <div class="hidden md:block absolute md:left-8 lg:left-[5%] top-1/2 -translate-y-1/2 bg-black/20 backdrop-blur-md border border-white/10 rounded-3xl p-6 max-w-xs shadow-2xl transform z-10 stagger-item">
                     <p class="text-xl leading-relaxed text-gray-200">
-                        which lets you control your <span class="text-pink-400 font-semibold">smart socket</span> directly from here-!
+                        Which lets you control your <span class="text-pink-400 font-semibold">smart socket</span> directly from here-!
                     </p>
                 </div>
 
                 <!-- Right Text Box -->
-                <div class="hidden md:block absolute md:right-8 lg:right-[5%] top-1/2 -translate-y-1/2 bg-black/20 backdrop-blur-md border border-white/10 rounded-3xl p-6 max-w-xs shadow-2xl rotate-6 transform z-10">
+                <div class="hidden md:block absolute md:right-8 lg:right-[5%] top-1/2 -translate-y-1/2 bg-black/20 backdrop-blur-md border border-white/10 rounded-3xl p-6 max-w-xs shadow-2xl transform z-10 stagger-item">
                      <p class="text-xl leading-relaxed text-gray-200">
                         <span class="text-pink-400 font-semibold">Effortless energy management</span>, right at your fingertips
                     </p>
@@ -245,9 +246,19 @@
                     if (entry.isIntersecting) {
                         const children = entry.target.querySelectorAll('.stagger-item');
                         children.forEach((child, index) => {
+                            let delay = 0;
+                            // Mascot appears first (index 0)
+                            if (child.classList.contains('hero-mascot')) {
+                                delay = 0;
+                            }
+                            // Text boxes appear after mascot with staggered delay
+                            else {
+                                delay = 300 + (index * 200); // 300ms after mascot, then 200ms between text boxes
+                            }
+
                             setTimeout(() => {
                                 child.classList.add('stagger-visible');
-                            }, index * 100);
+                            }, delay);
                         });
                     }
                 });

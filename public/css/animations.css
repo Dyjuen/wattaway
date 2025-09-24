@@ -169,9 +169,25 @@
 .stagger-item:nth-child(4) { transition-delay: 0.4s; }
 .stagger-item:nth-child(5) { transition-delay: 0.5s; }
 
-.stagger-visible {
+/* Hero Section Staggered Animations */
+.hero-mascot.stagger-visible {
     opacity: 1;
     transform: translateY(0);
+    animation: float 5s ease-in-out infinite, fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0s both;
+}
+
+.stagger-item.stagger-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Enhanced stagger timing for hero section */
+.stagger-container .hero-mascot {
+    transition-delay: 0s;
+}
+
+.stagger-container .stagger-item:not(.hero-mascot) {
+    transition-delay: 0.3s;
 }
 
 /* Different entrance directions */

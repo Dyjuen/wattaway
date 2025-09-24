@@ -13,6 +13,8 @@
     <!-- Animations -->
     <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
 
+    <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
+
     <!-- Styles & Scripts -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js for interactivity -->
