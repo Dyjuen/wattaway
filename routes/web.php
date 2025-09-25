@@ -35,6 +35,20 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->name('dashboard');
 
+Route::get('/settings', function () {
+    if (!auth()->guard('account')->check()) {
+        return redirect()->route('login');
+    }
+    return view('settings');
+})->name('settings');
+
+Route::get('/information', function () {
+    if (!auth()->guard('account')->check()) {
+        return redirect()->route('login');
+    }
+    return view('information');
+})->name('information');
+
 
 // ESP32 Control Panel
 Route::get('/control', function () {
