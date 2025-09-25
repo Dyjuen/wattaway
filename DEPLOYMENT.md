@@ -83,17 +83,32 @@ APP_ENV=production
 APP_DEBUG=false
 ```
 
-### Step 4: Generate Application Key
+### Step 4: Manual Setup Required
 
-**Note**: The application key and other setup commands are now run as post-deployment commands automatically.
+**Important**: Automatic post-deployment commands have been disabled to prevent container restart issues. You must run these commands manually in Coolify's terminal after deployment:
 
-### Step 5: Verify Deployment
+#### Manual Setup Commands:
+```bash
+# 1. Generate Application Key
+php artisan key:generate
 
-After deployment completes, check that your application is running:
+# 2. Run Database Migrations
+php artisan migrate --force
 
-1. **Check application health**: `curl https://your-domain.com/health`
-2. **Check database connectivity**: The migrations should have run automatically
-3. **Verify file permissions**: The setup script should have run automatically
+# 3. Set File Permissions
+./setup-permissions.sh
+
+# 4. Cache Configuration (Optional - for production optimization)
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+#### Why Manual Setup?
+- **Prevents container crashes** during automated deployment
+- **Gives you control** over when commands run
+- **Allows troubleshooting** if any step fails
+- **More reliable** than automated execution
 
 ## Manual Setup (If Post-deployment Commands Fail)
 
@@ -208,13 +223,17 @@ Set up regular database backups in Coolify:
    - If using Coolify, verify the Node.js version in project settings
 
 5. **Post-deployment Command Failed**:
-   - **Issue**: Container runtime error during post-deployment commands
-   - **Symptoms**: Deployment succeeds but migrations/permissions fail to run
-   - **Solutions**:
-     - Run commands manually in Coolify terminal (see manual steps below)
-     - Check container logs: `docker logs <container-name>`
-     - Ensure all services (MySQL, Redis) are healthy before deployment
-     - Try redeploying after fixing any service issues
+   - **Status**: Post-deployment commands have been disabled to prevent container restart issues
+   - **Solution**: Run commands manually in Coolify terminal after deployment completes
+   - **Commands to run**:
+     ```bash
+     php artisan key:generate
+     php artisan migrate --force
+     ./setup-permissions.sh
+     php artisan config:cache
+     php artisan route:cache
+     php artisan view:cache
+     ```
 
 ### Debug Mode
 

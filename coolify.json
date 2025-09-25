@@ -34,15 +34,7 @@
       ],
       "build_command": "composer install --no-dev --optimize-autoloader && npm ci && npm run build",
       "start_command": "php artisan serve --host=0.0.0.0 --port=8000",
-      "post_deployment_command": "sleep 30 && echo 'Starting post-deployment setup...' && php artisan key:generate --force && echo 'Key generated, running migrations...' && php artisan migrate --force --seed && echo 'Migrations completed, setting permissions...' && ./setup-permissions.sh && echo 'Permissions set, caching...' && php artisan config:cache && php artisan route:cache && php artisan view:cache && echo 'Post-deployment setup completed successfully!'",
-      "restart": "unless-stopped",
-      "healthcheck": {
-        "test": ["CMD", "curl", "-f", "http://localhost:8000/health"],
-        "interval": "30s",
-        "timeout": "10s",
-        "retries": 5,
-        "start_period": "40s"
-      }
+      "restart": "unless-stopped"
     },
     {
       "name": "mysql",
