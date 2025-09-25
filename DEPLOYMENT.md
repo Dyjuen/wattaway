@@ -54,29 +54,33 @@ The following deployment files have been created:
 
 ### Step 3: Configure Environment Variables
 
+**Important**: Environment variables are separated into build-time and runtime-only for optimal deployment.
+
+#### Why This Separation?
+- **Build-time variables**: Available during the build process, affect dependency installation and compilation
+- **Runtime-only variables**: Only available when the application is running, prevents build-time issues with production settings
+
 In Coolify, go to your project's Environment Variables section and add:
 
+### Build-time Environment Variables
 ```env
-APP_NAME=Wattaway
-APP_ENV=production
-APP_KEY=your-generated-app-key
-APP_DEBUG=false
 APP_URL=https://your-domain.com
-
 DB_CONNECTION=mysql
 DB_HOST=mysql
-DB_PORT=3306
 DB_DATABASE=wattaway
 DB_USERNAME=wattaway_user
-DB_PASSWORD=your-secure-password
+CACHE_STORE=redis
+QUEUE_CONNECTION=redis
+SESSION_DRIVER=redis
+REDIS_HOST=redis
+NODE_VERSION=22
+```
 
-MAIL_MAILER=smtp
-MAIL_HOST=your-smtp-host
-MAIL_PORT=587
-MAIL_USERNAME=your-email@domain.com
-MAIL_PASSWORD=your-email-password
-MAIL_FROM_ADDRESS=noreply@your-domain.com
-MAIL_FROM_NAME="${APP_NAME}"
+### Runtime-only Environment Variables
+Set these as "Runtime only" in Coolify:
+```env
+APP_ENV=production
+APP_DEBUG=false
 ```
 
 ### Step 4: Generate Application Key
@@ -189,10 +193,10 @@ Set up regular database backups in Coolify:
    - Check your deployment platform's Node.js version settings
    - If using Coolify, verify the Node.js version in project settings
 
-5. **Migration Errors**:
-   - Run `php artisan migrate:status` to check migration status
-   - Use `php artisan migrate:rollback` if needed
-   - Check database user permissions
+5. **Build-time Environment Variable Warning**:
+   - Set `APP_ENV=production` and `APP_DEBUG=false` as "Runtime only" in Coolify
+   - This prevents build-time issues while maintaining production settings at runtime
+   - Build-time variables should not include environment-specific settings
 
 ### Debug Mode
 
