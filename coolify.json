@@ -1,0 +1,52 @@
+{
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "deploy": {
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 100,
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 3
+  },
+  "environments": [
+    {
+      "name": "production",
+      "variables": [
+        {
+          "key": "APP_DEBUG",
+          "value": "false"
+        },
+        {
+          "key": "APP_ENV",
+          "value": "production"
+        },
+        {
+          "key": "APP_MAINTENANCE_DRIVER",
+          "value": "file"
+        },
+        {
+          "key": "CACHE_STORE",
+          "value": "file"
+        },
+        {
+          "key": "FILESYSTEM_DISK",
+          "value": "public"
+        },
+        {
+          "key": "MAIL_MAILER",
+          "value": "log"
+        },
+        {
+          "key": "SESSION_DRIVER",
+          "value": "file"
+        }
+      ]
+    }
+  ],
+  "postDeployment": [
+    {
+      "name": "Laravel Optimization",
+      "command": "php artisan optimize:clear && php artisan config:clear && php artisan route:clear && php artisan view:clear && php artisan optimize"
+    }
+  ]
+}
