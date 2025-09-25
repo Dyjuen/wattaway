@@ -7,6 +7,8 @@ This guide will help you deploy your Laravel 12 application to an Ubuntu server 
 - Ubuntu server with Coolify installed
 - Domain name pointing to your server
 - Git repository with your Laravel application
+- **Node.js 22.12.0 or higher** (required for Vite 7.x compatibility)
+- PHP 8.3 or higher
 
 ## Project Configuration
 
@@ -47,7 +49,8 @@ The following deployment files have been created:
 3. Select "From Git Repository"
 4. Enter your repository URL
 5. Choose the branch (main)
-6. Click "Deploy"
+6. **Important**: Ensure Node.js version is set to 22 in the build settings
+7. Click "Deploy"
 
 ### Step 3: Configure Environment Variables
 
@@ -180,7 +183,13 @@ Set up regular database backups in Coolify:
    - Clear browser cache
    - Check for 404 errors on static assets
 
-4. **Migration Errors**:
+4. **Node.js Version Error**:
+   - Ensure your deployment platform uses Node.js 22.12.0 or higher
+   - The project requires Node.js >=22.12.0 for Vite 7.x compatibility
+   - Check your deployment platform's Node.js version settings
+   - If using Coolify, verify the Node.js version in project settings
+
+5. **Migration Errors**:
    - Run `php artisan migrate:status` to check migration status
    - Use `php artisan migrate:rollback` if needed
    - Check database user permissions
