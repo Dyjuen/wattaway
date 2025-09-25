@@ -10,4 +10,35 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    build: {
+        // Enable source maps for production debugging
+        sourcemap: false,
+        // Minify CSS and JS
+        cssMinify: true,
+        // Generate manifest for better caching
+        manifest: true,
+        // Optimize chunks
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: ['axios'],
+                    tailwind: ['tailwindcss'],
+                },
+            },
+        },
+        // Increase chunk size warning limit
+        chunkSizeWarningLimit: 1000,
+    },
+    // Optimize dependencies
+    optimizeDeps: {
+        include: ['axios', 'tailwindcss'],
+    },
+    // Server configuration for development
+    server: {
+        host: '0.0.0.0',
+        port: 5173,
+        watch: {
+            usePolling: true,
+        },
+    },
 });
