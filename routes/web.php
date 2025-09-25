@@ -19,6 +19,11 @@ use App\Http\Controllers\AuthController;
 Route::get('/', function () {
     return view('home');
 });
+
+// Health check endpoint for deployment monitoring
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok', 'timestamp' => now()->toISOString()]);
+});
 Route::get('/faq', function () {
     return view('faq');
 });
