@@ -85,36 +85,50 @@ APP_DEBUG=false
 
 ### Step 4: Generate Application Key
 
-Run this command in Coolify's terminal:
+**Note**: The application key and other setup commands are now run as post-deployment commands automatically.
 
+### Step 5: Verify Deployment
+
+After deployment completes, check that your application is running:
+
+1. **Check application health**: `curl https://your-domain.com/health`
+2. **Check database connectivity**: The migrations should have run automatically
+3. **Verify file permissions**: The setup script should have run automatically
+
+## Manual Setup (If Post-deployment Commands Fail)
+
+If the automatic post-deployment commands fail, follow these manual steps in Coolify's terminal:
+
+### Step 1: Generate Application Key
 ```bash
 php artisan key:generate
 ```
 
-**Note**: If you need to get the key value for environment variables, use:
-```bash
-php artisan key:generate --show
-```
-
-### Step 5: Run Database Migrations
-
+### Step 2: Run Database Migrations
 ```bash
 php artisan migrate --force
 ```
 
-### Step 6: Set Storage Permissions
-
+### Step 3: Set File Permissions
 ```bash
 ./setup-permissions.sh
 ```
 
-### Step 7: Build Assets
-
+### Step 4: Cache Configuration
 ```bash
-npm run build
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 ```
 
-## Local Development with Docker
+### Step 5: Verify Everything Works
+```bash
+# Check application health
+curl https://your-domain.com/health
+
+# Check if migrations ran successfully
+php artisan migrate:status
+```
 
 To test your application locally with MySQL before deployment:
 
@@ -193,10 +207,14 @@ Set up regular database backups in Coolify:
    - Check your deployment platform's Node.js version settings
    - If using Coolify, verify the Node.js version in project settings
 
-5. **Build-time Environment Variable Warning**:
-   - Set `APP_ENV=production` and `APP_DEBUG=false` as "Runtime only" in Coolify
-   - This prevents build-time issues while maintaining production settings at runtime
-   - Build-time variables should not include environment-specific settings
+5. **Post-deployment Command Failed**:
+   - **Issue**: Container runtime error during post-deployment commands
+   - **Symptoms**: Deployment succeeds but migrations/permissions fail to run
+   - **Solutions**:
+     - Run commands manually in Coolify terminal (see manual steps below)
+     - Check container logs: `docker logs <container-name>`
+     - Ensure all services (MySQL, Redis) are healthy before deployment
+     - Try redeploying after fixing any service issues
 
 ### Debug Mode
 
