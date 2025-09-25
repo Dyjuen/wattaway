@@ -1,7 +1,7 @@
 FROM unit:1.34.1-php8.3
 
 RUN apt update && apt install -y \
-    curl unzip git libicu-dev libzip-dev libpng-dev libjpeg-dev libfreetype6-dev libssl-dev \
+    curl wget unzip git libicu-dev libzip-dev libpng-dev libjpeg-dev libfreetype6-dev libssl-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) pcntl opcache pdo pdo_mysql intl zip gd exif ftp bcmath \
     && pecl install redis \
@@ -31,8 +31,5 @@ RUN composer install --prefer-dist --optimize-autoloader --no-interaction
 COPY unit.json /docker-entrypoint.d/unit.json
 
 EXPOSE 8000
-
-HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
 
 CMD ["unitd", "--no-daemon"]
