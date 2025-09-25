@@ -32,4 +32,7 @@ COPY unit.json /docker-entrypoint.d/unit.json
 
 EXPOSE 8000
 
-CMD ["unitd", "--no-daemon"]
+# Ensure proper permissions for Unit
+RUN chown -R unit:unit /var/lib/unit /var/log/unit /var/run/unit
+
+CMD ["unitd", "--no-daemon", "--log", "/dev/stdout"]

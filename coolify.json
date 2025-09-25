@@ -19,8 +19,16 @@
           "value": "production"
         },
         {
+          "key": "APP_KEY",
+          "value": "${APP_KEY}"
+        },
+        {
           "key": "APP_MAINTENANCE_DRIVER",
           "value": "file"
+        },
+        {
+          "key": "APP_NAME",
+          "value": "Wattaway"
         },
         {
           "key": "CACHE_STORE",
@@ -37,6 +45,30 @@
         {
           "key": "SESSION_DRIVER",
           "value": "file"
+        },
+        {
+          "key": "DB_CONNECTION",
+          "value": "${DB_CONNECTION}"
+        },
+        {
+          "key": "DB_DATABASE",
+          "value": "${DB_DATABASE}"
+        },
+        {
+          "key": "DB_HOST",
+          "value": "${DB_HOST}"
+        },
+        {
+          "key": "DB_PASSWORD",
+          "value": "${DB_PASSWORD}"
+        },
+        {
+          "key": "DB_PORT",
+          "value": "${DB_PORT}"
+        },
+        {
+          "key": "DB_USERNAME",
+          "value": "${DB_USERNAME}"
         }
       ]
     }
