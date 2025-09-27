@@ -19,6 +19,9 @@ class Esp32Message extends Model
         'ip_address',
         'arduino_time',
         'led_state',
+        'endpoint',
+        'user_agent',
+        'payload',
     ];
 
     /**

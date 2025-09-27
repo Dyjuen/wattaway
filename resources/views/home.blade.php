@@ -79,14 +79,15 @@
                  <div class="md:hidden flex flex-col space-y-4 mt-8 w-full items-center">
                     <div class="bg-black/20 backdrop-blur-md border border-white/10 rounded-3xl p-6 max-w-xs shadow-2xl">
                         <p class="text-lg leading-relaxed text-gray-200">
-                           which lets you control your <span class="text-pink-400 font-semibold">smart socket</span> directly from here-!
+                            <span class="text-pink-400 font-semibold">Effortless energy management</span>, right at your fingertips
                         </p>
                     </div>
                     <div class="bg-black/20 backdrop-blur-md border border-white/10 rounded-3xl p-6 max-w-xs shadow-2xl">
                         <p class="text-lg leading-relaxed text-gray-200">
-                            <span class="text-pink-400 font-semibold">Effortless energy management</span>, right at your fingertips
+                           which lets you control your <span class="text-pink-400 font-semibold">smart socket</span> directly from here-!
                         </p>
                     </div>
+                    
                 </div>
             </div>
         </main>
@@ -170,12 +171,71 @@
              <!-- Text content is now positioned below the image -->
              <div class="relative mt-8">
                 <h2 class="text-4xl md:text-5xl font-bold mb-10 stagger-item">Contact Us</h2>
-                 <div class="text-xl max-w-2xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 text-left stagger-item">
-                    <p><span class="font-semibold text-gray-400 w-28 inline-block">no :</span> <span class="text-purple-300">placeholder</span></p>
-                    <p><span class="font-semibold text-gray-400 w-28 inline-block">shope acc :</span> <span class="text-purple-300">placeholder</span></p>
-                    <p><span class="font-semibold text-gray-400 w-28 inline-block">email :</span> <span class="text-purple-300">placeholder</span></p>
-                    <p><span class="font-semibold text-gray-400 w-28 inline-block">tokopedia acc :</span> <span class="text-purple-300">placeholder</span></p>
-                    <p><span class="font-semibold text-gray-400 w-28 inline-block">instagram :</span> <span class="text-purple-300">placeholder</span></p>
+                 <div class="text-xl max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 text-left stagger-item">
+                    <!-- Phone -->
+                    <div class="group flex items-center p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300">
+                        <div class="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mr-4 group-hover:bg-green-500/30 transition-colors">
+                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-400 mb-1">Phone Number</p>
+                            <a href="https://wa.me/6285119882237" class="text-purple-300 font-medium">+62 851-1988-2237</a>
+                        </div>
+                    </div>
+
+                    <!-- Shopee -->
+                    <div class="group flex items-center p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300">
+                        <div class="w-12 h-12 bg-orange-500/20 rounded-full flex items-center justify-center mr-4 group-hover:bg-orange-500/30 transition-colors">
+                            <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-400 mb-1">Shopee Store</p>
+                            <a href="http://shopee.co.id/wattaway" class="text-purple-300 hover:text-purple-200 font-medium transition-colors">shopee.co.id/wattaway</a>
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="group flex items-center p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300">
+                        <div class="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mr-4 group-hover:bg-blue-500/30 transition-colors">
+                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-400 mb-1">Email Address</p>
+                            <a href="mailto:wattaway.project@gmail.com" class="text-purple-300 hover:text-purple-200 font-medium transition-colors">wattaway.project@gmail.com</a>
+                        </div>
+                    </div>
+
+                    <!-- Tokopedia -->
+                    <div class="group flex items-center p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300">
+                        <div class="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mr-4 group-hover:bg-red-500/30 transition-colors">
+                            <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-400 mb-1">Tokopedia Store</p>
+                            <p class="text-gray-500 font-medium">Coming Soon</p>
+                        </div>
+                    </div>
+
+                    <!-- Instagram -->
+                    <div class="group flex items-center p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300 md:col-span-2 max-w-md mx-auto">
+                        <div class="w-12 h-12 bg-pink-500/20 rounded-full flex items-center justify-center mr-4 group-hover:bg-pink-500/30 transition-colors">
+                            <svg class="w-6 h-6 text-pink-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987s11.987-5.367 11.987-11.987C24.014 5.367 18.647.001 12.017.001zM8.449 16.988c-1.297 0-2.448-.49-3.337-1.297-.889-.807-1.337-1.807-1.337-2.988 0-1.181.448-2.181 1.337-2.988.889-.807 2.04-1.297 3.337-1.297s2.448.49 3.337 1.297c.889.807 1.337 1.807 1.337 2.988 0 1.181-.448 2.181-1.337 2.988-.889.807-2.04 1.297-3.337 1.297z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-400 mb-1">Instagram</p>
+                            <a href="https://instagram.com/wattaway.project" class="text-purple-300 hover:text-purple-200 font-medium transition-colors">@wattaway.project</a>
+                        </div>
+                    </div>
                  </div>
                  <div class="mt-16 text-black/40 opacity-50 stagger-item" style="font-size: 8rem; filter: blur(2px);">&#9789;</div>
              </div>

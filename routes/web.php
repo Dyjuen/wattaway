@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Esp32Controller;
 use App\Http\Controllers\Esp32MessageController;
 use Illuminate\Support\Facades\Route;
 
@@ -40,12 +41,7 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->name('dashboard');
 
-Route::get('/settings', function () {
-    if (!auth()->guard('account')->check()) {
-        return redirect()->route('login');
-    }
-    return view('settings');
-})->name('settings');
+Route::get('/settings', [Esp32Controller::class, 'settings'])->name('settings');
 
 Route::get('/information', function () {
     if (!auth()->guard('account')->check()) {
@@ -63,6 +59,12 @@ Route::get('/control', function () {
 Route::get('/wifisetup', function () {
     return view('esp32.wifisetup');
 })->name('esp32.wifisetup');
+
+// ESP32 Configuration Routes
+Route::prefix('esp32')->group(function () {
+    Route::post('/{deviceId}/configuration', [Esp32Controller::class, 'updateConfiguration'])->name('esp32.configuration.update');
+    Route::get('/{deviceId}/configuration', [Esp32Controller::class, 'getConfiguration'])->name('esp32.configuration.get');
+});
 
 // ESP32 Messages Management
 Route::prefix('esp32/messages')->group(function () {

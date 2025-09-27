@@ -190,7 +190,7 @@
             <!-- Footer -->
             <div class="text-center mt-8 animate-slide-up">
                 <p class="text-gray-400 text-sm">
-                    © 2024 Wattaway. Smart energy management for modern living.
+                    © 2025 Wattaway. Smart energy management for modern living.
                 </p>
             </div>
         </div>

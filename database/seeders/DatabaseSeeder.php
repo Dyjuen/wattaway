@@ -13,11 +13,18 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Create test account (or get existing one)
+        $account = \App\Models\Account::firstOrCreate(
+            ['email' => 'test@example.com'],
+            [
+                'username' => 'testuser',
+                'password' => bcrypt('password'),
+            ]
+        );
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        $this->call([
+            ProductSeeder::class,
+            DeviceSeeder::class,
         ]);
     }
 }

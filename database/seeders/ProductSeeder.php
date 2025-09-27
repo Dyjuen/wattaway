@@ -15,29 +15,9 @@ class ProductSeeder extends Seeder
     {
         $products = [
             [
-                'name' => 'Smart Energy Monitor',
-                'description' => 'Monitor your home energy consumption in real-time',
-                'price' => 99.99,
-            ],
-            [
-                'name' => 'Solar Panel Kit',
-                'description' => 'Complete solar panel installation kit for residential use',
-                'price' => 299.99,
-            ],
-            [
-                'name' => 'Energy Storage Battery',
-                'description' => 'High-capacity battery for energy storage and backup',
-                'price' => 199.99,
-            ],
-            [
-                'name' => 'Smart Thermostat',
-                'description' => 'AI-powered thermostat for optimal energy efficiency',
-                'price' => 149.99,
-            ],
-            [
-                'name' => 'LED Lighting Package',
-                'description' => 'Complete home LED lighting upgrade package',
-                'price' => 79.99,
+                'name' => 'Wattaway Smart Socket',
+                'description' => 'Smart energy management socket with real-time monitoring, timer controls, and power limit features. Control your devices remotely and optimize energy usage.',
+                'price' => 89.99,
             ],
         ];
 
