@@ -53,11 +53,11 @@
         <main id="top" class="hero-section flex-grow w-full max-w-7xl mx-auto flex flex-col items-center justify-center text-center mt-16 z-10 px-6 stagger-container">
             <!-- Hero Section -->
             <h2 class="text-2xl md:text-3xl text-gray-300 hero-subtitle">Welcome!</h2>
-            <h1 class="font-brand text-7xl md:text-9xl font-black my-4 bg-gradient-to-b from-white to-gray-400 bg-clip-text text-transparent hero-title" style="text-shadow: 0 5px 15px rgba(0,0,0,0.3);">
-                WattAway
+            <h1 class="font-brand md:text-9xl font-black my-4 hero-title" style="text-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+                <img src="{{ asset('images/wattaway.svg') }}" alt="WattAway" class="h-20 md:h-28 lg:h-36 w-auto inline-block" style="filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));">
             </h1>
 
-            <div class="relative mt-8 md:mt-4 w-full flex flex-col md:flex-row justify-center items-center">
+            <div class="relative md:mt-4 w-full flex flex-col md:flex-row justify-center items-center">
                 <!-- Mascot Image -->
                 <img src="{{ asset('images/mascot.svg') }}" alt="WattAway Mascot" class="w-[28rem] h-[28rem] md:w-[50rem] md:h-[50rem] object-contain z-0 hero-mascot stagger-item">
 

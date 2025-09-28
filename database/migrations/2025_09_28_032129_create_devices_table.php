@@ -11,13 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('account_product', function (Blueprint $table) {
+        Schema::create('devices', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('account_id')->constrained()->onDelete('cascade');
-            $table->foreignId('product_id')->constrained()->onDelete('cascade');
+            $table->foreignId('account_id')->constrained('accounts')->onDelete('cascade');
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->string('status')->default('offline');
+            $table->timestamp('last_seen_at')->nullable();
             $table->timestamps();
-
-            $table->unique(['account_id', 'product_id']);
         });
     }
 
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('account_product');
+        Schema::dropIfExists('devices');
     }
 };

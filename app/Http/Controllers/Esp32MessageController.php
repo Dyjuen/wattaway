@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Esp32Message;
+use App\Models\Esp32MessageLog;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
@@ -19,22 +19,27 @@ class Esp32MessageController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = Esp32Message::query();
-            
+            $query = Esp32MessageLog::query();
+
             // Filter by direction if provided
             if ($direction = $request->input('direction')) {
                 $query->where('direction', $direction);
             }
-            
+
             // Filter by date range if provided
             if ($startDate = $request->input('start_date')) {
                 $query->where('created_at', '>=', $startDate);
             }
-            
+
             if ($endDate = $request->input('end_date')) {
                 $query->where('created_at', '<=', $endDate . ' 23:59:59');
             }
-            
+
+            // Filter by device_id if provided
+            if ($deviceId = $request->input('device_id')) {
+                $query->where('device_id', $deviceId);
+            }
+
             // Get messages since a specific timestamp (for polling)
             if (($since = $request->input('since')) !== null) {
                 try {
@@ -46,18 +51,18 @@ class Esp32MessageController extends Controller
                     Log::warning('Invalid since parameter provided', ['since' => $since, 'error' => $e->getMessage()]);
                 }
             }
-            
+
             // Order by creation date, newest first
             $messages = $query->orderBy('created_at', 'desc')
                              ->limit(100) // Limit to prevent excessive data transfer
                              ->get();
-            
+
             return response()->json([
                 'status' => 'success',
                 'data' => $messages,
                 'last_update' => now()->timestamp,
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('Error retrieving ESP32 messages: ' . $e->getMessage());
             return response()->json([
@@ -78,20 +83,20 @@ class Esp32MessageController extends Controller
     {
         try {
             $since = $request->query('since', 0);
-            
-            $query = Esp32Message::query()
-                ->since($since)
+
+            $query = Esp32MessageLog::query()
+                ->where('created_at', '>', Carbon::createFromTimestamp((int) $since))
                 ->orderBy('created_at', 'desc')
                 ->limit(50);
-            
+
             $messages = $query->get();
-            
+
             return response()->json([
                 'status' => 'success',
                 'messages' => $messages,
                 'lastUpdate' => now()->timestamp,
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('Error in getMessages: ' . $e->getMessage());
             return response()->json([
@@ -111,29 +116,34 @@ class Esp32MessageController extends Controller
     {
         try {
             $data = $request->json()->all();
-            
+
             // Log the raw request data for debugging
             Log::info('Received ESP32 message:', $data);
-            
+
             // Create the message
-            $message = Esp32Message::createIncoming(
-                is_array($data) ? json_encode($data) : $data,
-                [
+            $message = Esp32MessageLog::create([
+                'device_id' => null, // Will be determined by device lookup
+                'content' => is_array($data) ? json_encode($data) : $data,
+                'direction' => 'incoming',
+                'metadata' => [
                     'user_agent' => $request->userAgent(),
                     'headers' => $request->headers->all(),
-                ]
-            );
-            
+                ],
+                'ip_address' => $request->ip(),
+                'endpoint' => $request->path(),
+                'payload' => json_encode($data)
+            ]);
+
             // Broadcast the message to the control panel via WebSocket if needed
             // This would be implemented with Laravel Broadcasting
-            
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Message received and stored',
                 'id' => $message->id,
                 'timestamp' => $message->created_at->toDateTimeString(),
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('Error storing ESP32 message: ' . $e->getMessage());
             return response()->json([
@@ -152,13 +162,13 @@ class Esp32MessageController extends Controller
     public function clear(): JsonResponse
     {
         try {
-            $count = Esp32Message::query()->delete();
-            
+            $count = Esp32MessageLog::query()->delete();
+
             return response()->json([
                 'status' => 'success',
                 'message' => "Successfully deleted {$count} messages",
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('Error clearing messages: ' . $e->getMessage());
             return response()->json([
@@ -177,19 +187,19 @@ class Esp32MessageController extends Controller
     {
         try {
             // Get the most recent message
-            $lastMessage = Esp32Message::latest('created_at')->first();
-            
+            $lastMessage = Esp32MessageLog::latest('created_at')->first();
+
             // Count total messages
-            $messageCount = Esp32Message::count();
-            
+            $messageCount = Esp32MessageLog::count();
+
             // Check if we have any recent activity (within the last 5 minutes)
             $recentActivity = $lastMessage && $lastMessage->created_at->gt(now()->subMinutes(5));
-            
+
             // Get the last message time as a timestamp
             $lastMessageTime = $lastMessage ? $lastMessage->created_at->toIso8601String() : null;
-            
+
             // Get recent messages (last 5)
-            $recentMessages = Esp32Message::latest('created_at')
+            $recentMessages = Esp32MessageLog::latest('created_at')
                 ->limit(5)
                 ->get()
                 ->map(function ($message) {
@@ -200,7 +210,7 @@ class Esp32MessageController extends Controller
                         'created_at' => $message->created_at->toIso8601String(),
                     ];
                 });
-            
+
             return response()->json([
                 'status' => 'success',
                 'connected' => $recentActivity,
@@ -209,10 +219,10 @@ class Esp32MessageController extends Controller
                 'recent_messages' => $recentMessages,
                 'server_time' => now()->toIso8601String(),
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('Error getting system status: ' . $e->getMessage());
-            
+
             return response()->json([
                 'status' => 'error',
                 'connected' => false,

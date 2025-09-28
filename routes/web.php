@@ -34,41 +34,36 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-Route::get('/dashboard', function () {
-    if (!auth()->guard('account')->check()) {
-        return redirect()->route('login');
-    }
-    return view('dashboard');
-})->name('dashboard');
+Route::middleware(['auth:account'])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
 
-Route::get('/settings', [Esp32Controller::class, 'settings'])->name('settings');
+    Route::get('/settings', [Esp32Controller::class, 'settings'])->name('settings');
 
-Route::get('/information', function () {
-    if (!auth()->guard('account')->check()) {
-        return redirect()->route('login');
-    }
-    return view('information');
-})->name('information');
+    Route::get('/information', function () {
+        return view('information');
+    })->name('information');
 
+    // ESP32 Configuration Routes
+    Route::prefix('esp32')->group(function () {
+        Route::post('/{deviceId}/configuration', [Esp32Controller::class, 'updateConfiguration'])->name('esp32.configuration.update');
+        Route::get('/{deviceId}/configuration', [Esp32Controller::class, 'getConfiguration'])->name('esp32.configuration.get');
+    });
 
-// ESP32 Control Panel
-Route::get('/control', function () {
-    return view('esp32.control');
-})->name('esp32.control');
+    // ESP32 Messages Management
+    Route::prefix('esp32/messages')->group(function () {
+        Route::get('/', [Esp32MessageController::class, 'index'])->name('esp32.messages.index');
+        Route::get('/recent', [Esp32MessageController::class, 'getMessages'])->name('esp32.messages.recent');
+        Route::delete('/clear', [Esp32MessageController::class, 'clear'])->name('esp32.messages.clear');
+    });
 
-Route::get('/wifisetup', function () {
-    return view('esp32.wifisetup');
-})->name('esp32.wifisetup');
+    // ESP32 Control Panel (Public routes for ESP32 setup)
+    Route::get('/control', function () {
+        return view('esp32.control');
+    })->name('esp32.control');
 
-// ESP32 Configuration Routes
-Route::prefix('esp32')->group(function () {
-    Route::post('/{deviceId}/configuration', [Esp32Controller::class, 'updateConfiguration'])->name('esp32.configuration.update');
-    Route::get('/{deviceId}/configuration', [Esp32Controller::class, 'getConfiguration'])->name('esp32.configuration.get');
-});
-
-// ESP32 Messages Management
-Route::prefix('esp32/messages')->group(function () {
-    Route::get('/', [Esp32MessageController::class, 'index'])->name('esp32.messages.index');
-    Route::get('/recent', [Esp32MessageController::class, 'getMessages'])->name('esp32.messages.recent');
-    Route::delete('/clear', [Esp32MessageController::class, 'clear'])->name('esp32.messages.clear');
+    Route::get('/wifisetup', function () {
+        return view('esp32.wifisetup');
+    })->name('esp32.wifisetup');
 });

@@ -4,17 +4,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Esp32Message;
+use App\Models\Esp32MessageLog;
+use App\Models\Device;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class Esp32Controller extends Controller
 {
     use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
     use \Illuminate\Foundation\Validation\ValidatesRequests;
-    
+
     /**
      * Create a new controller instance.
      *
@@ -50,16 +52,20 @@ class Esp32Controller extends Controller
             ]);
             
             // Store the message in the database
-            $message = Esp32Message::createIncoming(
-                json_encode($data),
-                [
+            $message = Esp32MessageLog::create([
+                'device_id' => null, // Will be determined by device lookup
+                'content' => json_encode($data),
+                'direction' => 'incoming',
+                'metadata' => [
                     'endpoint' => '/api/http-post',
                     'user_agent' => $request->userAgent(),
-                    'ip_address' => $request->ip(),
                     'arduino_time' => $validated['time'],
                     'led_state' => $validated['led_state']
-                ]
-            );
+                ],
+                'ip_address' => $request->ip(),
+                'endpoint' => '/api/http-post',
+                'payload' => json_encode($data)
+            ]);
             
             // Return a success response
             return response()->json([
@@ -146,16 +152,20 @@ class Esp32Controller extends Controller
             $ledState = in_array(strtolower($ledState), ['on', 'off']) ? strtolower($ledState) : 'off';
             
             // Store the message in the database
-            $message = Esp32Message::createIncoming(
-                json_encode($data),
-                [
+            $message = Esp32MessageLog::create([
+                'device_id' => null, // Will be determined by device lookup
+                'content' => json_encode($data),
+                'direction' => 'incoming',
+                'metadata' => [
                     'endpoint' => '/api/arduino-json',
                     'user_agent' => $request->userAgent() ?: 'ESP32HTTPClient',
-                    'ip_address' => $request->ip() ?: '127.0.0.1',
                     'arduino_time' => $arduinoTime,
                     'led_state' => $ledState
-                ]
-            );
+                ],
+                'ip_address' => $request->ip() ?: '127.0.0.1',
+                'endpoint' => '/api/arduino-json',
+                'payload' => json_encode($data)
+            ]);
             
             // Log successful storage
             Log::info('Successfully stored ESP32 message', [
@@ -186,20 +196,22 @@ class Esp32Controller extends Controller
     }
     public function settings()
     {
-        // Get all ESP32 devices (messages) for the current user
-        $devices = \App\Models\Esp32Message::where('ip_address', '!=', '127.0.0.1')
-            ->distinct('ip_address')
-            ->pluck('ip_address')
-            ->map(function ($ip) {
-                return (object) [
-                    'id' => $ip,
-                    'name' => 'Smart Socket',
-                    'device_id' => $ip,
-                    'type' => 'esp32',
-                    'status' => 'online',
-                    'configurations' => $this->getDeviceConfigurations($ip)
-                ];
-            });
+        // Get all devices for the authenticated user
+        $account = Auth::guard('account')->user();
+        if (!$account) {
+            return redirect()->route('login');
+        }
+
+        $devices = $account->devices->map(function ($device) {
+            return (object) [
+                'id' => $device->id,
+                'name' => $device->name,
+                'device_id' => $device->id,
+                'type' => 'esp32',
+                'status' => $device->status,
+                'configurations' => $this->getDeviceConfigurations($device->id)
+            ];
+        });
 
         return view('settings', compact('devices'));
     }
@@ -250,14 +262,18 @@ class Esp32Controller extends Controller
                 ];
             }
 
-            // Store configuration in database (using Esp32Message table for now)
-            \App\Models\Esp32Message::create([
+            // Store configuration in database using Esp32MessageLog
+            Esp32MessageLog::create([
+                'device_id' => (int) $deviceId,
+                'content' => 'Device configuration updated',
+                'direction' => 'outgoing',
+                'metadata' => [
+                    'configurations' => $configurations,
+                    'updated_by' => 'user'
+                ],
+                'ip_address' => $request->ip(),
                 'endpoint' => '/esp32/configuration/' . $deviceId,
-                'user_agent' => 'DeviceConfiguration',
-                'ip_address' => $deviceId,
-                'payload' => json_encode($configurations),
-                'arduino_time' => now()->toIso8601String(),
-                'led_state' => 'config'
+                'payload' => json_encode($configurations)
             ]);
 
             return response()->json(['message' => 'Device configuration updated successfully']);
@@ -270,7 +286,7 @@ class Esp32Controller extends Controller
     public function getConfiguration($deviceId)
     {
         // Get the latest configuration for this device
-        $latestConfig = \App\Models\Esp32Message::where('ip_address', $deviceId)
+        $latestConfig = Esp32MessageLog::where('device_id', $deviceId)
             ->where('endpoint', '/esp32/configuration/' . $deviceId)
             ->latest()
             ->first();
@@ -289,7 +305,7 @@ class Esp32Controller extends Controller
 
     private function getDeviceConfigurations($deviceId)
     {
-        $latestConfig = \App\Models\Esp32Message::where('ip_address', $deviceId)
+        $latestConfig = Esp32MessageLog::where('device_id', $deviceId)
             ->where('endpoint', '/esp32/configuration/' . $deviceId)
             ->latest()
             ->first();
