@@ -3,13 +3,15 @@
 <head>
     <meta charset="utf-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
-
+    <title>Settings - WattAway</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@900&display=swap" rel="stylesheet">
+
+    <!-- Preload critical background image -->
+    <link rel="preload" as="image" href="{{ asset('images/bg-main.png') }}">
 
     <!-- Animations -->
     <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
@@ -21,15 +23,22 @@
         body {
             font-family: 'Inter', sans-serif;
             scroll-behavior: smooth;
-        }
-        .font-brand {
-            font-family: 'Playfair Display', serif;
+            /* Immediate fallback background color to prevent white flash */
+            background-color: #0B0F2A;
         }
         .settings-bg {
             background-image: url("{{ asset('images/bg-main.png') }}");
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
+            /* Ensure smooth transition from fallback color */
+            transition: opacity 0.3s ease-in-out;
+        }
+        .settings-bg.bg-loaded {
+            opacity: 1;
+        }
+        body:not(.bg-loaded) .settings-bg {
+            opacity: 0.8;
         }
         .glass-card {
             background: rgba(255, 255, 255, 0.1);
@@ -97,13 +106,19 @@
 
 <body class="antialiased text-white settings-bg min-h-screen">
     <script>
-        // Immediate animation debug
-        console.log('Settings page loading...');
-
-        // Force animations immediately
+        // Immediate background image preloader
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, triggering animations...');
+            // Preload the background image immediately
+            const bgImage = new Image();
+            bgImage.onload = function() {
+                document.body.classList.add('bg-loaded');
+            };
+            bgImage.src = "{{ asset('images/bg-main.png') }}";
 
+            // Immediate animation debug
+            console.log('Settings page loading...');
+
+            // Force animations immediately
             setTimeout(() => {
                 console.log('Triggering animations now...');
 

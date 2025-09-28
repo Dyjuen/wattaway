@@ -32,7 +32,7 @@
 
                     <!-- Desktop Action Buttons -->
                     <div class="hidden md:flex items-center space-x-4">
-                        @if(request()->routeIs('dashboard'))
+                        @if(request()->routeIs('dashboard') || request()->routeIs('settings') || request()->routeIs('information') || request()->routeIs('esp32.control'))
                             <form method="POST" action="{{ route('logout') }}" class="inline">
                                 @csrf
                                 <button type="submit" class="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-2 rounded-full transition-colors">

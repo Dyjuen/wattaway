@@ -11,6 +11,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@900&display=swap" rel="stylesheet">
 
+    <!-- Preload critical background image -->
+    <link rel="preload" as="image" href="{{ asset('images/bg-main.png') }}">
+
     <!-- Animations -->
     <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
     <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
@@ -21,15 +24,22 @@
         body {
             font-family: 'Inter', sans-serif;
             scroll-behavior: smooth;
-        }
-        .font-brand {
-            font-family: 'Playfair Display', serif;
+            /* Immediate fallback background color to prevent white flash */
+            background-color: #0B0F2A;
         }
         .dashboard-bg {
             background-image: url("{{ asset('images/bg-main.png') }}");
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
+            /* Ensure smooth transition from fallback color */
+            transition: opacity 0.3s ease-in-out;
+        }
+        .dashboard-bg.bg-loaded {
+            opacity: 1;
+        }
+        body:not(.bg-loaded) .dashboard-bg {
+            opacity: 0.8;
         }
         .glass-card {
             background: rgba(255, 255, 255, 0.1);
@@ -317,7 +327,15 @@
     </div>
 
     <script>
+        // Immediate background image preloader
         document.addEventListener('DOMContentLoaded', function() {
+            // Preload the background image immediately
+            const bgImage = new Image();
+            bgImage.onload = function() {
+                document.body.classList.add('bg-loaded');
+            };
+            bgImage.src = "{{ asset('images/bg-main.png') }}";
+
             // Section Appear Animation Observer
             const sectionObserver = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
