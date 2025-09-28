@@ -34,6 +34,27 @@
         }
         /* Small style tweaks for accordion */
         [x-cloak] { display: none !important; }
+
+        /* FAQ Item Stagger Animation */
+        .faq-item.stagger-item {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .faq-item.stagger-item.animate-in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Enhanced stagger timing for FAQ items */
+        .faq-item.stagger-item:nth-child(1) { transition-delay: 0.1s; }
+        .faq-item.stagger-item:nth-child(2) { transition-delay: 0.2s; }
+        .faq-item.stagger-item:nth-child(3) { transition-delay: 0.3s; }
+        .faq-item.stagger-item:nth-child(4) { transition-delay: 0.4s; }
+        .faq-item.stagger-item:nth-child(5) { transition-delay: 0.5s; }
+        .faq-item.stagger-item:nth-child(6) { transition-delay: 0.6s; }
+        .faq-item.stagger-item:nth-child(7) { transition-delay: 0.7s; }
     </style>
 </head>
 
@@ -97,64 +118,65 @@
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between cursor-pointer" onclick="toggleFAQ(this)">
-                            <h3 class="text-lg font-semibold">How do I set up my WattAway smart socket?</h3>
-                            <svg class="w-6 h-6 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </div>
-                        <div class="faq-content mt-4 hidden">
-                            <p class="text-gray-300">Setting up your WattAway smart socket is easy! First, plug the socket into a power outlet. Then, download the WattAway app and create an account. Use the app to scan for new devices and follow the on-screen instructions to connect your socket to your Wi-Fi network.</p>
-                        </div>
+                <div class="faq-item stagger-item bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg overflow-hidden">
+                    <button @click="open = open === 'faq-3' ? '' : 'faq-3'" class="faq-button w-full text-left p-5 flex justify-between items-center focus:outline-none">
+                        <span class="text-lg font-semibold text-white">How do I set up my WattAway smart socket?</span>
+                        <svg class="w-6 h-6 text-gray-300 faq-chevron transition-transform duration-300" :class="{ 'rotated': open === 'faq-3' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div x-show="open === 'faq-3'" x-cloak x-transition class="faq-content p-5 pt-0 text-gray-300">
+                        <p>Setting up your WattAway smart socket is easy! First, plug the socket into a power outlet. Then, download the WattAway app and create an account. Use the app to scan for new devices and follow the on-screen instructions to connect your socket to your Wi-Fi network.</p>
                     </div>
+                </div>
 
-                    <div class="glass-card rounded-xl p-6 faq-item stagger-item">
-                        <div class="flex items-center justify-between cursor-pointer" onclick="toggleFAQ(this)">
-                            <h3 class="text-lg font-semibold">Why is my device showing as offline?</h3>
-                            <svg class="w-6 h-6 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </div>
-                        <div class="faq-content mt-4 hidden">
-                            <p class="text-gray-300">If your device shows as offline, check the following: 1) Ensure your Wi-Fi network is working properly, 2) Check if the socket is properly plugged in and has power, 3) Try power cycling the socket by unplugging it for 10 seconds and plugging it back in, 4) Make sure the socket is within range of your Wi-Fi router.</p>
-                        </div>
+                <div class="faq-item stagger-item bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg overflow-hidden">
+                    <button @click="open = open === 'faq-4' ? '' : 'faq-4'" class="faq-button w-full text-left p-5 flex justify-between items-center focus:outline-none">
+                        <span class="text-lg font-semibold text-white">Why is my device showing as offline?</span>
+                        <svg class="w-6 h-6 text-gray-300 faq-chevron transition-transform duration-300" :class="{ 'rotated': open === 'faq-4' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div x-show="open === 'faq-4'" x-cloak x-transition class="faq-content p-5 pt-0 text-gray-300">
+                        <p>If your device shows as offline, check the following: 1) Ensure your Wi-Fi network is working properly, 2) Check if the socket is properly plugged in and has power, 3) Try power cycling the socket by unplugging it for 10 seconds and plugging it back in, 4) Make sure the socket is within range of your Wi-Fi router.</p>
                     </div>
+                </div>
 
-                    <div class="glass-card rounded-xl p-6 faq-item stagger-item">
-                        <div class="flex items-center justify-between cursor-pointer" onclick="toggleFAQ(this)">
-                            <h3 class="text-lg font-semibold">How do I monitor my energy usage?</h3>
-                            <svg class="w-6 h-6 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </div>
-                        <div class="faq-content mt-4 hidden">
-                            <p class="text-gray-300">You can monitor your energy usage through the WattAway dashboard. Once logged in, you'll see real-time energy consumption data, daily/weekly/monthly reports, and historical usage patterns. The dashboard also provides insights and recommendations for energy optimization.</p>
-                        </div>
+                <div class="faq-item stagger-item bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg overflow-hidden">
+                    <button @click="open = open === 'faq-5' ? '' : 'faq-5'" class="faq-button w-full text-left p-5 flex justify-between items-center focus:outline-none">
+                        <span class="text-lg font-semibold text-white">How do I monitor my energy usage?</span>
+                        <svg class="w-6 h-6 text-gray-300 faq-chevron transition-transform duration-300" :class="{ 'rotated': open === 'faq-5' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div x-show="open === 'faq-5'" x-cloak x-transition class="faq-content p-5 pt-0 text-gray-300">
+                        <p>You can monitor your energy usage through the WattAway dashboard. Once logged in, you'll see real-time energy consumption data, daily/weekly/monthly reports, and historical usage patterns. The dashboard also provides insights and recommendations for energy optimization.</p>
                     </div>
+                </div>
 
-                    <div class="glass-card rounded-xl p-6 faq-item stagger-item">
-                        <div class="flex items-center justify-between cursor-pointer" onclick="toggleFAQ(this)">
-                            <h3 class="text-lg font-semibold">Can I control multiple devices at once?</h3>
-                            <svg class="w-6 h-6 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </div>
-                        <div class="faq-content mt-4 hidden">
-                            <p class="text-gray-300">Yes! You can create device groups in the app to control multiple sockets simultaneously. You can also set up schedules and automation rules that apply to multiple devices, making it easy to manage your entire smart home ecosystem.</p>
-                        </div>
+                <div class="faq-item stagger-item bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg overflow-hidden">
+                    <button @click="open = open === 'faq-6' ? '' : 'faq-6'" class="faq-button w-full text-left p-5 flex justify-between items-center focus:outline-none">
+                        <span class="text-lg font-semibold text-white">Can I control multiple devices at once?</span>
+                        <svg class="w-6 h-6 text-gray-300 faq-chevron transition-transform duration-300" :class="{ 'rotated': open === 'faq-6' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div x-show="open === 'faq-6'" x-cloak x-transition class="faq-content p-5 pt-0 text-gray-300">
+                        <p>Yes! You can create device groups in the app to control multiple sockets simultaneously. You can also set up schedules and automation rules that apply to multiple devices, making it easy to manage your entire smart home ecosystem.</p>
                     </div>
+                </div>
 
-                    <div class="glass-card rounded-xl p-6 faq-item stagger-item">
-                        <div class="flex items-center justify-between cursor-pointer" onclick="toggleFAQ(this)">
-                            <h3 class="text-lg font-semibold">What should I do if my device isn't responding?</h3>
-                            <svg class="w-6 h-6 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </div>
-                        <div class="faq-content mt-4 hidden">
-                            <p class="text-gray-300">If your device isn't responding: 1) Check the app and try refreshing, 2) Restart the socket by unplugging it for 30 seconds, 3) Check your internet connection, 4) Try removing and re-adding the device in the app. If the problem persists, contact our support team.</p>
-                        </div>
+                <div class="faq-item stagger-item bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg overflow-hidden">
+                    <button @click="open = open === 'faq-7' ? '' : 'faq-7'" class="faq-button w-full text-left p-5 flex justify-between items-center focus:outline-none">
+                        <span class="text-lg font-semibold text-white">What should I do if my device isn't responding?</span>
+                        <svg class="w-6 h-6 text-gray-300 faq-chevron transition-transform duration-300" :class="{ 'rotated': open === 'faq-7' }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div x-show="open === 'faq-7'" x-cloak x-transition class="faq-content p-5 pt-0 text-gray-300">
+                        <p>If your device isn't responding: 1) Check the app and try refreshing, 2) Restart the socket by unplugging it for 30 seconds, 3) Check your internet connection, 4) Try removing and re-adding the device in the app. If the problem persists, contact our support team.</p>
                     </div>
+                </div>
             </div>
         </section>
     </div>
@@ -185,16 +207,19 @@
                 });
             }, 500);
 
-            // Staggered animation for FAQ items
+            // Staggered animation for FAQ items - improved timing
             setTimeout(() => {
-                const staggerItems = document.querySelectorAll('.stagger-item');
-                staggerItems.forEach((item, index) => {
+                const faqItems = document.querySelectorAll('.faq-item.stagger-item');
+                console.log('Found FAQ items for staggering:', faqItems.length);
+
+                faqItems.forEach((item, index) => {
                     setTimeout(() => {
-                        item.style.opacity = '1';
-                        item.style.transform = 'translateY(0)';
-                    }, index * 200);
+                        // Add visible class to trigger CSS animation
+                        item.classList.add('animate-in');
+                        console.log('Animating FAQ item:', index + 1, 'after', index * 150, 'ms');
+                    }, index * 150); // Faster, more consistent staggering
                 });
-            }, 1000);
+            }, 800); // Start earlier than before
         });
     </script>
 </body>
