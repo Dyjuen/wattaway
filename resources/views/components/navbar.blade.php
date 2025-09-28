@@ -21,12 +21,12 @@
                         <a href="/faq#top" data-section="top" class="nav-link hover:text-white transition-colors">FAQ Intro</a>
                         <a href="/faq#faq" data-section="faq" class="nav-link hover:text-white transition-colors">FAQ</a>
                     </div>
-                    @elseif(request()->routeIs('dashboard'))
+                    @elseif(request()->routeIs('dashboard') || request()->routeIs('settings') || request()->routeIs('information') || request()->routeIs('esp32.control'))
                     <div class="hidden md:flex items-center space-x-10 text-gray-300">
-                        <a href="{{ route('dashboard') }}" class="nav-link hover:text-white transition-colors text-white font-semibold">Dashboard</a>
-                        <a href="{{ route('settings') }}" class="nav-link hover:text-white transition-colors">Settings</a>
-                        <a href="{{ route('information') }}" class="nav-link hover:text-white transition-colors">Support</a>
-                        <a href="{{ route('esp32.control') }}" class="nav-link hover:text-white transition-colors">ESP32</a>
+                        <a href="{{ route('dashboard') }}" class="nav-link hover:text-white transition-colors {{ request()->routeIs('dashboard') ? 'text-white font-bold' : '' }}">Dashboard</a>
+                        <a href="{{ route('settings') }}" class="nav-link hover:text-white transition-colors {{ request()->routeIs('settings') ? 'text-white font-bold' : '' }}">Settings</a>
+                        <a href="{{ route('information') }}" class="nav-link hover:text-white transition-colors {{ request()->routeIs('information') ? 'text-white font-bold' : '' }}">Support</a>
+                        <a href="{{ route('esp32.control') }}" class="nav-link hover:text-white transition-colors {{ request()->routeIs('esp32.control') ? 'text-white font-bold' : '' }}">ESP32</a>
                     </div>
                     @endif
 
@@ -76,12 +76,12 @@
                             <a href="/faq#top" data-section="top" class="block px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">FAQ Intro</a>
                             <a href="/faq#faq" data-section="faq" class="block px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">FAQ</a>
                         </div>
-                        @elseif(request()->routeIs('dashboard'))
+                        @elseif(request()->routeIs('dashboard') || request()->routeIs('settings') || request()->routeIs('information') || request()->routeIs('esp32.control'))
                         <div class="space-y-3">
-                            <a href="{{ route('dashboard') }}" class="block px-3 py-2 text-white font-semibold bg-white/10 rounded-lg">Dashboard</a>
-                            <a href="{{ route('settings') }}" class="block px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">Settings</a>
-                            <a href="{{ route('information') }}" class="block px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">Support</a>
-                            <a href="{{ route('esp32.control') }}" class="block px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">ESP32</a>
+                            <a href="{{ route('dashboard') }}" class="block px-3 py-2 {{ request()->routeIs('dashboard') ? 'text-white font-bold bg-white/10' : 'text-gray-300 hover:text-white hover:bg-white/10' }} rounded-lg">Dashboard</a>
+                            <a href="{{ route('settings') }}" class="block px-3 py-2 {{ request()->routeIs('settings') ? 'text-white font-bold bg-white/10' : 'text-gray-300 hover:text-white hover:bg-white/10' }} rounded-lg transition-colors">Settings</a>
+                            <a href="{{ route('information') }}" class="block px-3 py-2 {{ request()->routeIs('information') ? 'text-white font-bold bg-white/10' : 'text-gray-300 hover:text-white hover:bg-white/10' }} rounded-lg transition-colors">Support</a>
+                            <a href="{{ route('esp32.control') }}" class="block px-3 py-2 {{ request()->routeIs('esp32.control') ? 'text-white font-bold bg-white/10' : 'text-gray-300 hover:text-white hover:bg-white/10' }} rounded-lg transition-colors">ESP32</a>
                         </div>
                         @endif
 

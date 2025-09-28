@@ -96,6 +96,65 @@
                         </ul>
                     </div>
                 </div>
+
+                <div class="flex items-center justify-between cursor-pointer" onclick="toggleFAQ(this)">
+                            <h3 class="text-lg font-semibold">How do I set up my WattAway smart socket?</h3>
+                            <svg class="w-6 h-6 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                        <div class="faq-content mt-4 hidden">
+                            <p class="text-gray-300">Setting up your WattAway smart socket is easy! First, plug the socket into a power outlet. Then, download the WattAway app and create an account. Use the app to scan for new devices and follow the on-screen instructions to connect your socket to your Wi-Fi network.</p>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-xl p-6 faq-item stagger-item">
+                        <div class="flex items-center justify-between cursor-pointer" onclick="toggleFAQ(this)">
+                            <h3 class="text-lg font-semibold">Why is my device showing as offline?</h3>
+                            <svg class="w-6 h-6 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                        <div class="faq-content mt-4 hidden">
+                            <p class="text-gray-300">If your device shows as offline, check the following: 1) Ensure your Wi-Fi network is working properly, 2) Check if the socket is properly plugged in and has power, 3) Try power cycling the socket by unplugging it for 10 seconds and plugging it back in, 4) Make sure the socket is within range of your Wi-Fi router.</p>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-xl p-6 faq-item stagger-item">
+                        <div class="flex items-center justify-between cursor-pointer" onclick="toggleFAQ(this)">
+                            <h3 class="text-lg font-semibold">How do I monitor my energy usage?</h3>
+                            <svg class="w-6 h-6 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                        <div class="faq-content mt-4 hidden">
+                            <p class="text-gray-300">You can monitor your energy usage through the WattAway dashboard. Once logged in, you'll see real-time energy consumption data, daily/weekly/monthly reports, and historical usage patterns. The dashboard also provides insights and recommendations for energy optimization.</p>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-xl p-6 faq-item stagger-item">
+                        <div class="flex items-center justify-between cursor-pointer" onclick="toggleFAQ(this)">
+                            <h3 class="text-lg font-semibold">Can I control multiple devices at once?</h3>
+                            <svg class="w-6 h-6 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                        <div class="faq-content mt-4 hidden">
+                            <p class="text-gray-300">Yes! You can create device groups in the app to control multiple sockets simultaneously. You can also set up schedules and automation rules that apply to multiple devices, making it easy to manage your entire smart home ecosystem.</p>
+                        </div>
+                    </div>
+
+                    <div class="glass-card rounded-xl p-6 faq-item stagger-item">
+                        <div class="flex items-center justify-between cursor-pointer" onclick="toggleFAQ(this)">
+                            <h3 class="text-lg font-semibold">What should I do if my device isn't responding?</h3>
+                            <svg class="w-6 h-6 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                        <div class="faq-content mt-4 hidden">
+                            <p class="text-gray-300">If your device isn't responding: 1) Check the app and try refreshing, 2) Restart the socket by unplugging it for 30 seconds, 3) Check your internet connection, 4) Try removing and re-adding the device in the app. If the problem persists, contact our support team.</p>
+                        </div>
+                    </div>
             </div>
         </section>
     </div>

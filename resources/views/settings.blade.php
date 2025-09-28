@@ -35,11 +35,13 @@
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 10;
         }
-        .glass-nav {
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+        .glass-card * {
+            position: relative;
+            z-index: 11;
         }
         .gradient-text {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -54,48 +56,90 @@
             background: rgba(255, 255, 255, 0.05);
             transform: translateX(4px);
         }
+        /* Ensure proper layout with navbar */
+        .relative {
+            position: relative !important;
+        }
+        .sticky {
+            position: sticky !important;
+        }
+        main {
+            position: relative !important;
+            z-index: 1 !important;
+        }
+
+        /* Animation CSS - ensure these take precedence */
+        .section-hidden {
+            opacity: 0 !important;
+            transform: translateY(50px) !important;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        .section-visible {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        .stagger-item {
+            opacity: 0 !important;
+            transform: translateY(30px) !important;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+
+        .stagger-item.stagger-visible {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
     </style>
 </head>
 
 <body class="antialiased text-white settings-bg min-h-screen">
-    <div class="relative min-h-screen">
-        <!-- Settings Navigation Bar -->
-        <header class="glass-nav sticky top-0 z-50">
-            <div class="container mx-auto px-6 py-4">
-                <nav class="flex items-center justify-between">
-                    <!-- Logo and Back Button -->
-                    <div class="flex items-center space-x-4">
-                        <a href="{{ route('dashboard') }}" class="p-2 rounded-full hover:bg-white/10 transition-colors">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                            </svg>
-                        </a>
-                        <img src="{{ asset('images/logo.png') }}" alt="WattAway Logo" class="h-10 w-10 rounded-full">
-                        <h1 class="text-2xl font-bold">Settings</h1>
-                    </div>
+    <script>
+        // Immediate animation debug
+        console.log('Settings page loading...');
 
-                    <!-- Action Buttons -->
-                    <div class="flex items-center space-x-3">
-                        <button id="saveBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
-                            Save Changes
-                        </button>
-                        <a href="{{ route('dashboard') }}" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg transition-colors">
-                            Cancel
-                        </a>
-                    </div>
-                </nav>
-            </div>
-        </header>
+        // Force animations immediately
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, triggering animations...');
+
+            setTimeout(() => {
+                console.log('Triggering animations now...');
+
+                // Force main section visible
+                const main = document.getElementById('main-content');
+                if (main) {
+                    main.classList.add('section-visible');
+                    main.classList.remove('section-hidden');
+                    console.log('Main section made visible');
+                }
+
+                // Force all stagger items visible
+                const staggerItems = document.querySelectorAll('.stagger-item');
+                console.log('Found stagger items:', staggerItems.length);
+
+                staggerItems.forEach((item, index) => {
+                    setTimeout(() => {
+                        item.classList.add('stagger-visible');
+                        console.log('Animated item:', index);
+                    }, index * 50);
+                });
+            }, 100);
+        });
+    </script>
+        <!--Navbar -->
+        <x-navbar />
 
         <!-- Main Settings Content -->
-        <main class="container mx-auto px-6 py-8">
+        <main class="container mx-auto mt-12 px-6 py-8 stagger-container" id="main-content">
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 <!-- Settings Sidebar -->
-                <div class="lg:col-span-1">
-                    <div class="glass-card rounded-2xl p-6 sticky top-24">
+                <div class="lg:col-span-1 stagger-item">
+                    <div class="glass-card rounded-2xl p-6 sticky top-24 stagger-item">
                         <h2 class="text-xl font-bold mb-6">Settings Menu</h2>
                         <nav class="space-y-2">
-                            <button data-section="profile" class="setting-item w-full text-left p-3 rounded-lg active">
+                            <button data-section="profile" class="setting-item w-full text-left p-3 rounded-lg active stagger-item">
                                 <div class="flex items-center space-x-3">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
@@ -103,7 +147,7 @@
                                     <span>Profile</span>
                                 </div>
                             </button>
-                            <button data-section="devices" class="setting-item w-full text-left p-3 rounded-lg">
+                            <button data-section="devices" class="setting-item w-full text-left p-3 rounded-lg stagger-item">
                                 <div class="flex items-center space-x-3">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
@@ -111,7 +155,7 @@
                                     <span>Devices</span>
                                 </div>
                             </button>
-                            <button data-section="notifications" class="setting-item w-full text-left p-3 rounded-lg">
+                            <button data-section="notifications" class="setting-item w-full text-left p-3 rounded-lg stagger-item">
                                 <div class="flex items-center space-x-3">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
@@ -119,7 +163,7 @@
                                     <span>Notifications</span>
                                 </div>
                             </button>
-                            <button data-section="security" class="setting-item w-full text-left p-3 rounded-lg">
+                            <button data-section="security" class="setting-item w-full text-left p-3 rounded-lg stagger-item">
                                 <div class="flex items-center space-x-3">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
@@ -127,7 +171,7 @@
                                     <span>Security</span>
                                 </div>
                             </button>
-                            <button data-section="preferences" class="setting-item w-full text-left p-3 rounded-lg">
+                            <button data-section="preferences" class="setting-item w-full text-left p-3 rounded-lg stagger-item">
                                 <div class="flex items-center space-x-3">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
@@ -141,12 +185,12 @@
                 </div>
 
                 <!-- Settings Content -->
-                <div class="lg:col-span-3">
+                <div class="lg:col-span-3 stagger-item">
                     <!-- Profile Settings -->
-                    <div id="profile-section" class="glass-card rounded-2xl p-6 mb-6">
+                    <div id="profile-section" class="glass-card rounded-2xl p-6 mb-6 stagger-item">
                         <h2 class="text-2xl font-bold mb-6">Profile Settings</h2>
                         <form class="space-y-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 stagger-item">
                                 <div>
                                     <label class="block text-sm font-medium mb-2">First Name</label>
                                     <input type="text" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" value="John">
@@ -156,15 +200,15 @@
                                     <input type="text" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" value="Doe">
                                 </div>
                             </div>
-                            <div>
+                            <div class="stagger-item">
                                 <label class="block text-sm font-medium mb-2">Email Address</label>
                                 <input type="email" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" value="john.doe@example.com">
                             </div>
-                            <div>
+                            <div class="stagger-item">
                                 <label class="block text-sm font-medium mb-2">Phone Number</label>
                                 <input type="tel" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" value="+1 (555) 123-4567">
                             </div>
-                            <div>
+                            <div class="stagger-item">
                                 <label class="block text-sm font-medium mb-2">Bio</label>
                                 <textarea class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 h-24" placeholder="Tell us about yourself...">Smart home enthusiast and energy efficiency advocate.</textarea>
                             </div>
@@ -1002,6 +1046,129 @@
             document.querySelectorAll('[id^="timer-duration-"]').forEach(slider => {
                 const deviceId = slider.id.replace('timer-duration-', '');
                 updateTimerDisplay(deviceId, slider.value);
+            });
+
+            // Animation System - Initialize after DOM is loaded
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('Settings animation system initializing...');
+
+                // Check if IntersectionObserver is supported
+                if (!window.IntersectionObserver) {
+                    console.log('IntersectionObserver not supported, using fallback');
+                    document.body.classList.add('animations-disabled');
+                    return;
+                }
+
+                const sectionObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            console.log('Settings section intersecting:', entry.target);
+                            entry.target.classList.add('section-visible');
+                            entry.target.classList.remove('section-hidden');
+                        }
+                    });
+                }, {
+                    threshold: 0.1,
+                    rootMargin: '0px 0px -50px 0px'
+                });
+
+                // Observe main content for appear animations
+                const animatedSections = document.querySelectorAll('main');
+                console.log('Settings found main sections:', animatedSections.length);
+                animatedSections.forEach(section => {
+                    section.classList.add('section-hidden');
+                    sectionObserver.observe(section);
+                    console.log('Settings observing section:', section);
+                });
+
+                // Staggered animation for child elements
+                const staggerObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            console.log('Settings stagger container intersecting:', entry.target);
+                            const children = entry.target.querySelectorAll('.stagger-item');
+                            console.log('Settings found stagger children:', children.length);
+                            children.forEach((child, index) => {
+                                setTimeout(() => {
+                                    child.classList.add('stagger-visible');
+                                    console.log('Settings animating child:', index, child);
+                                }, index * 80);
+                            });
+                        }
+                    });
+                }, {
+                    threshold: 0.1
+                });
+
+                // Observe elements with staggered children
+                const staggerContainers = document.querySelectorAll('.stagger-container');
+                console.log('Settings found stagger containers:', staggerContainers.length);
+                staggerContainers.forEach(container => {
+                    staggerObserver.observe(container);
+                    console.log('Settings observing stagger container:', container);
+                });
+
+                console.log('Settings animation system initialized');
+
+                // Trigger animation manually after a short delay as fallback
+                setTimeout(() => {
+                    console.log('Settings fallback animation trigger');
+                    document.querySelectorAll('main').forEach(section => {
+                        section.classList.add('section-visible');
+                        section.classList.remove('section-hidden');
+                    });
+                    document.querySelectorAll('.stagger-item').forEach((item, index) => {
+                        setTimeout(() => {
+                            item.classList.add('stagger-visible');
+                        }, index * 50);
+                    });
+                }, 500);
+            });
+
+            // Simple animation trigger - runs immediately
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(() => {
+                    console.log('Settings simple animation trigger');
+                    // Trigger main section animation
+                    document.querySelector('main').classList.add('section-visible');
+                    document.querySelector('main').classList.remove('section-hidden');
+
+                    // Trigger staggered animations with a simple delay
+                    const staggerItems = document.querySelectorAll('.stagger-item');
+                    staggerItems.forEach((item, index) => {
+                        setTimeout(() => {
+                            item.classList.add('stagger-visible');
+                        }, index * 100);
+                    });
+                }, 100);
+            });
+
+            // Debug function to check for conflicts
+            window.debugAnimations = function() {
+                console.log('=== Animation Debug Info ===');
+                console.log('Main sections:', document.querySelectorAll('main').length);
+                console.log('Stagger containers:', document.querySelectorAll('.stagger-container').length);
+                console.log('Stagger items:', document.querySelectorAll('.stagger-item').length);
+                console.log('Section hidden elements:', document.querySelectorAll('.section-hidden').length);
+                console.log('Section visible elements:', document.querySelectorAll('.section-visible').length);
+                console.log('Stagger visible elements:', document.querySelectorAll('.stagger-visible').length);
+            };
+
+            // Force show content after page load
+            window.addEventListener('load', function() {
+                console.log('Settings page fully loaded');
+                setTimeout(() => {
+                    document.querySelectorAll('main').forEach(section => {
+                        section.classList.add('section-visible');
+                        section.classList.remove('section-hidden');
+                    });
+                    document.querySelectorAll('.stagger-item').forEach((item, index) => {
+                        setTimeout(() => {
+                            item.classList.add('stagger-visible');
+                        }, index * 100);
+                    });
+                    console.log('Settings content forced visible');
+                }, 1000);
             });
         });
     </script>

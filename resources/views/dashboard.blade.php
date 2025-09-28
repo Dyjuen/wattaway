@@ -51,9 +51,9 @@
         <x-navbar />
 
         <!-- Main Dashboard Content -->
-        <main class="container mx-auto px-6 py-8 pt-24">
+        <main class="container mx-auto px-6 py-8 pt-24 stagger-container">
             <!-- Welcome Header -->
-            <div class="mb-8">
+            <div class="mb-8 stagger-item">
                 <h1 class="text-4xl md:text-5xl font-bold mb-2">
                     Welcome back, <span class="gradient-text">{{ auth()->guard('account')->user()->name ?? 'User' }}</span>
                 </h1>
@@ -61,9 +61,9 @@
             </div>
 
             <!-- Quick Stats Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 stagger-item">
                 <!-- Total Devices -->
-                <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-transform duration-300">
+                <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-transform duration-300 stagger-item">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-300 text-sm font-medium">Total Devices</p>
@@ -82,7 +82,7 @@
                 </div>
 
                 <!-- Energy Saved -->
-                <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-transform duration-300">
+                <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-transform duration-300 stagger-item">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-300 text-sm font-medium">Energy Saved</p>
@@ -102,7 +102,7 @@
                 </div>
 
                 <!-- Active Sessions -->
-                <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-transform duration-300">
+                <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-transform duration-300 stagger-item">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-300 text-sm font-medium">Active Now</p>
@@ -121,7 +121,7 @@
                 </div>
 
                 <!-- Monthly Usage -->
-                <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-transform duration-300">
+                <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-transform duration-300 stagger-item">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-300 text-sm font-medium">This Month</p>
@@ -142,10 +142,10 @@
             </div>
 
             <!-- Main Content Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 stagger-item">
                 <!-- Device Control Panel -->
                 <div class="lg:col-span-2">
-                    <div class="glass-card rounded-2xl p-6 mb-6">
+                    <div class="glass-card rounded-2xl p-6 mb-6 stagger-item">
                         <div class="flex items-center justify-between mb-6">
                             <h2 class="text-2xl font-bold">Device Control</h2>
                             <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
@@ -154,9 +154,9 @@
                         </div>
 
                         <!-- Device Cards -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 stagger-item">
                             <!-- Living Room Socket -->
-                            <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                            <div class="bg-white/5 rounded-xl p-4 border border-white/10 stagger-item">
                                 <div class="flex items-center justify-between mb-3">
                                     <div class="flex items-center space-x-3">
                                         <div class="w-3 h-3 bg-green-400 rounded-full"></div>
@@ -178,7 +178,7 @@
                             </div>
 
                             <!-- Kitchen Socket -->
-                            <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                            <div class="bg-white/5 rounded-xl p-4 border border-white/10 stagger-item">
                                 <div class="flex items-center justify-between mb-3">
                                     <div class="flex items-center space-x-3">
                                         <div class="w-3 h-3 bg-green-400 rounded-full"></div>
@@ -200,7 +200,7 @@
                             </div>
 
                             <!-- Bedroom Socket -->
-                            <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                            <div class="bg-white/5 rounded-xl p-4 border border-white/10 stagger-item">
                                 <div class="flex items-center justify-between mb-3">
                                     <div class="flex items-center space-x-3">
                                         <div class="w-3 h-3 bg-red-400 rounded-full"></div>
@@ -224,7 +224,7 @@
                     </div>
 
                     <!-- Energy Usage Chart Placeholder -->
-                    <div class="glass-card rounded-2xl p-6">
+                    <div class="glass-card rounded-2xl p-6 stagger-item">
                         <h2 class="text-2xl font-bold mb-6">Energy Usage Analytics</h2>
                         <div class="bg-white/5 rounded-xl h-64 flex items-center justify-center border border-white/10">
                             <div class="text-center">
@@ -239,9 +239,9 @@
                 </div>
 
                 <!-- Sidebar -->
-                <div class="space-y-6">
+                <div class="space-y-6 stagger-item">
                     <!-- Quick Actions -->
-                    <div class="glass-card rounded-2xl p-6">
+                    <div class="glass-card rounded-2xl p-6 stagger-item">
                         <h3 class="text-xl font-bold mb-4">Quick Actions</h3>
                         <div class="space-y-3">
                             <a href="{{ route('settings') }}" class="block w-full bg-white/10 hover:bg-white/20 rounded-lg p-3 transition-colors">
@@ -273,24 +273,24 @@
                     </div>
 
                     <!-- Recent Activity -->
-                    <div class="glass-card rounded-2xl p-6">
+                    <div class="glass-card rounded-2xl p-6 stagger-item">
                         <h3 class="text-xl font-bold mb-4">Recent Activity</h3>
                         <div class="space-y-4">
-                            <div class="flex items-start space-x-3">
+                            <div class="flex items-start space-x-3 stagger-item">
                                 <div class="w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
                                 <div class="flex-1">
                                     <p class="text-sm">Living Room socket turned ON</p>
                                     <p class="text-xs text-gray-400">2 minutes ago</p>
                                 </div>
                             </div>
-                            <div class="flex items-start space-x-3">
+                            <div class="flex items-start space-x-3 stagger-item">
                                 <div class="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
                                 <div class="flex-1">
                                     <p class="text-sm">Energy usage report generated</p>
                                     <p class="text-xs text-gray-400">1 hour ago</p>
                                 </div>
                             </div>
-                            <div class="flex items-start space-x-3">
+                            <div class="flex items-start space-x-3 stagger-item">
                                 <div class="w-2 h-2 bg-orange-400 rounded-full mt-2"></div>
                                 <div class="flex-1">
                                     <p class="text-sm">Kitchen socket scheduled OFF</p>
@@ -317,8 +317,49 @@
     </div>
 
     <script>
-        // Add some interactive functionality
         document.addEventListener('DOMContentLoaded', function() {
+            // Section Appear Animation Observer
+            const sectionObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('section-visible');
+                        entry.target.classList.remove('section-hidden');
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            });
+
+            // Observe all sections for appear animations
+            const animatedSections = document.querySelectorAll('main');
+            animatedSections.forEach(section => {
+                section.classList.add('section-hidden');
+                sectionObserver.observe(section);
+            });
+
+            // Staggered animation for child elements
+            const staggerObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const children = entry.target.querySelectorAll('.stagger-item');
+                        children.forEach((child, index) => {
+                            setTimeout(() => {
+                                child.classList.add('stagger-visible');
+                            }, index * 80); // 80ms delay between each item - faster animation
+                        });
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+
+            // Observe elements with staggered children
+            const staggerContainers = document.querySelectorAll('.stagger-container');
+            staggerContainers.forEach(container => {
+                staggerObserver.observe(container);
+            });
+
             // Toggle device switches
             const switches = document.querySelectorAll('button[class*="bg-green-500"], button[class*="bg-gray-600"]');
             switches.forEach(switchBtn => {
