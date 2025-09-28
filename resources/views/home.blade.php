@@ -59,7 +59,7 @@
 
             <div class="relative mt-8 md:mt-4 w-full flex flex-col md:flex-row justify-center items-center">
                 <!-- Mascot Image -->
-                <img src="{{ asset('images/mascot.png') }}" alt="WattAway Mascot" class="w-96 h-96 md:w-[40rem] md:h-[40rem] object-contain z-0 hero-mascot stagger-item">
+                <img src="{{ asset('images/mascot.svg') }}" alt="WattAway Mascot" class="w-96 h-96 md:w-[40rem] md:h-[40rem] object-contain z-0 hero-mascot stagger-item">
 
                 <!-- Left Text Box -->
                 <div class="hidden md:block absolute md:left-8 lg:left-[5%] top-1/2 -translate-y-1/2 bg-black/20 backdrop-blur-md border border-white/10 rounded-3xl p-6 max-w-xs shadow-2xl transform z-10 stagger-item">
@@ -105,8 +105,8 @@
                 <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
                     
                     <div class="flex flex-col items-center text-center space-y-6 stagger-item">
-                        <div class="bg-white/5 backdrop-blur-md w-full max-w-sm h-56 rounded-3xl flex items-center justify-center shadow-lg border border-white/10">
-                            <span class="text-gray-400 text-lg">pict of product</span>
+                        <div class="bg-white/5 backdrop-blur-md w-full max-w-sm h-56 rounded-3xl flex items-center justify-center shadow-lg border border-white/10 overflow-hidden">
+                            <img src="{{ asset('images/product.png') }}" alt="Wattaway Product" class="w-full h-full object-cover">
                         </div>
                         <div class="relative w-36 h-36 flex items-center justify-center">
                             <svg class="w-full h-full" viewBox="0 0 100 100">
@@ -119,8 +119,27 @@
                     </div>
 
                     <div class="flex flex-col items-center text-center space-y-6 stagger-item">
-                         <div class="bg-white/5 backdrop-blur-md w-full h-56 rounded-3xl flex items-center justify-center shadow-lg border border-white/10">
-                            <span class="text-gray-400 text-lg">teaser</span>
+                         <div class="bg-white/5 backdrop-blur-md w-full h-56 rounded-3xl flex items-center justify-center shadow-lg border border-white/10 overflow-hidden relative">
+                            <!-- Sliding Gallery Container -->
+                            <div class="gallery-container w-full h-full relative">
+                                <div class="gallery-slides flex transition-transform duration-500 ease-in-out h-full">
+                                    <div class="gallery-slide w-full h-full flex-shrink-0">
+                                        <img src="{{ asset('images/gallery1.jpeg') }}" alt="Gallery Image 1" class="w-full h-full object-cover">
+                                    </div>
+                                    <div class="gallery-slide w-full h-full flex-shrink-0">
+                                        <img src="{{ asset('images/gallery2.jpeg') }}" alt="Gallery Image 2" class="w-full h-full object-cover">
+                                    </div>
+                                    <div class="gallery-slide w-full h-full flex-shrink-0">
+                                        <img src="{{ asset('images/gallery3.jpeg') }}" alt="Gallery Image 3" class="w-full h-full object-cover">
+                                    </div>
+                                </div>
+                                <!-- Navigation Dots -->
+                                <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                                    <button class="gallery-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white/80 transition-colors" data-slide="0"></button>
+                                    <button class="gallery-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white/80 transition-colors" data-slide="1"></button>
+                                    <button class="gallery-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white/80 transition-colors" data-slide="2"></button>
+                                </div>
+                            </div>
                         </div>
                         <div class="bg-[#4a2c2a] p-2 rounded-full w-48 flex items-center justify-between shadow-lg border border-white/10">
                             <button class="bg-[#d47f5a] text-white px-8 py-3 rounded-full font-semibold shadow-md">ON</button>
@@ -188,10 +207,7 @@
                     <!-- Shopee -->
                     <div class="group flex items-center p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300">
                         <div class="w-12 h-12 bg-orange-500/20 rounded-full flex items-center justify-center mr-4 group-hover:bg-orange-500/30 transition-colors">
-                            <svg class="w-8 h-8 text-orange-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2h4a1 1 0 011 1v16a3 3 0 01-3 3H5a3 3 0 01-3-3V5a1 1 0 011-1h4zM9 3v1h6V3H9zm1 4v11h4V7h-4z"/>
-                                <circle cx="12" cy="9" r="1" fill="currentColor"/>
-                            </svg>
+                            <img src="{{ asset('images/shopee.svg') }}" alt="Shopee" class="w-8 h-8">
                         </div>
                         <div>
                             <p class="text-sm text-gray-400 mb-1">Shopee Store</p>
@@ -215,10 +231,7 @@
                     <!-- Tokopedia -->
                     <div class="group flex items-center p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300">
                         <div class="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mr-4 group-hover:bg-red-500/30 transition-colors">
-                            <svg class="w-8 h-8 text-red-400" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
-                                <path d="M8 10h8v2H8v-2zm0 4h8v2H8v-2z" fill="currentColor"/>
-                            </svg>
+                            <img src="{{ asset('images/tokopedia.svg') }}" alt="Tokopedia" class="w-8 h-8">
                         </div>
                         <div>
                             <p class="text-sm text-gray-400 mb-1">Tokopedia Store</p>
@@ -332,6 +345,47 @@
             const staggerContainers = document.querySelectorAll('.stagger-container');
             staggerContainers.forEach(container => {
                 staggerObserver.observe(container);
+            });
+
+            // Gallery Slider Functionality
+            const galleryContainers = document.querySelectorAll('.gallery-container');
+            galleryContainers.forEach(container => {
+                const slides = container.querySelector('.gallery-slides');
+                const dots = container.querySelectorAll('.gallery-dot');
+                let currentSlide = 0;
+
+                function updateGallery() {
+                    // Update slide position
+                    slides.style.transform = `translateX(-${currentSlide * 100}%)`;
+
+                    // Update dots
+                    dots.forEach((dot, index) => {
+                        if (index === currentSlide) {
+                            dot.classList.remove('bg-white/50');
+                            dot.classList.add('bg-white');
+                        } else {
+                            dot.classList.remove('bg-white');
+                            dot.classList.add('bg-white/50');
+                        }
+                    });
+                }
+
+                // Dot click handlers
+                dots.forEach((dot, index) => {
+                    dot.addEventListener('click', () => {
+                        currentSlide = index;
+                        updateGallery();
+                    });
+                });
+
+                // Auto-advance gallery (optional - can be removed if not wanted)
+                setInterval(() => {
+                    currentSlide = (currentSlide + 1) % dots.length;
+                    updateGallery();
+                }, 5000); // Change slide every 5 seconds
+
+                // Initialize gallery
+                updateGallery();
             });
         });
     </script>
