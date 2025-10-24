@@ -15,13 +15,11 @@ use App\Http\Controllers\Esp32MessageController;
 |
 */
 
-// Endpoints for ESP32 controller
-// Note: Routes in api.php are automatically prefixed with /api
-Route::match(['get', 'post'], '/http-post', [Esp32Controller::class, 'receivePost']);
-Route::match(['get'], '/http-get', [Esp32Controller::class, 'sendGet']);
-
-// Endpoint for ESP32 JSON data
-Route::match(['post'], '/arduino-json', [Esp32Controller::class, 'handleArduinoJson']);
+Route::prefix('v1')->group(function () {
+    Route::middleware(['auth.device', 'throttle:60,1'])->group(function () {
+        Route::post('/device/data', [Esp32Controller::class, 'handleDeviceData']);
+    });
+});
 
 // API endpoints for ESP32 messages
 Route::prefix('esp32')->group(function () {

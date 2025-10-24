@@ -26,65 +26,51 @@ class Esp32Controller extends Controller
     {
         // No middleware needed here as CORS is handled by the CorsMiddleware
     }
-    /**
-     * Handle POST request from ESP32
-     * Expected payload format:
-     * {
-     *   "time": "2025-08-08T10:30:00Z",  // ISO 8601 format
-     *   "led_state": "on"                // or "off"
-     * }
-     * 
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function receivePost(Request $request)
+
+    public function handleDeviceData(Request $request)
     {
         try {
-            $data = $request->json()->all();
-            
-            // Log the received data
-            Log::info('Received data from ESP32:', $data);
-            
-            // Validate the incoming data
-            $validated = $request->validate([
-                'time' => 'required|date',
-                'led_state' => 'required|in:on,off',
+            $device = $request->user();
+
+            $validator = Validator::make($request->all(), [
+                'voltage' => 'required|numeric',
+                'current' => 'required|numeric',
+                'power' => 'required|numeric',
+                'energy' => 'required|numeric',
             ]);
-            
-            // Store the message in the database
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            $validated = $validator->validated();
+
             $message = Esp32MessageLog::create([
-                'device_id' => null, // Will be determined by device lookup
-                'content' => json_encode($data),
+                'device_id' => $device->id,
+                'content' => json_encode($validated),
                 'direction' => 'incoming',
                 'metadata' => [
-                    'endpoint' => '/api/http-post',
+                    'endpoint' => '/api/v1/device/data',
                     'user_agent' => $request->userAgent(),
-                    'arduino_time' => $validated['time'],
-                    'led_state' => $validated['led_state']
                 ],
                 'ip_address' => $request->ip(),
-                'endpoint' => '/api/http-post',
-                'payload' => json_encode($data)
+                'endpoint' => '/api/v1/device/data',
+                'payload' => json_encode($validated)
             ]);
-            
-            // Return a success response
+
             return response()->json([
                 'status' => 'success',
-                'message' => 'Arduino data received',
-                'data' => [
-                    'arduino_time' => $validated['time'],
-                    'led_state' => $validated['led_state'],
-                    'server_time' => now()->toIso8601String()
-                ]
+                'message' => 'Device data received',
+                'data' => $validated
             ]);
-            
+
         } catch (\Exception $e) {
-            Log::error('Error processing ESP32 data: ' . $e->getMessage());
+            Log::error('Error processing device data: ' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'Error processing request',
                 'error' => $e->getMessage()
-            ], 400);
+            ], 500);
         }
     }
 
@@ -104,96 +90,6 @@ class Esp32Controller extends Controller
         ]);
     }
 
-    /**
-     * Handle JSON data from ESP32
-     * Expected payload format:
-     * {
-     *   "time": "2025-08-08T10:30:00Z",  // ISO 8601 format
-     *   "led_state": "on"                // or "off"
-     * }
-     * 
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function handleArduinoJson(Request $request)
-    {
-        try {
-            $data = $request->json()->all();
-            Log::info('Received JSON data from ESP32:', $data);
-            
-            // Handle nested state.reported structure
-            $state = $data['state'] ?? null;
-            $reported = $state['reported'] ?? null;
-            
-            if (!$reported) {
-                // If the data doesn't have the expected structure, try to process it directly
-                $reported = $data;
-                Log::warning('Using direct data structure instead of state.reported');
-            }
-            
-            // Extract time and led_state from the reported data
-            $arduinoTime = $reported['time'] ?? null;
-            $ledState = $reported['led_state'] ?? 'off';
-            
-            // If time is not in the root, check in the reported object
-            if (!$arduinoTime && isset($reported['state']['reported']['time'])) {
-                $arduinoTime = $reported['state']['reported']['time'];
-                $ledState = $reported['state']['reported']['led_state'] ?? $ledState;
-            }
-            
-            // Validate the data
-            if (!$arduinoTime || !strtotime($arduinoTime)) {
-                // If time is not valid, use current time
-                $arduinoTime = now()->toIso8601String();
-                Log::warning('Using server time as Arduino time was not provided or invalid');
-            }
-            
-            // Ensure led_state is valid
-            $ledState = in_array(strtolower($ledState), ['on', 'off']) ? strtolower($ledState) : 'off';
-            
-            // Store the message in the database
-            $message = Esp32MessageLog::create([
-                'device_id' => null, // Will be determined by device lookup
-                'content' => json_encode($data),
-                'direction' => 'incoming',
-                'metadata' => [
-                    'endpoint' => '/api/arduino-json',
-                    'user_agent' => $request->userAgent() ?: 'ESP32HTTPClient',
-                    'arduino_time' => $arduinoTime,
-                    'led_state' => $ledState
-                ],
-                'ip_address' => $request->ip() ?: '127.0.0.1',
-                'endpoint' => '/api/arduino-json',
-                'payload' => json_encode($data)
-            ]);
-            
-            // Log successful storage
-            Log::info('Successfully stored ESP32 message', [
-                'message_id' => $message->id,
-                'arduino_time' => $arduinoTime,
-                'led_state' => $ledState
-            ]);
-            
-            // Return a success response
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Arduino data received and processed',
-                'data' => [
-                    'arduino_time' => $arduinoTime,
-                    'led_state' => $ledState,
-                    'server_time' => now()->toIso8601String(),
-                    'message_id' => $message->id
-                ]
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error processing Arduino JSON: ' . $e->getMessage());
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Error processing request',
-                'error' => $e->getMessage()
-            ], 400);
-        }
-    }
     public function settings()
     {
         // Get all devices for the authenticated user

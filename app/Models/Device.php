@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Device extends Model
 {
@@ -12,7 +13,32 @@ class Device extends Model
         'description',
         'status',
         'last_seen_at',
+        'api_token',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($device) {
+            $device->api_token = self::generateUniqueApiToken();
+        });
+    }
+
+    public function regenerateApiToken()
+    {
+        $this->api_token = self::generateUniqueApiToken();
+        $this->save();
+    }
+
+    private static function generateUniqueApiToken()
+    {
+        do {
+            $token = Str::random(64);
+        } while (self::where('api_token', $token)->exists());
+
+        return $token;
+    }
 
     protected function casts(): array
     {

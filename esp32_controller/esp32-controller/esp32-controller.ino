@@ -10,11 +10,12 @@
   - Device checks for saved credentials in NVS on boot.
   - If connection fails or no credentials exist, it starts a BLE server
     to allow configuration from a phone or laptop.
+  - Migrated from HTTP to MQTT for real-time communication.
 */
 
-// Core WiFi and HTTP Libraries
+// Core WiFi and MQTT Libraries
 #include <WiFi.h>
-#include <HTTPClient.h>
+#include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <time.h>
 
@@ -22,7 +23,17 @@
 #include <NimBLEDevice.h> // Single include is sufficient; exposes NimBLEServer, NimBLE2902, etc.
 #include <Preferences.h> // Used for saving credentials to Non-Volatile Storage (NVS)
 
-#define HOST "https://ad7191626096.ngrok-free.app"  // No trailing slash
+// -- MQTT Configuration --
+#define MQTT_HOST "your_mqtt_broker_ip" // Replace with your broker's IP or hostname
+#define MQTT_PORT 1883
+
+// TODO: These should be unique for each device
+#define DEVICE_ID "123"
+#define API_TOKEN "YOUR_64_CHAR_API_TOKEN"
+
+// MQTT Topics
+#define MQTT_TOPIC_DATA "devices/" DEVICE_ID "/data"
+#define MQTT_TOPIC_COMMANDS "devices/" DEVICE_ID "/commands"
 
 // -- DEFAULT (HARDCODED) WIFI CREDENTIALS --
 #define DEFAULT_WIFI_SSID      "anak kost 2.4G"
@@ -38,16 +49,17 @@
 #define CHARACTERISTIC_UUID_SCAN_RESULTS "6e400011-b5a3-f393-e0a9-e50e24dcca9e"
 
 // -- ANALOG SENSOR PINS (ADC1 ONLY; RELIABLE WITH WIFI) --
-// Basic defaults so the controller can read sensors now; adjust later if needed
 #define PIN_CURRENT_ADC   34   // GPIO34 (ADC1)
 #define PIN_VOLTAGE_ADC   35   // GPIO35 (ADC1)
 
 // Preferences object to store credentials
 Preferences preferences;
 
-// --- YOUR ORIGINAL FUNCTIONS (UNCHANGED) ---
-StaticJsonDocument<200> doc;
-StaticJsonDocument<200> postJson;
+WiFiClient espClient;
+PubSubClient mqttClient(espClient);
+
+unsigned long lastMsg = 0;
+#define MSG_PUBLISH_INTERVAL 30000 // 30 seconds
 
 // Global status characteristic pointer so we can update status from anywhere
 NimBLECharacteristic* gStatusChar = nullptr;
@@ -58,6 +70,7 @@ volatile bool gScanBusy = false;
 
 // Forward decl
 void performWifiScanAndNotify();
+void reconnectMQTT();
 
 // Helper to set and (if subscribed) notify status updates
 void setProvisioningStatus(const char* statusMsg) {
@@ -220,6 +233,36 @@ void startBleProvisioning(const char* initialStatus = "Waiting for Credentials")
   setProvisioningStatus(initialStatus);
 }
 
+void mqttCallback(char* topic, byte* payload, unsigned int length) {
+  Serial.print("Message arrived on topic: ");
+  Serial.print(topic);
+  Serial.print(". Message: ");
+  String message;
+  for (int i = 0; i < length; i++) {
+    message += (char)payload[i];
+  }
+  Serial.println(message);
+
+  // TODO: Handle incoming commands (e.g., turn relay on/off)
+}
+
+void reconnectMQTT() {
+  while (!mqttClient.connected()) {
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    if (mqttClient.connect(DEVICE_ID, DEVICE_ID, API_TOKEN)) {
+      Serial.println("connected");
+      // Subscribe
+      mqttClient.subscribe(MQTT_TOPIC_COMMANDS);
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(mqttClient.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
+}
 
 void setup()
 {
@@ -315,7 +358,8 @@ void setup()
       Serial.println(timeStr);
     }
     
-    Serial.println("Ready to send data to server");
+    mqttClient.setServer(MQTT_HOST, MQTT_PORT);
+    mqttClient.setCallback(mqttCallback);
 
   } else {
     // ---- PROVISIONING MODE ----
@@ -333,9 +377,34 @@ void setup()
 void loop()
 {
   if (WiFi.status() == WL_CONNECTED) {
-    // Only run the main logic if connected to WiFi
-    jsonDataPost();
-    delay(30000);
+    if (!mqttClient.connected()) {
+      reconnectMQTT();
+    }
+    mqttClient.loop();
+
+    unsigned long now = millis();
+    if (now - lastMsg > MSG_PUBLISH_INTERVAL) {
+      lastMsg = now;
+      
+      // Read sensors and create JSON payload
+      uint16_t rawCurrent = 0, rawVoltage = 0;
+      float currentA = readCurrentApproxA(rawCurrent);
+      float voltageV = readVoltageApproxV(rawVoltage);
+      float powerW = voltageV * currentA;
+      float energyWh = powerW * (MSG_PUBLISH_INTERVAL / 1000.0 / 3600.0);
+
+      StaticJsonDocument<256> jsonDoc;
+      jsonDoc["voltage"] = voltageV;
+      jsonDoc["current"] = currentA;
+      jsonDoc["power"] = powerW;
+      jsonDoc["energy"] = energyWh;
+
+      char jsonBuffer[512];
+      serializeJson(jsonDoc, jsonBuffer);
+
+      mqttClient.publish(MQTT_TOPIC_DATA, jsonBuffer);
+      Serial.println("Published MQTT message");
+    }
   } else {
     // If not connected, we are in BLE provisioning mode.
     // The device will restart automatically once credentials are received.
@@ -407,64 +476,4 @@ void performWifiScanAndNotify() {
   // Reset busy and restore waiting status
   gScanBusy = false;
   setProvisioningStatus("Waiting for Credentials");
-}
-
-// Removed unused httpGet() and httPost() to reduce binary size
-
-void jsonDataPost() {
-  // Create JSON data
-  StaticJsonDocument<128> jsonDoc;
-  JsonObject stateObj = jsonDoc.createNestedObject("state");
-  JsonObject reportedObj = stateObj.createNestedObject("reported");
-  
-  // Add current time and LED state
-  struct tm timeinfo;
-  if(!getLocalTime(&timeinfo)){
-    Serial.println("Failed to obtain time");
-    reportedObj["time"] = "1970-01-01T00:00:00Z";
-  } else {
-    char timeStr[25];
-    strftime(timeStr, sizeof(timeStr), "%Y-%m-%dT%H:%M:%SZ", &timeinfo);
-    reportedObj["time"] = timeStr;
-  }
-  reportedObj["led_state"] = "off";
-  
-  JsonObject locationObj = reportedObj.createNestedObject("location");
-  locationObj["latitude"] = 22.54;
-  locationObj["longitude"] = 88.72;
-
-  // Read sensors (approximate) and include
-  uint16_t rawCurrent = 0, rawVoltage = 0;
-  float currentA = readCurrentApproxA(rawCurrent);
-  float voltageV = readVoltageApproxV(rawVoltage);
-  JsonObject sensorsObj = reportedObj.createNestedObject("sensors");
-  JsonObject portObj = sensorsObj.createNestedObject("port");
-  portObj["current_raw"] = rawCurrent;
-  portObj["voltage_raw"] = rawVoltage;
-  portObj["current_A_approx"] = currentA;
-  portObj["voltage_V_approx"] = voltageV;
-  
-  char jsonBuffer[512];
-  serializeJson(jsonDoc, jsonBuffer);
-  
-  HTTPClient http;
-  String url = String(HOST) + "/api/arduino-json";
-  http.begin(url);
-  http.addHeader("Content-Type", "application/json");
-  
-  Serial.print("Sending data to ");
-  Serial.println(url);
-  
-  int httpResponseCode = http.POST(jsonBuffer);
-  
-  if (httpResponseCode > 0) {
-    Serial.print("Server response code: ");
-    Serial.println(httpResponseCode);
-  } else {
-    Serial.print("Error sending POST: ");
-    Serial.println(http.errorToString(httpResponseCode).c_str());
-  }
-  
-  http.end();
-  Serial.println("Waiting for next update...\n");
 }
