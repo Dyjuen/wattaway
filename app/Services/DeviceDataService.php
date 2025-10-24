@@ -3,10 +3,11 @@
 namespace App\Services;
 
 use App\Models\Device;
-use Illuminate\Support\Facades\Log;
 use App\Models\Esp32MessageLog;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -40,6 +41,9 @@ class DeviceDataService
 
         $device->update(['last_seen_at' => now()]);
 
+        Cache::forget("device:{$device->id}:latest_data");
+        Cache::forget("device:{$device->id}:stats:daily");
+
         $this->checkPowerThresholdAlert($device, $validatedData['power']);
     }
 
@@ -51,7 +55,11 @@ class DeviceDataService
      */
     public function getDeviceLatestData(Device $device): ?Esp32MessageLog
     {
-        return $device->esp32MessageLogs()->latest()->first();
+        return Cache::remember(
+            "device:{$device->id}:latest_data",
+            30,
+            fn() => $device->esp32MessageLogs()->latest()->first()
+        );
     }
 
     /**
@@ -63,9 +71,13 @@ class DeviceDataService
      */
     public function getDeviceDataHistory(Device $device, int $hours = 24): Collection
     {
-        return $device->esp32MessageLogs()
-            ->where('created_at', '>=', now()->subHours($hours))
-            ->get();
+        return Cache::remember(
+            "device:{$device->id}:history:{$hours}h",
+            600,
+            fn() => $device->esp32MessageLogs()
+                ->where('created_at', '>=', now()->subHours($hours))
+                ->get()
+        );
     }
 
     /**
@@ -78,11 +90,15 @@ class DeviceDataService
      */
     public function calculatePowerConsumption(Device $device, Carbon $start, Carbon $end): float
     {
-        $energy = $device->esp32MessageLogs()
-            ->whereBetween('created_at', [$start, $end])
-            ->sum('payload->energy');
+        $cacheKey = "device:{$device->id}:power:{$start->timestamp}-{$end->timestamp}";
 
-        return (float) $energy;
+        return Cache::remember($cacheKey, 600, function () use ($device, $start, $end) {
+            $energy = $device->esp32MessageLogs()
+                ->whereBetween('created_at', [$start, $end])
+                ->sum('payload->energy');
+
+            return (float) $energy;
+        });
     }
 
     /**

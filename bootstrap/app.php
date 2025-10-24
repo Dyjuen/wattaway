@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'auth.device' => \App\Http\Middleware\AuthenticateDevice::class,
+            'throttle.device.commands' => \App\Http\Middleware\ThrottleDeviceCommands::class,
         ]);
 
         // Register CORS middleware
@@ -28,8 +29,13 @@ return Application::configure(basePath: dirname(__DIR__))
         // Trust proxies for Coolify deployment
         $middleware->trustProxies(at: '*');
     })
-    ->withExceptions(function (Exceptions $exceptions): void {
-        //
+    ->withExceptions(function (Exceptions $exceptions) {
+        $exceptions->render(function (\Illuminate\Http\Exceptions\ThrottleRequestsException $e, \Illuminate\Http\Request $request) {
+            return response()->json([
+                'message' => 'Too many requests. Please try again later.',
+                'retry_after' => $e->getHeaders()['Retry-After'] ?? 60,
+            ], 429);
+        });
     })
     ->withSchedule(function ($schedule) {
         $schedule->command('schedule:process')->everyMinute();

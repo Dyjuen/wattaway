@@ -76,4 +76,16 @@ class Device extends Model
 
         return $config ? $config->value : $default;
     }
+
+    public function scopeOnline($query)
+    {
+        return $query->where('last_seen_at', '>=', now()->subMinutes(5));
+    }
+
+    public function scopeWithLatestData($query)
+    {
+        return $query->with(['esp32MessageLogs' => function ($q) {
+            $q->latest()->limit(1);
+        }]);
+    }
 }

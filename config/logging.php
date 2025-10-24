@@ -54,7 +54,7 @@ return [
 
         'stack' => [
             'driver' => 'stack',
-            'channels' => explode(',', (string) env('LOG_STACK', 'single')),
+            'channels' => explode(',', (string) env('LOG_STACK', 'single,mqtt,device,security,performance')),
             'ignore_exceptions' => false,
         ],
 
@@ -71,6 +71,34 @@ return [
             'level' => env('LOG_LEVEL', 'debug'),
             'days' => env('LOG_DAILY_DAYS', 14),
             'replace_placeholders' => true,
+        ],
+
+        'mqtt' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/mqtt.log'),
+            'level' => 'debug',
+            'days' => 7,
+        ],
+
+        'device' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/device.log'),
+            'level' => 'debug',
+            'days' => 7,
+        ],
+
+        'security' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/security.log'),
+            'level' => 'warning',
+            'days' => 14,
+        ],
+
+        'performance' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/performance.log'),
+            'level' => 'info',
+            'days' => 3,
         ],
 
         'slack' => [

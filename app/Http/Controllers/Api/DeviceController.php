@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\DeviceResource;
 use App\Models\Device;
 use App\Services\DeviceDataService;
 use App\Services\MqttPublishService;
@@ -18,13 +19,15 @@ class DeviceController extends Controller
 
     public function index()
     {
-        return Auth::user()->account->devices;
+        $devices = Auth::user()->account->devices()->withLatestData()->paginate(20);
+        return DeviceResource::collection($devices);
     }
 
     public function show(Device $device)
     {
         $this->authorize('view', $device);
-        return $this->deviceDataService->getDeviceLatestData($device);
+        $device->load('esp32MessageLogs');
+        return new DeviceResource($device);
     }
 
     public function control(Request $request, Device $device)
