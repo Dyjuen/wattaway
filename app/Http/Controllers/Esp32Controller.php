@@ -4,6 +4,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreDeviceDataRequest;
 use App\Models\Esp32MessageLog;
 use App\Models\Device;
 use Illuminate\Http\Request;
@@ -27,23 +28,11 @@ class Esp32Controller extends Controller
         // No middleware needed here as CORS is handled by the CorsMiddleware
     }
 
-    public function handleDeviceData(Request $request)
+    public function handleDeviceData(StoreDeviceDataRequest $request)
     {
         try {
             $device = $request->user();
-
-            $validator = Validator::make($request->all(), [
-                'voltage' => 'required|numeric',
-                'current' => 'required|numeric',
-                'power' => 'required|numeric',
-                'energy' => 'required|numeric',
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json(['errors' => $validator->errors()], 422);
-            }
-
-            $validated = $validator->validated();
+            $validated = $request->validated();
 
             $message = Esp32MessageLog::create([
                 'device_id' => $device->id,

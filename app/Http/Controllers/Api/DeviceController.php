@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
+use App\Http\Requests\ControlDeviceRequest;
+use App\Http\Requests\CreateScheduleRequest;
 use App\Http\Resources\DeviceResource;
 use App\Models\Device;
 use App\Services\DeviceDataService;
@@ -30,28 +33,26 @@ class DeviceController extends Controller
         return new DeviceResource($device);
     }
 
-    public function control(Request $request, Device $device)
+    public function control(ControlDeviceRequest $request, Device $device)
     {
-        $this->authorize('update', $device);
+        $validated = $request->validated();
 
-        $validated = $request->validate([
-            'state' => 'required|in:on,off',
-        ]);
+        $this->mqttPublishService->setRelayState($device, $validated['action']);
 
-        $this->mqttPublishService->setRelayState($device, $validated['state']);
+        AuditLog::log(
+            action: 'device.control',
+            description: "Device {$device->name} turned {$validated['action']}",
+            context: ['device_id' => $device->id, 'new_values' => ['state' => $validated['action']]]
+        );
 
         return response()->json(['message' => 'Command sent to device.']);
     }
 
-    public function setSchedule(Request $request, Device $device)
+    public function setSchedule(CreateScheduleRequest $request, Device $device)
     {
-        $this->authorize('update', $device);
+        $validated = $request->validated();
 
-        $validated = $request->validate([
-            'schedule' => 'required|array',
-        ]);
-
-        $device->setConfig('schedule', $validated['schedule']);
+        $device->setConfig('schedule', $validated);
 
         return response()->json(['message' => 'Schedule updated.']);
     }

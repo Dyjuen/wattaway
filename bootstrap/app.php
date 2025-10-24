@@ -28,6 +28,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Trust proxies for Coolify deployment
         $middleware->trustProxies(at: '*');
+
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->render(function (\Illuminate\Http\Exceptions\ThrottleRequestsException $e, \Illuminate\Http\Request $request) {

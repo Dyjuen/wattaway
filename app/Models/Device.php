@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class Device extends Model
 {
+    use Auditable;
     protected $fillable = [
         'account_id',
         'name',

@@ -12,6 +12,7 @@ class VerifyCsrfToken extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        'api/*',  // Disable CSRF for all API routes
+        'api/device/*',  // Device endpoints use token auth, not CSRF
+        'api/v1/ota/*',  // OTA endpoints use device token auth
     ];
 }
