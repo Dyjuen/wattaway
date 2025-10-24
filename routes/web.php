@@ -3,6 +3,7 @@
 use App\Http\Controllers\Esp32Controller;
 use App\Http\Controllers\Esp32MessageController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\FirmwareController;
 
 /*
 |--------------------------------------------------------------------------
@@ -66,4 +67,10 @@ Route::middleware(['auth:account'])->group(function () {
     Route::get('/wifisetup', function () {
         return view('esp32.wifisetup');
     })->name('esp32.wifisetup');
+});
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    Route::resource('firmware', FirmwareController::class);
+    Route::get('firmware/{firmware}/download', [FirmwareController::class, 'download'])
+        ->name('firmware.download');
 });

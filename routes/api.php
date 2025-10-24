@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Esp32Controller;
 use App\Http\Controllers\Esp32MessageController;
 use App\Http\Controllers\Api\DeviceController;
+use App\Http\Controllers\Api\OtaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,6 +29,11 @@ Route::prefix('v1')->group(function () {
         Route::post('/{device}/schedule', [DeviceController::class, 'setSchedule']);
         Route::get('/{device}/data', [DeviceController::class, 'getData']);
         Route::get('/{device}/history', [DeviceController::class, 'getHistory']);
+    });
+
+    Route::middleware(['auth.device'])->prefix('ota')->group(function () {
+        Route::get('/check', [OtaController::class, 'checkUpdate']);
+        Route::get('/download/{firmware}', [OtaController::class, 'downloadFirmware'])->name('api.ota.download');
     });
 });
 

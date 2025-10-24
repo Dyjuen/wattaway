@@ -11,6 +11,7 @@
   - If connection fails or no credentials exist, it starts a BLE server
     to allow configuration from a phone or laptop.
   - Migrated from HTTP to MQTT for real-time communication.
+  - Added OTA update functionality.
 */
 
 // Core WiFi and MQTT Libraries
@@ -18,10 +19,18 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <time.h>
+#include <HTTPUpdate.h>
+#include <Update.h>
 
 // Libraries for BLE Provisioning (using NimBLE to reduce flash size)
 #include <NimBLEDevice.h> // Single include is sufficient; exposes NimBLEServer, NimBLE2902, etc.
 #include <Preferences.h> // Used for saving credentials to Non-Volatile Storage (NVS)
+
+// -- Firmware Version --
+#define FIRMWARE_VERSION "1.0.0"
+
+// -- API Configuration --
+#define API_URL "https://ad7191626096.ngrok-free.app/api/v1"
 
 // -- MQTT Configuration --
 #define MQTT_HOST "your_mqtt_broker_ip" // Replace with your broker's IP or hostname
@@ -63,6 +72,9 @@ PubSubClient mqttClient(espClient);
 unsigned long lastMsg = 0;
 #define MSG_PUBLISH_INTERVAL 30000 // 30 seconds
 
+unsigned long lastOtaCheck = 0;
+#define OTA_CHECK_INTERVAL 86400000 // 24 hours
+
 // Global status characteristic pointer so we can update status from anywhere
 NimBLECharacteristic* gStatusChar = nullptr;
 // Scan characteristics
@@ -75,6 +87,8 @@ void performWifiScanAndNotify();
 void reconnectMQTT();
 void publishData();
 String getTimestamp();
+void checkForUpdate();
+void performOTAUpdate(String url);
 
 // Helper to set and (if subscribed) notify status updates
 void setProvisioningStatus(const char* statusMsg) {
@@ -286,6 +300,9 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
         delay(1000);
         ESP.restart();
     }
+    else if (command == "ota_update") {
+        checkForUpdate();
+    }
 }
 
 void reconnectMQTT() {
@@ -431,6 +448,12 @@ void loop()
       lastMsg = now;
       publishData();
     }
+
+    if (now - lastOtaCheck > OTA_CHECK_INTERVAL) {
+      lastOtaCheck = now;
+      checkForUpdate();
+    }
+
   } else {
     // If not connected, we are in BLE provisioning mode.
     // The device will restart automatically once credentials are received.
@@ -473,6 +496,55 @@ String getTimestamp() {
     char timeStr[25];
     strftime(timeStr, sizeof(timeStr), "%Y-%m-%dT%H:%M:%SZ", &timeinfo);
     return String(timeStr);
+}
+
+void checkForUpdate() {
+    HTTPClient http;
+    String url = String(API_URL) + "/ota/check";
+    http.begin(url);
+    http.addHeader("Authorization", "Bearer " + String(API_TOKEN));
+    http.addHeader("x-firmware-version", FIRMWARE_VERSION);
+    
+    int httpCode = http.GET();
+    
+    if (httpCode == 200) {
+        String payload = http.getString();
+        StaticJsonDocument<512> doc;
+        deserializeJson(doc, payload);
+        
+        if (doc["update_available"]) {
+            String downloadUrl = doc["download_url"];
+            String newVersion = doc["version"];
+            
+            Serial.println("Update available: " + newVersion);
+            performOTAUpdate(downloadUrl);
+        }
+    }
+    
+    http.end();
+}
+
+void performOTAUpdate(String url) {
+    Serial.println("Starting OTA update...");
+    
+    WiFiClient client;
+    
+    httpUpdate.setLedPin(LED_BUILTIN, LOW);
+    
+    t_httpUpdate_return ret = httpUpdate.update(client, url);
+    
+    switch(ret) {
+        case HTTP_UPDATE_FAILED:
+            Serial.printf("Update failed: %s\n", httpUpdate.getLastErrorString().c_str());
+            break;
+        case HTTP_UPDATE_NO_UPDATES:
+            Serial.println("No updates available");
+            break;
+        case HTTP_UPDATE_OK:
+            Serial.println("Update successful! Restarting...");
+            ESP.restart();
+            break;
+    }
 }
 
 // Perform a Wi-Fi scan and stream results over BLE scan results characteristic
