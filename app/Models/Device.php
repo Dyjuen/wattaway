@@ -56,4 +56,24 @@ class Device extends Model
     {
         return $this->hasMany(Esp32MessageLog::class);
     }
+
+    public function configurations()
+    {
+        return $this->hasMany(DeviceConfiguration::class);
+    }
+
+    public function setConfig($key, $value)
+    {
+        $this->configurations()->updateOrCreate(
+            ['key' => $key],
+            ['value' => $value]
+        );
+    }
+
+    public function getConfig($key, $default = null)
+    {
+        $config = $this->configurations()->where('key', $key)->first();
+
+        return $config ? $config->value : $default;
+    }
 }

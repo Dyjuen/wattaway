@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Esp32Controller;
 use App\Http\Controllers\Esp32MessageController;
+use App\Http\Controllers\Api\DeviceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +19,15 @@ use App\Http\Controllers\Esp32MessageController;
 Route::prefix('v1')->group(function () {
     Route::middleware(['auth.device', 'throttle:60,1'])->group(function () {
         Route::post('/device/data', [Esp32Controller::class, 'handleDeviceData']);
+    });
+
+    Route::middleware('auth:sanctum')->prefix('devices')->group(function () {
+        Route::get('/', [DeviceController::class, 'index']);
+        Route::get('/{device}', [DeviceController::class, 'show']);
+        Route::post('/{device}/control', [DeviceController::class, 'control']);
+        Route::post('/{device}/schedule', [DeviceController::class, 'setSchedule']);
+        Route::get('/{device}/data', [DeviceController::class, 'getData']);
+        Route::get('/{device}/history', [DeviceController::class, 'getHistory']);
     });
 });
 

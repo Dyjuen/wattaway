@@ -34,6 +34,7 @@
 // MQTT Topics
 #define MQTT_TOPIC_DATA "devices/" DEVICE_ID "/data"
 #define MQTT_TOPIC_COMMANDS "devices/" DEVICE_ID "/commands"
+#define MQTT_TOPIC_STATUS "devices/" DEVICE_ID "/status"
 
 // -- DEFAULT (HARDCODED) WIFI CREDENTIALS --
 #define DEFAULT_WIFI_SSID      "anak kost 2.4G"
@@ -51,6 +52,7 @@
 // -- ANALOG SENSOR PINS (ADC1 ONLY; RELIABLE WITH WIFI) --
 #define PIN_CURRENT_ADC   34   // GPIO34 (ADC1)
 #define PIN_VOLTAGE_ADC   35   // GPIO35 (ADC1)
+#define RELAY_PIN 26
 
 // Preferences object to store credentials
 Preferences preferences;
@@ -71,6 +73,8 @@ volatile bool gScanBusy = false;
 // Forward decl
 void performWifiScanAndNotify();
 void reconnectMQTT();
+void publishData();
+String getTimestamp();
 
 // Helper to set and (if subscribed) notify status updates
 void setProvisioningStatus(const char* statusMsg) {
@@ -233,6 +237,17 @@ void startBleProvisioning(const char* initialStatus = "Waiting for Credentials")
   setProvisioningStatus(initialStatus);
 }
 
+void sendAck(String command, String result) {
+    StaticJsonDocument<128> ackDoc;
+    ackDoc["command"] = command;
+    ackDoc["result"] = result;
+    ackDoc["timestamp"] = getTimestamp();
+    
+    char ackBuffer[128];
+    serializeJson(ackDoc, ackBuffer);
+    mqttClient.publish(MQTT_TOPIC_STATUS, ackBuffer);
+}
+
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived on topic: ");
   Serial.print(topic);
@@ -243,7 +258,34 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
   }
   Serial.println(message);
 
-  // TODO: Handle incoming commands (e.g., turn relay on/off)
+    StaticJsonDocument<256> doc;
+    DeserializationError error = deserializeJson(doc, payload, length);
+    
+    if (error) {
+        Serial.println("Failed to parse command JSON");
+        return;
+    }
+    
+    String command = doc["command"];
+    
+    if (command == "set_relay_state") {
+        String state = doc["payload"]["state"];
+        if (state == "on") {
+            digitalWrite(RELAY_PIN, HIGH);
+        } else if (state == "off") {
+            digitalWrite(RELAY_PIN, LOW);
+        }
+        sendAck(command, "success");
+    }
+    else if (command == "get_status") {
+        publishData();
+        sendAck(command, "success");
+    }
+    else if (command == "restart") {
+        sendAck(command, "success");
+        delay(1000);
+        ESP.restart();
+    }
 }
 
 void reconnectMQTT() {
@@ -269,6 +311,8 @@ void setup()
   Serial.begin(115200);
   Serial.println("\nESP32 Starting...");
   
+  pinMode(RELAY_PIN, OUTPUT);
+
   // Configure ADC for analog sensors (approximate; fine-tune later)
   analogReadResolution(12); // 0..4095
   analogSetPinAttenuation(PIN_CURRENT_ADC, ADC_11db); // wider range (~3.3V)
@@ -385,25 +429,7 @@ void loop()
     unsigned long now = millis();
     if (now - lastMsg > MSG_PUBLISH_INTERVAL) {
       lastMsg = now;
-      
-      // Read sensors and create JSON payload
-      uint16_t rawCurrent = 0, rawVoltage = 0;
-      float currentA = readCurrentApproxA(rawCurrent);
-      float voltageV = readVoltageApproxV(rawVoltage);
-      float powerW = voltageV * currentA;
-      float energyWh = powerW * (MSG_PUBLISH_INTERVAL / 1000.0 / 3600.0);
-
-      StaticJsonDocument<256> jsonDoc;
-      jsonDoc["voltage"] = voltageV;
-      jsonDoc["current"] = currentA;
-      jsonDoc["power"] = powerW;
-      jsonDoc["energy"] = energyWh;
-
-      char jsonBuffer[512];
-      serializeJson(jsonDoc, jsonBuffer);
-
-      mqttClient.publish(MQTT_TOPIC_DATA, jsonBuffer);
-      Serial.println("Published MQTT message");
+      publishData();
     }
   } else {
     // If not connected, we are in BLE provisioning mode.
@@ -416,6 +442,37 @@ void loop()
     Serial.println("In BLE provisioning mode. Waiting for credentials...");
     delay(5000);
   }
+}
+
+void publishData() {
+  // Read sensors and create JSON payload
+  uint16_t rawCurrent = 0, rawVoltage = 0;
+  float currentA = readCurrentApproxA(rawCurrent);
+  float voltageV = readVoltageApproxV(rawVoltage);
+  float powerW = voltageV * currentA;
+  float energyWh = powerW * (MSG_PUBLISH_INTERVAL / 1000.0 / 3600.0);
+
+  StaticJsonDocument<256> jsonDoc;
+  jsonDoc["voltage"] = voltageV;
+  jsonDoc["current"] = currentA;
+  jsonDoc["power"] = powerW;
+  jsonDoc["energy"] = energyWh;
+
+  char jsonBuffer[512];
+  serializeJson(jsonDoc, jsonBuffer);
+
+  mqttClient.publish(MQTT_TOPIC_DATA, jsonBuffer);
+  Serial.println("Published MQTT message");
+}
+
+String getTimestamp() {
+    struct tm timeinfo;
+    if(!getLocalTime(&timeinfo)){
+        return "1970-01-01T00:00:00Z";
+    }
+    char timeStr[25];
+    strftime(timeStr, sizeof(timeStr), "%Y-%m-%dT%H:%M:%SZ", &timeinfo);
+    return String(timeStr);
 }
 
 // Perform a Wi-Fi scan and stream results over BLE scan results characteristic
