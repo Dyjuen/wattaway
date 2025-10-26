@@ -6,14 +6,13 @@ use Illuminate\Console\Command;
 use PhpMqtt\Client\MqttClient;
 use App\Jobs\ProcessIncomingDeviceData;
 use App\Models\Device;
+use App\Models\MqttMessageLog;
 use Illuminate\Support\Facades\Log;
 
 class MqttListenCommand extends Command
 {
     protected $signature = 'mqtt:listen';
     protected $description = 'Listen to MQTT broker for device messages';
-
-use App\Models\MqttMessageLog;
 
     public function handle()
     {

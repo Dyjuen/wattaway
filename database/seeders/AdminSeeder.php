@@ -15,7 +15,6 @@ class AdminSeeder extends Seeder
 
         if (!$adminExists) {
             Account::create([
-                'name' => 'Admin User',
                 'username' => 'admin',
                 'email' => 'admin@wattaway.com',
                 'password' => Hash::make('Admin@123'), // Change in production!

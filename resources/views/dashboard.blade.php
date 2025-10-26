@@ -14,12 +14,10 @@
     <!-- Preload critical background image -->
     <link rel="preload" as="image" href="{{ asset('images/bg-main.png') }}">
 
-    <!-- Animations -->
-    <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
+    <!-- Styles -->
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
 
-    <!-- Styles -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;

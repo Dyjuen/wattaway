@@ -1,26 +1,10 @@
-/**
-  This code is an example of sending and recieving json data from server(Laravel is used Here)
-  Deserialize json data
-  posting json data as json string in server in post method with httpclient
-  by Debarun Saha
-
-  UPDATED:
-  - Added BLE Provisioning for WiFi credentials.
-  - Hardcoded SSID and password are removed.
-  - Device checks for saved credentials in NVS on boot.
-  - If connection fails or no credentials exist, it starts a BLE server
-    to allow configuration from a phone or laptop.
-  - Migrated from HTTP to MQTT for real-time communication.
-  - Added OTA update functionality.
-*/
-
 // Core WiFi and MQTT Libraries
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <time.h>
-#include <HTTPUpdate.h>
-#include <Update.h>
+// #include <HTTPUpdate.h>
+// #include <Update.h>
 
 // Libraries for BLE Provisioning (using NimBLE to reduce flash size)
 #include <NimBLEDevice.h> // Single include is sufficient; exposes NimBLEServer, NimBLE2902, etc.
@@ -30,15 +14,15 @@
 #define FIRMWARE_VERSION "1.0.0"
 
 // -- API Configuration --
-#define API_URL "https://ad7191626096.ngrok-free.app/api/v1"
+#define API_URL "202.10.61.100/api/v1"
 
 // -- MQTT Configuration --
-#define MQTT_HOST "your_mqtt_broker_ip" // Replace with your broker's IP or hostname
+#define MQTT_HOST "202.10.61.100" // Replace with your broker's IP or hostname
 #define MQTT_PORT 1883
 
 // TODO: These should be unique for each device
-#define DEVICE_ID "123"
-#define API_TOKEN "YOUR_64_CHAR_API_TOKEN"
+#define DEVICE_ID "1"
+#define API_TOKEN "zT944wjUkYCO2JYVyYXdgEJeVHA60rxVoL1HLX6UDbU38SmEbkRKLlNQ5IZ9c2kA"
 
 // MQTT Topics
 #define MQTT_TOPIC_DATA "devices/" DEVICE_ID "/data"
@@ -72,8 +56,8 @@ PubSubClient mqttClient(espClient);
 unsigned long lastMsg = 0;
 #define MSG_PUBLISH_INTERVAL 30000 // 30 seconds
 
-unsigned long lastOtaCheck = 0;
-#define OTA_CHECK_INTERVAL 86400000 // 24 hours
+// unsigned long lastOtaCheck = 0;
+// #define OTA_CHECK_INTERVAL 86400000 // 24 hours
 
 // Global status characteristic pointer so we can update status from anywhere
 NimBLECharacteristic* gStatusChar = nullptr;
@@ -86,14 +70,14 @@ volatile bool gScanBusy = false;
 void performWifiScanAndNotify();
 void reconnectMQTT();
 void publishData();
-String getTimestamp();
-void checkForUpdate();
-void performOTAUpdate(String url);
+const char* getTimestamp();
+// void checkForUpdate();
+// void performOTAUpdate(const char* url);
 
+#define DEBUG_PRINTLN(x)
 // Helper to set and (if subscribed) notify status updates
 void setProvisioningStatus(const char* statusMsg) {
-  Serial.print("[STATUS] ");
-  Serial.println(statusMsg);
+  DEBUG_PRINTLN(String("[STATUS] ") + statusMsg);
   if (gStatusChar != nullptr) {
     gStatusChar->setValue((uint8_t*)statusMsg, strlen(statusMsg));
     // Notify if a client has subscribed
@@ -139,24 +123,18 @@ static inline float readVoltageApproxV(uint16_t &rawCounts) {
 // Callback class to handle incoming BLE data
 class MyCharacteristicCallbacks: public NimBLECharacteristicCallbacks {
     void onWrite(NimBLECharacteristic *pCharacteristic) {
-        // Build Arduino String from underlying buffer for compatibility across core versions
-        String receivedData = String(pCharacteristic->getValue().c_str());
+        const char* receivedData = pCharacteristic->getValue().c_str();
 
-        if (receivedData.length() > 0) {
-            Serial.println("*********");
-            Serial.print("Received Value: ");
-            Serial.println(receivedData);
-
+        if (strlen(receivedData) > 0) {
             // Data should be in the format: "ssid,password"
-            int commaIndex = receivedData.indexOf(',');
-            if (commaIndex > 0) {
-                String ssid = receivedData.substring(0, commaIndex);
-                String password = receivedData.substring(commaIndex + 1);
+            const char* comma = strchr(receivedData, ',');
+            if (comma != nullptr) {
+                int ssidLen = comma - receivedData;
+                char ssid[ssidLen + 1];
+                strncpy(ssid, receivedData, ssidLen);
+                ssid[ssidLen] = '\0';
 
-                Serial.print("New SSID: ");
-                Serial.println(ssid);
-                Serial.print("New Password: ");
-                Serial.println(password);
+                const char* password = comma + 1;
 
                 // Save credentials to NVS
                 preferences.begin("wifi-creds", false);
@@ -166,15 +144,12 @@ class MyCharacteristicCallbacks: public NimBLECharacteristicCallbacks {
 
                 setProvisioningStatus("Received Credentials");
 
-                Serial.println("Credentials saved. Restarting device in 3 seconds...");
                 setProvisioningStatus("Restarting");
                 delay(3000);
                 ESP.restart();
             } else {
-                Serial.println("Invalid data format. Should be: ssid,password");
                 setProvisioningStatus("Invalid Format");
             }
-            Serial.println("*********");
         }
     }
 };
@@ -182,8 +157,7 @@ class MyCharacteristicCallbacks: public NimBLECharacteristicCallbacks {
 // Callback for scan command writes
 class MyScanCmdCallbacks: public NimBLECharacteristicCallbacks {
     void onWrite(NimBLECharacteristic *pCharacteristic) {
-      String cmd = String(pCharacteristic->getValue().c_str());
-      cmd.trim();
+      const char* cmd = pCharacteristic->getValue().c_str();
       if (gScanBusy) {
         if (gScanResultsChar) {
           const char* busy = "SCAN_BUSY";
@@ -192,12 +166,13 @@ class MyScanCmdCallbacks: public NimBLECharacteristicCallbacks {
         }
         return;
       }
-      if (cmd.equalsIgnoreCase("SCAN") || cmd.equalsIgnoreCase("START") || cmd.length() == 0) {
+      if (strcasecmp(cmd, "SCAN") == 0 || strcasecmp(cmd, "START") == 0 || strlen(cmd) == 0) {
         gScanRequested = true; // handled in loop()
       } else {
         if (gScanResultsChar) {
-          String msg = String("SCAN_ERROR:Unknown command '") + cmd + "'";
-          gScanResultsChar->setValue((uint8_t*)msg.c_str(), msg.length());
+          char msg[128];
+          snprintf(msg, sizeof(msg), "SCAN_ERROR:Unknown command '%s'", cmd);
+          gScanResultsChar->setValue((uint8_t*)msg, strlen(msg));
           gScanResultsChar->notify();
         }
       }
@@ -205,7 +180,7 @@ class MyScanCmdCallbacks: public NimBLECharacteristicCallbacks {
 };
 
 void startBleProvisioning(const char* initialStatus = "Waiting for Credentials") {
-  Serial.println("Starting BLE Server for WiFi Configuration");
+  DEBUG_PRINTLN("Starting BLE Server for WiFi Configuration");
   
   NimBLEDevice::init("ESP32_WiFi_Config");
   NimBLEServer *pServer = NimBLEDevice::createServer();
@@ -244,14 +219,14 @@ void startBleProvisioning(const char* initialStatus = "Waiting for Credentials")
   pAdvertising->addServiceUUID(SERVICE_UUID);
   NimBLEDevice::startAdvertising();
   
-  Serial.println("Characteristic defined. Ready for BLE connection.");
-  Serial.println("Send WiFi credentials in the format: Your_SSID,Your_Password");
+  DEBUG_PRINTLN("Characteristic defined. Ready for BLE connection.");
+  DEBUG_PRINTLN("Send WiFi credentials in the format: Your_SSID,Your_Password");
 
   // Broadcast initial status
   setProvisioningStatus(initialStatus);
 }
 
-void sendAck(String command, String result) {
+void sendAck(const char* command, const char* result) {
     StaticJsonDocument<128> ackDoc;
     ackDoc["command"] = command;
     ackDoc["result"] = result;
@@ -263,70 +238,92 @@ void sendAck(String command, String result) {
 }
 
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message arrived on topic: ");
-  Serial.print(topic);
-  Serial.print(". Message: ");
-  String message;
-  for (int i = 0; i < length; i++) {
-    message += (char)payload[i];
-  }
-  Serial.println(message);
+  DEBUG_PRINTLN(String("Message arrived on topic: ") + topic + ". Message: ");
+  char message[length + 1];
+  memcpy(message, payload, length);
+  message[length] = '\0';
+  DEBUG_PRINTLN(message);
 
     StaticJsonDocument<256> doc;
     DeserializationError error = deserializeJson(doc, payload, length);
     
     if (error) {
-        Serial.println("Failed to parse command JSON");
+        DEBUG_PRINTLN("Failed to parse command JSON");
         return;
     }
     
-    String command = doc["command"];
+    const char* command = doc["command"];
     
-    if (command == "set_relay_state") {
-        String state = doc["payload"]["state"];
-        if (state == "on") {
+    if (strcmp(command, "set_relay_state") == 0) {
+        const char* state = doc["payload"]["state"];
+        if (strcmp(state, "on") == 0) {
             digitalWrite(RELAY_PIN, HIGH);
-        } else if (state == "off") {
+        } else if (strcmp(state, "off") == 0) {
             digitalWrite(RELAY_PIN, LOW);
         }
         sendAck(command, "success");
     }
-    else if (command == "get_status") {
+    else if (strcmp(command, "get_status") == 0) {
         publishData();
         sendAck(command, "success");
     }
-    else if (command == "restart") {
+    else if (strcmp(command, "restart") == 0) {
         sendAck(command, "success");
         delay(1000);
         ESP.restart();
     }
-    else if (command == "ota_update") {
-        checkForUpdate();
+    else if (strcmp(command, "ota_update") == 0) {
+        // checkForUpdate();
     }
 }
 
 void reconnectMQTT() {
   while (!mqttClient.connected()) {
-    Serial.print("Attempting MQTT connection...");
+    DEBUG_PRINTLN("Attempting MQTT connection...");
     // Attempt to connect
     if (mqttClient.connect(DEVICE_ID, DEVICE_ID, API_TOKEN)) {
-      Serial.println("connected");
+      DEBUG_PRINTLN("connected");
       // Subscribe
       mqttClient.subscribe(MQTT_TOPIC_COMMANDS);
     } else {
-      Serial.print("failed, rc=");
-      Serial.print(mqttClient.state());
-      Serial.println(" try again in 5 seconds");
+      DEBUG_PRINTLN(String("failed, rc=") + mqttClient.state() + " try again in 5 seconds");
       // Wait 5 seconds before retrying
       delay(5000);
     }
   }
 }
 
+bool connectToWiFi(const char* ssid, const char* password, const char* status) {
+    DEBUG_PRINTLN(String("Connecting to: ") + ssid);
+    if (gStatusChar == nullptr) {
+      startBleProvisioning(status);
+    } else {
+      setProvisioningStatus(status);
+    }
+    WiFi.begin(ssid, password);
+    
+    int timeout_counter = 0;
+    while (WiFi.status() != WL_CONNECTED && timeout_counter < 30) {
+      delay(500);
+      DEBUG_PRINTLN(".");
+      timeout_counter++;
+    }
+
+    if (WiFi.status() == WL_CONNECTED) {
+      setProvisioningStatus("Connected");
+      NimBLEAdvertising* adv = NimBLEDevice::getAdvertising();
+      if (adv) adv->stop();
+      return true;
+    } else {
+      setProvisioningStatus("Connection Failed");
+      return false;
+    }
+}
+
 void setup()
 {
   Serial.begin(115200);
-  Serial.println("\nESP32 Starting...");
+  DEBUG_PRINTLN("\nESP32 Starting...");
   
   pinMode(RELAY_PIN, OUTPUT);
 
@@ -337,86 +334,38 @@ void setup()
 
   // Try to connect to WiFi with saved credentials
   preferences.begin("wifi-creds", true); // Read-only mode
-  String ssid = preferences.getString("ssid", "");
-  String password = preferences.getString("password", "");
+  char ssid[64];
+  char password[64];
+  preferences.getString("ssid", ssid, sizeof(ssid));
+  preferences.getString("password", password, sizeof(password));
   preferences.end();
   
   bool connected = false;
-  if (ssid.length() > 0) {
-    Serial.printf("Found saved credentials. Connecting to: %s\n", ssid.c_str());
-    // Initialize BLE so client can see status while attempting to connect
-    if (gStatusChar == nullptr) {
-      startBleProvisioning("Connecting...");
-    } else {
-      setProvisioningStatus("Connecting...");
-    }
-    WiFi.begin(ssid.c_str(), password.c_str());
-    
-    // Wait for connection with a 15-second timeout
-    int timeout_counter = 0;
-    while (WiFi.status() != WL_CONNECTED && timeout_counter < 30) {
-      delay(500);
-      Serial.print(".");
-      timeout_counter++;
-    }
-
-    if (WiFi.status() == WL_CONNECTED) {
-      connected = true;
-      setProvisioningStatus("Connected");
-      // Optional: stop advertising to save power once connected
-      NimBLEAdvertising* adv = NimBLEDevice::getAdvertising();
-      if (adv) adv->stop();
-    } else {
-      setProvisioningStatus("Connection Failed");
-    }
+  if (strlen(ssid) > 0) {
+    connected = connectToWiFi(ssid, password, "Connecting...");
   } else {
     // No saved credentials; try default hardcoded ones first
-    ssid = String(DEFAULT_WIFI_SSID);
-    password = String(DEFAULT_WIFI_PASSWORD);
-    Serial.printf("No saved credentials. Trying default SSID: %s\n", ssid.c_str());
-    if (gStatusChar == nullptr) {
-      startBleProvisioning("Connecting (Default)...");
-    } else {
-      setProvisioningStatus("Connecting (Default)...");
-    }
-    WiFi.begin(ssid.c_str(), password.c_str());
-
-    // Wait for connection with a 15-second timeout
-    int timeout_counter = 0;
-    while (WiFi.status() != WL_CONNECTED && timeout_counter < 30) {
-      delay(500);
-      Serial.print(".");
-      timeout_counter++;
-    }
-
-    if (WiFi.status() == WL_CONNECTED) {
-      connected = true;
-      setProvisioningStatus("Connected (Default)");
-      NimBLEAdvertising* adv = NimBLEDevice::getAdvertising();
-      if (adv) adv->stop();
-    } else {
-      setProvisioningStatus("Connection Failed (Default)");
-    }
+    strcpy(ssid, DEFAULT_WIFI_SSID);
+    strcpy(password, DEFAULT_WIFI_PASSWORD);
+    connected = connectToWiFi(ssid, password, "Connecting (Default)...");
   }
 
   // Check if connection was successful
   if (connected) {
     // ---- NORMAL OPERATION ----
-    Serial.println("\nWiFi connected!");
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
+    DEBUG_PRINTLN("\nWiFi connected!");
+    DEBUG_PRINTLN(String("IP address: ") + WiFi.localIP());
     
     // Initialize time
-    Serial.println("Contacting time server...");
+    DEBUG_PRINTLN("Contacting time server...");
     configTime(0, 0, "pool.ntp.org", "time.nist.gov");
     struct tm timeinfo;
     if(!getLocalTime(&timeinfo)){
-      Serial.println("Failed to obtain time. Using default time.");
+      DEBUG_PRINTLN("Failed to obtain time. Using default time.");
     } else {
       char timeStr[25];
       strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", &timeinfo);
-      Serial.print("Current time: ");
-      Serial.println(timeStr);
+      DEBUG_PRINTLN(String("Current time: ") + timeStr);
     }
     
     mqttClient.setServer(MQTT_HOST, MQTT_PORT);
@@ -424,7 +373,7 @@ void setup()
 
   } else {
     // ---- PROVISIONING MODE ----
-    Serial.println("\nCould not connect to WiFi.");
+    DEBUG_PRINTLN("\nCould not connect to WiFi.");
     WiFi.disconnect(); // Ensure WiFi is off
     // Start/ensure BLE is running and show waiting state for new credentials
     if (gStatusChar == nullptr) {
@@ -449,10 +398,10 @@ void loop()
       publishData();
     }
 
-    if (now - lastOtaCheck > OTA_CHECK_INTERVAL) {
-      lastOtaCheck = now;
-      checkForUpdate();
-    }
+    // if (now - lastOtaCheck > OTA_CHECK_INTERVAL) {
+    //   lastOtaCheck = now;
+    //   checkForUpdate();
+    // }
 
   } else {
     // If not connected, we are in BLE provisioning mode.
@@ -462,7 +411,7 @@ void loop()
       gScanRequested = false;
       performWifiScanAndNotify();
     }
-    Serial.println("In BLE provisioning mode. Waiting for credentials...");
+    DEBUG_PRINTLN("In BLE provisioning mode. Waiting for credentials...");
     delay(5000);
   }
 }
@@ -485,67 +434,71 @@ void publishData() {
   serializeJson(jsonDoc, jsonBuffer);
 
   mqttClient.publish(MQTT_TOPIC_DATA, jsonBuffer);
-  Serial.println("Published MQTT message");
+  DEBUG_PRINTLN("Published MQTT message");
 }
 
-String getTimestamp() {
+const char* getTimestamp() {
+    static char timeStr[25];
     struct tm timeinfo;
     if(!getLocalTime(&timeinfo)){
-        return "1970-01-01T00:00:00Z";
+        strcpy(timeStr, "1970-01-01T00:00:00Z");
+        return timeStr;
     }
-    char timeStr[25];
     strftime(timeStr, sizeof(timeStr), "%Y-%m-%dT%H:%M:%SZ", &timeinfo);
-    return String(timeStr);
+    return timeStr;
 }
 
-void checkForUpdate() {
-    HTTPClient http;
-    String url = String(API_URL) + "/ota/check";
-    http.begin(url);
-    http.addHeader("Authorization", "Bearer " + String(API_TOKEN));
-    http.addHeader("x-firmware-version", FIRMWARE_VERSION);
+// void checkForUpdate() {
+//     HTTPClient http;
+//     char url[128];
+//     snprintf(url, sizeof(url), "%s/ota/check", API_URL);
+//     http.begin(url);
+//     char authHeader[100];
+//     snprintf(authHeader, sizeof(authHeader), "Bearer %s", API_TOKEN);
+//     http.addHeader("Authorization", authHeader);
+//     http.addHeader("x-firmware-version", FIRMWARE_VERSION);
     
-    int httpCode = http.GET();
+//     int httpCode = http.GET();
     
-    if (httpCode == 200) {
-        String payload = http.getString();
-        StaticJsonDocument<512> doc;
-        deserializeJson(doc, payload);
+//     if (httpCode == 200) {
+//         String payload = http.getString();
+//         StaticJsonDocument<512> doc;
+//         deserializeJson(doc, payload);
         
-        if (doc["update_available"]) {
-            String downloadUrl = doc["download_url"];
-            String newVersion = doc["version"];
+//         if (doc["update_available"]) {
+//             const char* downloadUrl = doc["download_url"];
+//             const char* newVersion = doc["version"];
             
-            Serial.println("Update available: " + newVersion);
-            performOTAUpdate(downloadUrl);
-        }
-    }
+//             DEBUG_PRINTLN(String("Update available: ") + newVersion);
+//             performOTAUpdate(downloadUrl);
+//         }
+//     }
     
-    http.end();
-}
+//     http.end();
+// }
 
-void performOTAUpdate(String url) {
-    Serial.println("Starting OTA update...");
+// void performOTAUpdate(const char* url) {
+//     DEBUG_PRINTLN("Starting OTA update...");
     
-    WiFiClient client;
+//     WiFiClient client;
     
-    httpUpdate.setLedPin(LED_BUILTIN, LOW);
+//     httpUpdate.setLedPin(LED_BUILTIN, LOW);
     
-    t_httpUpdate_return ret = httpUpdate.update(client, url);
+//     t_httpUpdate_return ret = httpUpdate.update(client, url);
     
-    switch(ret) {
-        case HTTP_UPDATE_FAILED:
-            Serial.printf("Update failed: %s\n", httpUpdate.getLastErrorString().c_str());
-            break;
-        case HTTP_UPDATE_NO_UPDATES:
-            Serial.println("No updates available");
-            break;
-        case HTTP_UPDATE_OK:
-            Serial.println("Update successful! Restarting...");
-            ESP.restart();
-            break;
-    }
-}
+//     switch(ret) {
+//         case HTTP_UPDATE_FAILED:
+//             DEBUG_PRINTLN(String("Update failed: ") + httpUpdate.getLastErrorString());
+//             break;
+//         case HTTP_UPDATE_NO_UPDATES:
+//             DEBUG_PRINTLN("No updates available");
+//             break;
+//         case HTTP_UPDATE_OK:
+//             DEBUG_PRINTLN("Update successful! Restarting...");
+//             ESP.restart();
+//             break;
+//     }
+// }
 
 // Perform a Wi-Fi scan and stream results over BLE scan results characteristic
 void performWifiScanAndNotify() {
@@ -565,13 +518,14 @@ void performWifiScanAndNotify() {
 
   int n = WiFi.scanNetworks(/*async=*/false, /*hidden=*/true);
   if (n < 0) {
-    String err = String("SCAN_ERROR:") + WiFi.status();
-    gScanResultsChar->setValue((uint8_t*)err.c_str(), err.length());
+    char err[32];
+    snprintf(err, sizeof(err), "SCAN_ERROR:%d", WiFi.status());
+    gScanResultsChar->setValue((uint8_t*)err, strlen(err));
     gScanResultsChar->notify();
   } else {
     for (int i = 0; i < n; ++i) {
-      String ssid = WiFi.SSID(i);
-      if (ssid.length() == 0) {
+      const char* ssid = WiFi.SSID(i).c_str();
+      if (strlen(ssid) == 0) {
         // skip hidden
         continue;
       }
@@ -590,8 +544,9 @@ void performWifiScanAndNotify() {
         default: sec = "UNKNOWN"; break;
       }
       // Build line: SSID|RSSI|SEC
-      String line = ssid + "|" + String(rssi) + "|" + String(sec);
-      gScanResultsChar->setValue((uint8_t*)line.c_str(), line.length());
+      char line[128];
+      snprintf(line, sizeof(line), "%s|%d|%s", ssid, rssi, sec);
+      gScanResultsChar->setValue((uint8_t*)line, strlen(line));
       gScanResultsChar->notify();
       delay(30);
     }

@@ -11,13 +11,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@900&display=swap" rel="stylesheet">
 
-    <!-- Animations -->
-    <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
-    <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
-
-
     <!-- Styles -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
     <style>
         body {
             font-family: 'Inter', sans-serif;
