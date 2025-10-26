@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('audit_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('account_id')->nullable()->constrained('accounts')->onDelete('set null');
             $table->foreignId('device_id')->nullable()->constrained()->onDelete('set null');
             $table->string('action');
             $table->text('description');
@@ -23,7 +23,7 @@ return new class extends Migration
             $table->json('new_values')->nullable();
             $table->timestamp('created_at')->useCurrent();
 
-            $table->index(['user_id', 'device_id', 'action', 'created_at']);
+            $table->index(['account_id', 'device_id', 'action', 'created_at']);
         });
     }
 

@@ -19,7 +19,7 @@ use App\Http\Controllers\Api\OtaController;
 
 Route::prefix('v1')->group(function () {
     Route::middleware(['auth.device', 'throttle:120,1'])->group(function () {
-        Route::post('/device/data', [Esp32Controller::class, 'handleDeviceData']);
+Route::post('/device/data', [Esp32Controller::class, 'store'])->middleware('auth:sanctum', 'throttle:60,1');
     });
 
     Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('devices')->group(function () {

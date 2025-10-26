@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use App\Traits\Auditable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class Device extends Model
 {
+    use HasFactory;
     use Auditable;
     protected $fillable = [
         'account_id',
@@ -52,6 +54,11 @@ class Device extends Model
     public function account()
     {
         return $this->belongsTo(Account::class);
+    }
+
+    public function schedules()
+    {
+        return $this->hasMany(DeviceSchedule::class);
     }
 
     public function esp32MessageLogs()

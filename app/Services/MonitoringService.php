@@ -3,10 +3,19 @@
 namespace App\Services;
 
 use App\Models\Device;
-use Illuminate\Support\Facades\Log;
+use App\Events\DeviceOffline;
 
 class MonitoringService
 {
+    public function checkDeviceStatus()
+    {
+        Device::where('status', 'online')
+            ->where('last_seen_at', '<', now()->subMinutes(5))
+            ->each(function ($device) {
+                $device->update(['status' => 'offline']);
+                DeviceOffline::dispatch($device);
+            });
+    }
     public function logDeviceConnection(Device $device): void
     {
         Log::channel('device')->info('Device connected', [

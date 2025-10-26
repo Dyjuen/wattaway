@@ -20,6 +20,12 @@ return new class extends Migration
             $table->string('ip_address', 45)->nullable();
             $table->string('endpoint', 255)->nullable();
             $table->text('payload')->nullable();
+            $table->float('voltage')->nullable();
+            $table->float('current')->nullable();
+            $table->float('power')->nullable();
+            $table->float('energy')->nullable();
+            $table->float('frequency')->nullable();
+            $table->float('power_factor')->nullable();
             $table->timestamps();
         });
     }

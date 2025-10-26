@@ -28,6 +28,8 @@ class DeviceDataService
             'current' => 'required|numeric',
             'power' => 'required|numeric',
             'energy' => 'required|numeric',
+            'frequency' => 'nullable|numeric',
+            'power_factor' => 'nullable|numeric',
         ]);
 
         $validatedData = $validator->validate();
@@ -37,6 +39,12 @@ class DeviceDataService
             'content' => json_encode($validatedData),
             'direction' => 'incoming',
             'payload' => json_encode($validatedData),
+            'voltage' => $validatedData['voltage'],
+            'current' => $validatedData['current'],
+            'power' => $validatedData['power'],
+            'energy' => $validatedData['energy'],
+            'frequency' => $validatedData['frequency'] ?? null,
+            'power_factor' => $validatedData['power_factor'] ?? null,
         ]);
 
         $device->update(['last_seen_at' => now()]);

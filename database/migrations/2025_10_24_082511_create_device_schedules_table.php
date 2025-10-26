@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('device_schedules', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('device_id')->constrained()->onDelete('cascade');
+            $table->string('name');
+            $table->string('action');
+            $table->string('schedule_type');
+            $table->time('scheduled_time');
+            $table->json('days_of_week')->nullable();
+            $table->boolean('is_enabled')->default(true);
             $table->timestamps();
         });
     }

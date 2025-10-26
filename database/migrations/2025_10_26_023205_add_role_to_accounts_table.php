@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('devices', function (Blueprint $table) {
-            $table->foreignId('firmware_version_id')->nullable()->after('status')->constrained('firmware_versions')->onDelete('set null');
+        Schema::table('accounts', function (Blueprint $table) {
+            $table->enum('role', ['user', 'admin'])->default('user')->after('email');
+            $table->index('role');
         });
     }
 
@@ -21,9 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('devices', function (Blueprint $table) {
-            $table->dropForeign(['firmware_version_id']);
-            $table->dropColumn('firmware_version_id');
+        Schema::table('accounts', function (Blueprint $table) {
+            $table->dropColumn('role');
         });
     }
 };

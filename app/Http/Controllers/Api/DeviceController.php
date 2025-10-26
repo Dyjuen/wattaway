@@ -52,9 +52,9 @@ class DeviceController extends Controller
     {
         $validated = $request->validated();
 
-        $device->setConfig('schedule', $validated);
+        $schedule = $device->schedules()->create($validated);
 
-        return response()->json(['message' => 'Schedule updated.']);
+        return response()->json(['message' => 'Schedule created.', 'schedule' => $schedule], 201);
     }
 
     public function getData(Device $device)

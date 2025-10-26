@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class AccountFactory extends Factory
 {
+    protected static ?string $password;
     /**
      * Define the model's default state.
      *
@@ -17,7 +18,11 @@ class AccountFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'username' => fake()->userName(),
+            'email' => fake()->unique()->safeEmail(),
+            'email_verified_at' => now(),
+            'password' => static::$password ??= bcrypt('password'),
+            'remember_token' => \Illuminate\Support\Str::random(10),
         ];
     }
 }

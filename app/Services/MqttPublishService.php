@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Device;
 use PhpMqtt\Client\MqttClient;
+use App\Models\MqttMessageLog;
 use Illuminate\Support\Facades\Log;
 
 class MqttPublishService
@@ -29,11 +30,11 @@ class MqttPublishService
     public function sendCommand(Device $device, string $command, array $payload = []): bool
     {
         $topic = str_replace('{device_id}', $device->id, config('mqtt.topics.commands'));
-        $message = json_encode([
+        $message = [
             'command' => $command,
             'payload' => $payload,
             'timestamp' => now()->toIso8601String(),
-        ]);
+        ];
 
         try {
             $connectionSettings = (new \PhpMqtt\Client\ConnectionSettings)
@@ -41,12 +42,31 @@ class MqttPublishService
                 ->setPassword($this->password);
 
             $this->mqtt->connect($connectionSettings, true);
-            $this->mqtt->publish($topic, $message, 0);
+            $this->mqtt->publish($topic, json_encode($message), 0);
             $this->mqtt->disconnect();
+
+            MqttMessageLog::logOutgoing(
+                deviceId: $device->id,
+                type: 'command',
+                payload: $message,
+                topic: $topic,
+                status: 'success',
+                responseCode: 200
+            );
 
             Log::info("Command sent to device {$device->id}", ['command' => $command, 'payload' => $payload]);
             return true;
         } catch (\Exception $e) {
+            MqttMessageLog::logOutgoing(
+                deviceId: $device->id,
+                type: 'command',
+                payload: $message,
+                topic: $topic,
+                status: 'error',
+                responseCode: 500,
+                error: $e->getMessage()
+            );
+
             Log::error("Failed to send command to device {$device->id}", ['error' => $e->getMessage()]);
             return false;
         }

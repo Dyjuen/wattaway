@@ -16,6 +16,12 @@ class Esp32MessageLog extends Model
         'ip_address',
         'endpoint',
         'payload',
+        'voltage',
+        'current',
+        'power',
+        'energy',
+        'frequency',
+        'power_factor',
     ];
 
     protected function casts(): array

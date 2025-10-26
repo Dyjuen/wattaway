@@ -15,50 +15,56 @@ use Illuminate\Support\Facades\Auth;
 
 class Esp32Controller extends Controller
 {
-    use \Illuminate\Foundation\Auth\Access\AuthorizesRequests;
-    use \Illuminate\Foundation\Validation\ValidatesRequests;
-
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        // No middleware needed here as CORS is handled by the CorsMiddleware
-    }
+    use App\Models\MqttMessageLog;
 
     public function handleDeviceData(StoreDeviceDataRequest $request)
     {
+        $device = $request->user(); // Authenticated device
         try {
-            $device = $request->user();
             $validated = $request->validated();
 
-            $message = Esp32MessageLog::create([
+            // Log incoming message
+            MqttMessageLog::logIncoming(
+                deviceId: $device->id,
+                type: 'data',
+                payload: $validated,
+                endpoint: $request->path(),
+                status: 'success'
+            );
+
+            // Process data
+            Esp32MessageLog::create([
                 'device_id' => $device->id,
-                'content' => json_encode($validated),
-                'direction' => 'incoming',
-                'metadata' => [
-                    'endpoint' => '/api/v1/device/data',
-                    'user_agent' => $request->userAgent(),
-                ],
-                'ip_address' => $request->ip(),
-                'endpoint' => '/api/v1/device/data',
-                'payload' => json_encode($validated)
+                'voltage' => $validated['voltage'],
+                'current' => $validated['current'],
+                'power' => $validated['power'],
+                'energy' => $validated['energy'],
+                'frequency' => $validated['frequency'] ?? null,
+                'power_factor' => $validated['power_factor'] ?? null,
             ]);
 
+            // Update device last_seen
+            $device->update(['last_seen_at' => now()]);
+
             return response()->json([
-                'status' => 'success',
-                'message' => 'Device data received',
-                'data' => $validated
-            ]);
+                'message' => 'Data received successfully',
+                'stored' => true,
+            ], 200);
 
         } catch (\Exception $e) {
-            Log::error('Error processing device data: ' . $e->getMessage());
+            // Log error
+            MqttMessageLog::logIncoming(
+                deviceId: $device->id ?? null,
+                type: 'data',
+                payload: $request->all(),
+                endpoint: $request->path(),
+                status: 'error',
+                error: $e->getMessage()
+            );
+
             return response()->json([
-                'status' => 'error',
-                'message' => 'Error processing request',
-                'error' => $e->getMessage()
+                'message' => 'Failed to process data',
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

@@ -1,0 +1,13 @@
+[Unit]
+Description=WattAway Laravel Scheduler
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/var/www/wattaway
+ExecStart=/usr/bin/php /var/www/wattaway/artisan schedule:work
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

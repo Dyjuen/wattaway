@@ -13,6 +13,8 @@ class MqttListenCommand extends Command
     protected $signature = 'mqtt:listen';
     protected $description = 'Listen to MQTT broker for device messages';
 
+use App\Models\MqttMessageLog;
+
     public function handle()
     {
         $host = config('mqtt.host');
@@ -38,26 +40,42 @@ class MqttListenCommand extends Command
             $this->info('Connected to MQTT broker.');
 
             $mqtt->subscribe(config('mqtt.topics.data'), function ($topic, $message) {
-                $this->info("Received message on topic [{$topic}]: {$message}");
-
-                // Extract device_id from topic
-                $matches = [];
-                if (preg_match('/devices\/(\\d+)\/data/', $topic, $matches)) {
-                    $deviceId = $matches[1];
-                    $device = Device::find($deviceId);
-
-                    if (!$device) {
-                        Log::warning("Received message for unknown device: {$deviceId}");
-                        return;
-                    }
+                $deviceId = null;
+                try {
+                    // Extract device_id from topic
+                    preg_match('/devices\/(\d+)\/data/', $topic, $matches);
+                    $deviceId = $matches[1] ?? null;
 
                     $data = json_decode($message, true);
-                    if (json_last_error() !== JSON_ERROR_NONE) {
-                        Log::warning("Received invalid JSON from device: {$deviceId}");
-                        return;
+
+                    if (!$data) {
+                        throw new \Exception('Invalid JSON format');
                     }
 
+                    // Log incoming MQTT message
+                    MqttMessageLog::logIncoming(
+                        deviceId: $deviceId,
+                        type: 'data',
+                        payload: $data,
+                        topic: $topic,
+                        status: 'success'
+                    );
+
+                    // Dispatch job to process data
                     ProcessIncomingDeviceData::dispatch($deviceId, $data);
+
+                } catch (\Exception $e) {
+                    // Log error
+                    MqttMessageLog::logIncoming(
+                        deviceId: $deviceId,
+                        type: 'data',
+                        payload: ['raw_message' => $message],
+                        topic: $topic,
+                        status: 'error',
+                        error: $e->getMessage()
+                    );
+
+                    $this->error("Error processing message: " . $e->getMessage());
                 }
             }, 0);
 
