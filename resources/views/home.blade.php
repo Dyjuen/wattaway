@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@900&display=swap" rel="stylesheet">
 
     <!-- Styles -->
+    <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
     <style>

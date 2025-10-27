@@ -12,7 +12,7 @@
 
     <!-- Animations -->
     <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
-
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
 
     <!-- Styles & Scripts -->

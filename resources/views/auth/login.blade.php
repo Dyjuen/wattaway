@@ -17,10 +17,8 @@
     <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
 
     <!-- Styles -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js for interactivity -->
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    
     <style>
         body {
             font-family: 'Inter', sans-serif;
