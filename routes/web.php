@@ -36,9 +36,8 @@ Route::get('/register', [AuthController::class, 'showRegister'])->name('register
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware(['auth:account'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\DeviceController::class, 'index'])->name('dashboard');
+    Route::get('/devices/{device}', [\App\Http\Controllers\DeviceController::class, 'show'])->name('devices.show');
 
     Route::get('/settings', [Esp32Controller::class, 'settings'])->name('settings');
 
@@ -67,10 +66,15 @@ Route::middleware(['auth:account'])->group(function () {
     Route::get('/wifisetup', function () {
         return view('esp32.wifisetup');
     })->name('esp32.wifisetup');
+
+    Route::get('/pair', function () {
+        return view('pairing.scan');
+    })->name('pairing.scan');
+
+    Route::get('/devices', function () {
+        $devices = auth()->user()->devices()->with('latestMessage')->get();
+        return view('devices.index', compact('devices'));
+    })->name('devices.index');
 });
 
-Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    Route::resource('firmware', FirmwareController::class);
-    Route::get('firmware/{firmware}/download', [FirmwareController::class, 'download'])
-        ->name('firmware.download');
-});
+

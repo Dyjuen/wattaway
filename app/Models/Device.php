@@ -13,6 +13,10 @@ class Device extends Model
     use Auditable;
     protected $fillable = [
         'account_id',
+        'provisioning_token_id',
+        'serial_number',
+        'hardware_id',
+        'activated_at',
         'name',
         'description',
         'status',
@@ -48,6 +52,7 @@ class Device extends Model
     {
         return [
             'last_seen_at' => 'datetime',
+            'activated_at' => 'datetime',
         ];
     }
 
@@ -96,5 +101,15 @@ class Device extends Model
         return $query->with(['esp32MessageLogs' => function ($q) {
             $q->latest()->limit(1);
         }]);
+    }
+
+    public function provisioningToken(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(DeviceProvisioningToken::class);
+    }
+
+    public function isActivated(): bool
+    {
+        return $this->activated_at !== null;
     }
 }

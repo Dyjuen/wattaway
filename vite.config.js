@@ -16,7 +16,6 @@ export default defineConfig({
         // Minify CSS and JS
         cssMinify: true,
         // Generate manifest for better caching
-        manifest: true,
         // Optimize chunks
         rollupOptions: {
             output: {

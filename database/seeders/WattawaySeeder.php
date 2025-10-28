@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Account;
 use App\Models\Device;
+use App\Models\DeviceProvisioningToken;
 use App\Models\Esp32MessageLog;
 
 class WattawaySeeder extends Seeder
@@ -45,7 +46,7 @@ class WattawaySeeder extends Seeder
         ];
 
         foreach ($devices as $deviceData) {
-            $device = Device::create([
+            $device = Device::factory()->create([
                 'account_id' => $account->id,
                 'name' => $deviceData['name'],
                 'description' => $deviceData['description'],
@@ -53,7 +54,9 @@ class WattawaySeeder extends Seeder
                 'last_seen_at' => now(),
             ]);
 
-            // Create dummy logs for each device
+            $token = DeviceProvisioningToken::generate($device->serial_number, $device->hardware_id);
+            $device->update(['provisioning_token_id' => $token->id]);
+
             $this->createDummyLogs($device);
         }
     }

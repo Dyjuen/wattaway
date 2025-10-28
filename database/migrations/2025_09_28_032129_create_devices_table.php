@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('devices', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('account_id')->constrained('accounts')->onDelete('cascade');
+            $table->foreignId('account_id')->nullable()->constrained('accounts')->onDelete('cascade');
             $table->string('name');
             $table->text('description')->nullable();
             $table->string('status')->default('offline');
