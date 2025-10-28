@@ -2,8 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\Device;
 use App\Events\DeviceOffline;
+use App\Models\Device;
+use Illuminate\Support\Facades\Log;
 
 class MonitoringService
 {
@@ -16,6 +17,39 @@ class MonitoringService
                 DeviceOffline::dispatch($device);
             });
     }
+
+    /**
+     * Updates a device's status based on a message from MQTT.
+     *
+     * @param integer $deviceId
+     * @param string $newStatus
+     * @return void
+     */
+    public function updateStatusFromMqtt(int $deviceId, string $newStatus): void
+    {
+        $device = Device::find($deviceId);
+
+        if (!$device) {
+            Log::warning("Device not found for MQTT status update: {$deviceId}");
+            return;
+        }
+
+        // Validate the status to prevent writing arbitrary values
+        if ($newStatus !== 'online' && $newStatus !== 'offline') {
+            Log::warning("Invalid status '{$newStatus}' received for device {$deviceId}");
+            return;
+        }
+
+        $updatePayload = ['status' => $newStatus];
+
+        // Also update last_seen_at when the device comes online via MQTT status.
+        if ($newStatus === 'online') {
+            $updatePayload['last_seen_at'] = now();
+        }
+
+        $device->update($updatePayload);
+    }
+
     public function logDeviceConnection(Device $device): void
     {
         Log::channel('device')->info('Device connected', [

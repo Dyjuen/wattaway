@@ -280,13 +280,27 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
 void reconnectMQTT() {
   while (!mqttClient.connected()) {
     DEBUG_PRINTLN("Attempting MQTT connection...");
-    // Attempt to connect
-    if (mqttClient.connect(DEVICE_ID, DEVICE_ID, API_TOKEN)) {
-      DEBUG_PRINTLN("connected");
-      // Subscribe
+
+    // Define the Last Will and Testament (LWT) message
+    const char* lwt_payload = "offline";
+    
+    // Attempt to connect to the broker with the LWT configured.
+    // If the device disconnects ungracefully, the broker will publish "offline" to the status topic.
+    if (mqttClient.connect(DEVICE_ID, DEVICE_ID, API_TOKEN, MQTT_TOPIC_STATUS, 1, true, lwt_payload)) {
+      DEBUG_PRINTLN("MQTT connected.");
+
+      // Upon successful connection, publish "online" to the status topic.
+      // The 'retain' flag (true) ensures that the broker saves this message, so any new
+      // client can get the device's current status immediately.
+      DEBUG_PRINTLN("Publishing online status...");
+      mqttClient.publish(MQTT_TOPIC_STATUS, "online", true);
+      
+      // Subscribe to the commands topic as before
+      DEBUG_PRINTLN("Subscribing to commands topic...");
       mqttClient.subscribe(MQTT_TOPIC_COMMANDS);
+
     } else {
-      DEBUG_PRINTLN(String("failed, rc=") + mqttClient.state() + " try again in 5 seconds");
+      DEBUG_PRINTLN(String("MQTT connection failed, rc=") + mqttClient.state() + ". Retrying in 5 seconds...");
       // Wait 5 seconds before retrying
       delay(5000);
     }

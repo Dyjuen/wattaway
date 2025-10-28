@@ -63,6 +63,7 @@ class ProcessIncomingDeviceData implements ShouldQueue
             ]);
 
             $device->update([
+                'status' => 'online',
                 'last_seen_at' => now(),
             ]);
         });

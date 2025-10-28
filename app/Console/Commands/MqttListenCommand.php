@@ -2,12 +2,12 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use PhpMqtt\Client\MqttClient;
 use App\Jobs\ProcessIncomingDeviceData;
-use App\Models\Device;
 use App\Models\MqttMessageLog;
+use App\Services\MonitoringService;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use PhpMqtt\Client\MqttClient;
 
 class MqttListenCommand extends Command
 {
@@ -75,6 +75,40 @@ class MqttListenCommand extends Command
                     );
 
                     $this->error("Error processing message: " . $e->getMessage());
+                }
+            }, 0);
+
+            // *** NEW: Subscription for device status ***
+            $mqtt->subscribe(config('mqtt.topics.status'), function ($topic, $message) {
+                $deviceId = null;
+                try {
+                    // Extract device_id from topic: devices/{id}/status
+                    preg_match('/devices\/(\d+)\/status/', $topic, $matches);
+                    $deviceId = $matches[1] ?? null;
+
+                    if (!$deviceId) {
+                        throw new \Exception('Could not parse device ID from status topic');
+                    }
+
+                    $status = strtolower(trim($message));
+
+                    // Ignore other messages on this topic (like command ACKs)
+                    if ($status !== 'online' && $status !== 'offline') {
+                        return;
+                    }
+
+                    // Use MonitoringService to update the device status in the DB
+                    (new MonitoringService())->updateStatusFromMqtt((int)$deviceId, $status);
+
+                    $this->info("Processed status update for device {$deviceId}: {$status}");
+
+                } catch (\Exception $e) {
+                    $this->error("Error processing status message for device {$deviceId}: " . $e->getMessage());
+                    Log::error("Error processing status message for device {$deviceId}", [
+                        'topic' => $topic,
+                        'message' => $message,
+                        'error' => $e->getMessage(),
+                    ]);
                 }
             }, 0);
 
