@@ -39,6 +39,7 @@ class MqttListenCommand extends Command
             $this->info('Connected to MQTT broker.');
 
             $mqtt->subscribe(config('mqtt.topics.data'), function ($topic, $message) {
+                Log::info('Received message on data topic', ['topic' => $topic, 'message' => $message]);
                 $deviceId = null;
                 try {
                     // Extract device_id from topic
@@ -76,10 +77,15 @@ class MqttListenCommand extends Command
 
                     $this->error("Error processing message: " . $e->getMessage());
                 }
-            }, 0);
+            }, 1);
 
             // *** NEW: Subscription for device status ***
-            $mqtt->subscribe(config('mqtt.topics.status'), function ($topic, $message) {
+            $statusTopic = config('mqtt.topics.status');
+            if ($statusTopic === null) {
+                Log::critical('MQTT status topic is null. Aborting.');
+                return 1;
+            }
+            $mqtt->subscribe($statusTopic, function ($topic, $message) {
                 $deviceId = null;
                 try {
                     // Extract device_id from topic: devices/{id}/status

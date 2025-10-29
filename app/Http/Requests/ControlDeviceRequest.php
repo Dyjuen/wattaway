@@ -14,6 +14,7 @@ class ControlDeviceRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'channel' => 'required|integer|min:1|max:3',
             'action' => 'required|in:on,off,toggle',
             'duration' => 'nullable|integer|min:1|max:86400', // Max 24 hours
         ];

@@ -11,5 +11,6 @@ return [
     'topics' => [
         'data' => 'devices/+/data',
         'commands' => 'devices/{device_id}/commands',
+        'status' => 'devices/+/status',
     ],
 ];

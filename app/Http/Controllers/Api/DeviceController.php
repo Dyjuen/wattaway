@@ -37,12 +37,12 @@ class DeviceController extends Controller
     {
         $validated = $request->validated();
 
-        $this->mqttPublishService->setRelayState($device, $validated['action']);
+        $this->mqttPublishService->setRelayState($device, $validated['channel'], $validated['action']);
 
         AuditLog::log(
             action: 'device.control',
-            description: "Device {$device->name} turned {$validated['action']}",
-            context: ['device_id' => $device->id, 'new_values' => ['state' => $validated['action']]]
+            description: "Device {$device->name} channel {$validated['channel']} turned {$validated['action']}",
+            context: ['device_id' => $device->id, 'new_values' => ['channel' => $validated['channel'], 'state' => $validated['action']]]
         );
 
         return response()->json(['message' => 'Command sent to device.']);

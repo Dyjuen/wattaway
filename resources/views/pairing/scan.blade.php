@@ -164,7 +164,18 @@
 
         confirmPairingButton.addEventListener('click', pairDevice);
 
-        startQrScanner();
+        // Check for token in URL on page load
+        const urlParams = new URLSearchParams(window.location.search);
+        const tokenFromUrl = urlParams.get('token');
+
+        if (tokenFromUrl) {
+            tokenInput.value = tokenFromUrl.toUpperCase();
+            validateToken(tokenFromUrl.toUpperCase());
+            // Hide the QR reader if we are using a URL token
+            document.getElementById('qr-reader').style.display = 'none';
+        } else {
+            startQrScanner();
+        }
     });
 </script>
 @endpush

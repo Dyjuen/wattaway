@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use App\Models\Account;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AdminSeeder extends Seeder
 {
@@ -14,13 +15,16 @@ class AdminSeeder extends Seeder
         $adminExists = Account::where('email', 'admin@wattaway.com')->exists();
 
         if (!$adminExists) {
-            Account::create([
+            $account = Account::create([
                 'username' => 'admin',
                 'email' => 'admin@wattaway.com',
                 'password' => Hash::make('Admin@123'), // Change in production!
                 'role' => 'admin',
                 'email_verified_at' => now(),
             ]);
+
+            $token = $account->createToken('admin-token')->plainTextToken;
+            $account->forceFill(['api_token' => $token])->save();
 
             $this->command->info('✅ Admin user created successfully!');
             $this->command->info('📧 Email: admin@wattaway.com');

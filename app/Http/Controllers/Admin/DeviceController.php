@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 
 use App\Services\QrCodeService;
 
+use Illuminate\Support\Facades\Cache;
+
 class DeviceController extends Controller
 {
     public function __construct(

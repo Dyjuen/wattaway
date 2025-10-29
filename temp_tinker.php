@@ -1,0 +1,1 @@
+<?php $user = \App\Models\Account::factory()->create(['email' => 'test@example.com', 'password' => bcrypt('password')]); echo $user->createToken('test-token')->plainTextToken;

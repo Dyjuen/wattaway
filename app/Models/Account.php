@@ -19,6 +19,7 @@ class Account extends Authenticatable implements AuthenticatableContract
         'password',
         'username',
         'role',
+        'api_token',
     ];
 
     /**

@@ -25,14 +25,21 @@ class DeviceDataService
     {
         $validator = Validator::make($data, [
             'voltage' => 'required|numeric',
-            'current' => 'required|numeric',
-            'power' => 'required|numeric',
-            'energy' => 'required|numeric',
-            'frequency' => 'nullable|numeric',
-            'power_factor' => 'nullable|numeric',
+            'channels' => 'required|array',
+            'channels.*.channel' => 'required|integer',
+            'channels.*.current' => 'required|numeric',
+            'channels.*.power' => 'required|numeric',
         ]);
 
         $validatedData = $validator->validate();
+
+        // Calculate aggregate values
+        $totalCurrent = 0;
+        $totalPower = 0;
+        foreach ($validatedData['channels'] as $channel) {
+            $totalCurrent += $channel['current'];
+            $totalPower += $channel['power'];
+        }
 
         Esp32MessageLog::create([
             'device_id' => $device->id,
@@ -40,19 +47,17 @@ class DeviceDataService
             'direction' => 'incoming',
             'payload' => json_encode($validatedData),
             'voltage' => $validatedData['voltage'],
-            'current' => $validatedData['current'],
-            'power' => $validatedData['power'],
-            'energy' => $validatedData['energy'],
-            'frequency' => $validatedData['frequency'] ?? null,
-            'power_factor' => $validatedData['power_factor'] ?? null,
+            'current' => $totalCurrent,
+            'power' => $totalPower,
+            'energy' => 0, // Placeholder
         ]);
 
+        // Update device state caches
         $device->update(['last_seen_at' => now()]);
-
         Cache::forget("device:{$device->id}:latest_data");
         Cache::forget("device:{$device->id}:stats:daily");
 
-        $this->checkPowerThresholdAlert($device, $validatedData['power']);
+        $this->checkPowerThresholdAlert($device, $totalPower);
     }
 
     /**

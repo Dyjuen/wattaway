@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\DeviceController;
 use App\Http\Controllers\Api\OtaController;
 use App\Http\Controllers\Api\DevicePairingController;
 use App\Http\Controllers\Api\DeviceActivationController;
+use App\Http\Controllers\Api\DeviceControlController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,10 +25,11 @@ Route::prefix('v1')->group(function () {
 Route::post('/device/data', [Esp32Controller::class, 'store']);
     });
 
-    Route::middleware(['auth:sanctum', 'throttle:60,1'])->prefix('devices')->group(function () {
+    Route::middleware(['auth:sanctum'])->prefix('devices')->group(function () {
         Route::get('/', [DeviceController::class, 'index']);
         Route::get('/{device}', [DeviceController::class, 'show']);
         Route::post('/{device}/control', [DeviceController::class, 'control'])->middleware('throttle:30,1');
+        Route::post('/{device}/relay', [DeviceControlController::class, 'updateRelayState']);
         Route::post('/{device}/schedule', [DeviceController::class, 'setSchedule']);
         Route::get('/{device}/data', [DeviceController::class, 'getData']);
         Route::get('/{device}/history', [DeviceController::class, 'getHistory']);

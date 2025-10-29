@@ -72,9 +72,9 @@ class MqttPublishService
         }
     }
 
-    public function setRelayState(Device $device, string $state): bool
+    public function setRelayState(Device $device, int $channel, string $state): bool
     {
-        return $this->sendCommand($device, 'set_relay_state', ['state' => $state]);
+        return $this->sendCommand($device, 'set_relay_state', ['channel' => $channel, 'state' => $state]);
     }
 
     public function updateDeviceConfig(Device $device, array $config): bool
