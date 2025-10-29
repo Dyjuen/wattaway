@@ -18,8 +18,8 @@
                 @if ($token->pairedByAccount)
                     <p class="text-gray-600 dark:text-gray-400"><strong>Paired By:</strong> <a href="#" class="text-blue-500">{{ $token->pairedByAccount->username }}</a></p>
                 @endif
-                <p class="text-gray-600 dark:text-gray-400"><strong>Created At:</strong> {{ $token->created_at->format('Y-m-d H:i') }}</p>
-                <p class="text-gray-600 dark:text-gray-400"><strong>Updated At:</strong> {{ $token->updated_at->format('Y-m-d H:i') }}</p>
+                <p class="text-gray-600 dark:text-gray-400"><strong>Created At:</strong> {{ $token->created_at?->format('Y-m-d H:i') }}</p>
+                <p class="text-gray-600 dark:text-gray-400"><strong>Updated At:</strong> {{ $token->updated_at?->format('Y-m-d H:i') }}</p>
             </div>
             <div class="flex flex-col items-center justify-center">
                 <h3 class="text-xl font-semibold mb-2">QR Code</h3>

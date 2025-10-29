@@ -11,13 +11,12 @@ class QrCodeService
 {
     public function generateQrCode(DeviceProvisioningToken $token, int $size = 300): string
     {
-        $qrCode = QrCode::writer('gd')
-            ->format('png')
+        $qrCode = QrCode::format('png')
             ->size($size)
             ->errorCorrection('H')
             ->generate($token->getQrCodeUrl());
 
-        return 'data:image/png;base64,' . base64_encode($qrCode);
+        return 'data:image/png;base64,' . base64_encode((string) $qrCode);
     }
 
     public function generatePrintableLabel(DeviceProvisioningToken $token): string

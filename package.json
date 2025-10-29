@@ -18,5 +18,8 @@
         "sharp": "^0.34.4",
         "tailwindcss": "^4.0.0",
         "vite": "^7.0.4"
+    },
+    "dependencies": {
+        "admin-lte": "^4.0.0-rc3"
     }
 }

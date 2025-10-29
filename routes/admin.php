@@ -15,9 +15,9 @@ Route::middleware(['web', 'auth', 'admin'])->prefix('admin')->name('admin.')->gr
 
     Route::resource('provisioning-tokens', \App\Http\Controllers\Admin\ProvisioningTokenController::class)
         ->only(['index', 'show']);
-    Route::post('provisioning-tokens/{token}/revoke', [\App\Http\Controllers\Admin\ProvisioningTokenController::class, 'revoke'])
+    Route::post('provisioning-tokens/{provisioning_token}/revoke', [\App\Http\Controllers\Admin\ProvisioningTokenController::class, 'revoke'])
         ->name('provisioning-tokens.revoke');
-    Route::get('provisioning-tokens/{token}/qr', [\App\Http\Controllers\Admin\ProvisioningTokenController::class, 'generateQr'])
+    Route::get('provisioning-tokens/{provisioning_token}/qr', [\App\Http\Controllers\Admin\ProvisioningTokenController::class, 'generateQr'])
         ->name('provisioning-tokens.qr');
     Route::post('provisioning-tokens/export', [\App\Http\Controllers\Admin\ProvisioningTokenController::class, 'export'])
         ->name('provisioning-tokens.export');

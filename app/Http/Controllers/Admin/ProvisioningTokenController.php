@@ -28,22 +28,22 @@ class ProvisioningTokenController extends Controller
         return view('admin.provisioning-tokens.index', compact('tokens'));
     }
 
-    public function show(DeviceProvisioningToken $token): View
+    public function show(DeviceProvisioningToken $provisioning_token): View
     {
-        return view('admin.provisioning-tokens.show', compact('token'));
+        return view('admin.provisioning-tokens.show', ['token' => $provisioning_token]);
     }
 
-    public function generateQr(DeviceProvisioningToken $token): Response
+    public function generateQr(DeviceProvisioningToken $provisioning_token): Response
     {
-        $qrCode = $this->qrCodeService->generateQrCode($token, 300);
+        $qrCode = $this->qrCodeService->generateQrCode($provisioning_token, 300);
         $qrCode = base64_decode(substr($qrCode, strpos($qrCode, ',') + 1));
 
         return response($qrCode)->header('Content-Type', 'image/png');
     }
 
-    public function revoke(DeviceProvisioningToken $token): RedirectResponse
+    public function revoke(DeviceProvisioningToken $provisioning_token): RedirectResponse
     {
-        $token->revoke();
+        $provisioning_token->revoke();
 
         return redirect()->route('admin.provisioning-tokens.index')->with('success', 'Token revoked successfully.');
     }
