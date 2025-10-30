@@ -14,119 +14,116 @@ class MqttListenCommand extends Command
     protected $signature = 'mqtt:listen';
     protected $description = 'Listen to MQTT broker for device messages';
 
-    public function handle()
+    public function handle(MqttClient $mqtt)
     {
-        $host = config('mqtt.host');
-        $port = config('mqtt.port');
-        $clientId = config('mqtt.client_id');
         $username = config('mqtt.username');
         $password = config('mqtt.password');
-
-        $mqtt = new MqttClient($host, $port, $clientId);
 
         pcntl_async_signals(true);
         pcntl_signal(SIGINT, fn() => $mqtt->interrupt());
         pcntl_signal(SIGTERM, fn() => $mqtt->interrupt());
 
-        try {
-            $connectionSettings = (new \PhpMqtt\Client\ConnectionSettings)
-                ->setUsername($username)
-                ->setPassword($password)
-                ->setConnectTimeout(5)
-                ->setUseTls(false);
+        while (true) {
+            try {
+                if (!$mqtt->isConnected()) {
+                    $connectionSettings = (new \PhpMqtt\Client\ConnectionSettings)
+                        ->setUsername($username)
+                        ->setPassword($password)
+                        ->setConnectTimeout(5)
+                        ->setKeepAliveInterval(10)
+                        ->setUseTls(false);
 
-            $mqtt->connect($connectionSettings, true);
-            $this->info('Connected to MQTT broker.');
+                    $mqtt->connect($connectionSettings, true);
+                    $this->info('Connected to MQTT broker.');
 
-            $mqtt->subscribe(config('mqtt.topics.data'), function ($topic, $message) {
-                Log::info('Received message on data topic', ['topic' => $topic, 'message' => $message]);
-                $deviceId = null;
-                try {
-                    // Extract device_id from topic
-                    preg_match('/devices\/(\d+)\/data/', $topic, $matches);
-                    $deviceId = $matches[1] ?? null;
+                    $mqtt->subscribe(config('mqtt.topics.data'), function ($topic, $message) {
+                        Log::info('Received message on data topic', ['topic' => $topic, 'message' => $message]);
+                        $deviceId = null;
+                        try {
+                            // Extract device_id from topic
+                            preg_match('/devices\/(\d+)\/data/', $topic, $matches);
+                            $deviceId = $matches[1] ?? null;
 
-                    $data = json_decode($message, true);
+                            $data = json_decode($message, true);
 
-                    if (!$data) {
-                        throw new \Exception('Invalid JSON format');
+                            if (!$data) {
+                                throw new \Exception('Invalid JSON format');
+                            }
+
+                            // Log incoming MQTT message
+                            MqttMessageLog::logIncoming(
+                                deviceId: $deviceId,
+                                type: 'data',
+                                payload: $data,
+                                topic: $topic,
+                                status: 'success'
+                            );
+
+                            // Dispatch job to process data
+                            ProcessIncomingDeviceData::dispatch($deviceId, $data);
+
+                        } catch (\Exception $e) {
+                            // Log error
+                            MqttMessageLog::logIncoming(
+                                deviceId: $deviceId,
+                                type: 'data',
+                                payload: ['raw_message' => $message],
+                                topic: $topic,
+                                status: 'error',
+                                error: $e->getMessage()
+                            );
+
+                            $this->error("Error processing message: " . $e->getMessage());
+                        }
+                    }, 1);
+
+                    // *** NEW: Subscription for device status ***
+                    $statusTopic = config('mqtt.topics.status');
+                    if ($statusTopic === null) {
+                        Log::critical('MQTT status topic is null. Aborting.');
+                        return 1;
                     }
+                    $mqtt->subscribe($statusTopic, function ($topic, $message) {
+                        $deviceId = null;
+                        try {
+                            // Extract device_id from topic: devices/{id}/status
+                            preg_match('/devices\/(\d+)\/status/', $topic, $matches);
+                            $deviceId = $matches[1] ?? null;
 
-                    // Log incoming MQTT message
-                    MqttMessageLog::logIncoming(
-                        deviceId: $deviceId,
-                        type: 'data',
-                        payload: $data,
-                        topic: $topic,
-                        status: 'success'
-                    );
+                            if (!$deviceId) {
+                                throw new \Exception('Could not parse device ID from status topic');
+                            }
 
-                    // Dispatch job to process data
-                    ProcessIncomingDeviceData::dispatch($deviceId, $data);
+                            $status = strtolower(trim($message));
 
-                } catch (\Exception $e) {
-                    // Log error
-                    MqttMessageLog::logIncoming(
-                        deviceId: $deviceId,
-                        type: 'data',
-                        payload: ['raw_message' => $message],
-                        topic: $topic,
-                        status: 'error',
-                        error: $e->getMessage()
-                    );
+                            // Ignore other messages on this topic (like command ACKs)
+                            if ($status !== 'online' && $status !== 'offline') {
+                                return;
+                            }
 
-                    $this->error("Error processing message: " . $e->getMessage());
+                            // Use MonitoringService to update the device status in the DB
+                            (new MonitoringService())->updateStatusFromMqtt((int)$deviceId, $status);
+
+                            $this->info("Processed status update for device {$deviceId}: {$status}");
+
+                        } catch (\Exception $e) {
+                            $this->error("Error processing status message for device {$deviceId}: " . $e->getMessage());
+                            Log::error("Error processing status message for device {$deviceId}", [
+                                'topic' => $topic,
+                                'message' => $message,
+                                'error' => $e->getMessage(),
+                            ]);
+                        }
+                    }, 0);
                 }
-            }, 1);
 
-            // *** NEW: Subscription for device status ***
-            $statusTopic = config('mqtt.topics.status');
-            if ($statusTopic === null) {
-                Log::critical('MQTT status topic is null. Aborting.');
-                return 1;
-            }
-            $mqtt->subscribe($statusTopic, function ($topic, $message) {
-                $deviceId = null;
-                try {
-                    // Extract device_id from topic: devices/{id}/status
-                    preg_match('/devices\/(\d+)\/status/', $topic, $matches);
-                    $deviceId = $matches[1] ?? null;
+                $mqtt->loop(true);
 
-                    if (!$deviceId) {
-                        throw new \Exception('Could not parse device ID from status topic');
+            } catch (\Exception $e) {
+                Log::error('MQTT connection error: ' . $e->getMessage());
+                $this->error('MQTT connection error: ' . $e->getMessage());
+                $this->info('Attempting to reconnect in 5 seconds...');
+                sleep(5);
                     }
-
-                    $status = strtolower(trim($message));
-
-                    // Ignore other messages on this topic (like command ACKs)
-                    if ($status !== 'online' && $status !== 'offline') {
-                        return;
-                    }
-
-                    // Use MonitoringService to update the device status in the DB
-                    (new MonitoringService())->updateStatusFromMqtt((int)$deviceId, $status);
-
-                    $this->info("Processed status update for device {$deviceId}: {$status}");
-
-                } catch (\Exception $e) {
-                    $this->error("Error processing status message for device {$deviceId}: " . $e->getMessage());
-                    Log::error("Error processing status message for device {$deviceId}", [
-                        'topic' => $topic,
-                        'message' => $message,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-            }, 0);
-
-            $mqtt->loop(true);
-            $this->info('MQTT listener stopped.');
-
-        } catch (\Exception $e) {
-            Log::error('MQTT connection error: ' . $e->getMessage());
-            $this->error('MQTT connection error: ' . $e->getMessage());
-            return 1;
-        }
-
-        return 0;
-    }
+                }    }
 }

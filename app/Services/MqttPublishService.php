@@ -16,15 +16,11 @@ class MqttPublishService
     protected string $username;
     protected string $password;
 
-    public function __construct()
+    public function __construct(MqttClient $mqtt)
     {
-        $this->host = config('mqtt.host');
-        $this->port = config('mqtt.port');
-        $this->clientId = config('mqtt.client_id');
+        $this->mqtt = $mqtt;
         $this->username = config('mqtt.username');
         $this->password = config('mqtt.password');
-
-        $this->mqtt = new MqttClient($this->host, $this->port, $this->clientId);
     }
 
     public function sendCommand(Device $device, string $command, array $payload = []): bool
@@ -37,13 +33,14 @@ class MqttPublishService
         ];
 
         try {
-            $connectionSettings = (new \PhpMqtt\Client\ConnectionSettings)
-                ->setUsername($this->username)
-                ->setPassword($this->password);
+            if (!$this->mqtt->isConnected()) {
+                $connectionSettings = (new \PhpMqtt\Client\ConnectionSettings)
+                    ->setUsername($this->username)
+                    ->setPassword($this->password);
+                $this->mqtt->connect($connectionSettings, true);
+            }
 
-            $this->mqtt->connect($connectionSettings, true);
             $this->mqtt->publish($topic, json_encode($message), 0);
-            $this->mqtt->disconnect();
 
             MqttMessageLog::logOutgoing(
                 deviceId: $device->id,
