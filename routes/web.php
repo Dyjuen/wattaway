@@ -20,7 +20,7 @@ use App\Http\Controllers\AuthController;
 
 Route::get('/', function () {
     return view('home');
-});
+})->name('home');
 
 // Health check endpoint for deployment monitoring
 Route::get('/health', function () {

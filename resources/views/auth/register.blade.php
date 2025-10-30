@@ -107,7 +107,7 @@
 
             <!-- Register Form -->
             <div class="glass-card rounded-3xl p-8 shadow-2xl animate-slide-up">
-                <form x-data="{ username: '', email: '', password: '', password_confirmation: '', selectedProducts: [] }" method="POST" action="{{ route('register') }}" class="space-y-6">
+                <form x-data="{ username: '', email: '', password: '', password_confirmation: '' }" method="POST" action="{{ route('register') }}" class="space-y-6">
                     @csrf
 
                     <!-- Username Field -->
@@ -203,28 +203,7 @@
                         </div>
                     </div>
 
-                    <!-- Products Selection -->
-                    @if($products->count() > 0)
-                    <div class="animate-slide-up">
-                        <label class="block text-sm font-medium text-gray-300 mb-2">Select Products (Optional)</label>
-                        <div class="space-y-2 max-h-32 overflow-y-auto">
-                            @foreach($products as $product)
-                            <label class="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    name="products[]"
-                                    value="{{ $product->id }}"
-                                    class="rounded border-gray-600 text-purple-600 focus:ring-purple-500 focus:ring-2"
-                                >
-                                <span class="ml-2 text-sm text-gray-300">{{ $product->name }}</span>
-                                @if($product->price)
-                                    <span class="ml-auto text-sm text-gray-400">${{ number_format($product->price, 2) }}</span>
-                                @endif
-                            </label>
-                            @endforeach
-                        </div>
-                    </div>
-                    @endif
+
 
                     <!-- Submit Button -->
                     <button

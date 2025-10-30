@@ -43,8 +43,7 @@ class AuthController extends Controller
 
     public function showRegister()
     {
-        $products = Product::all();
-        return view('auth.register', compact('products'));
+        return view('auth.register');
     }
 
     public function register(Request $request)
@@ -53,8 +52,6 @@ class AuthController extends Controller
             'username' => 'required|string|max:255|unique:accounts',
             'email' => 'required|string|email|max:255|unique:accounts',
             'password' => 'required|string|min:8|confirmed',
-            'products' => 'array',
-            'products.*' => 'exists:products,id',
         ]);
 
         $account = Account::create([
@@ -62,10 +59,6 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
-
-        if ($request->has('products')) {
-            $account->products()->attach($request->products);
-        }
 
         Auth::guard('account')->login($account);
 
