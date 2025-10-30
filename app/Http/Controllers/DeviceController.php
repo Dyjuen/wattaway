@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Device;
 use Illuminate\Http\Request;
 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 class DeviceController extends Controller
 {
+    use AuthorizesRequests;
     public function index()
     {
         $devices = auth()->user()->devices;
