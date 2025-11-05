@@ -5,6 +5,13 @@
 
 set -e # Exit on error
 
+# --- Safety and Maintenance Mode ---
+# Ensure the application is brought back up even if the script fails.
+# The 'trap' command ensures 'php artisan up' is executed when the script exits,
+# for any reason (success or failure).
+trap 'echo "Bringing application back online..."; php artisan up' EXIT
+# --- End Safety ---
+
 ENVIRONMENT=$1
 
 if [ -z "$ENVIRONMENT" ]; then
@@ -13,6 +20,10 @@ if [ -z "$ENVIRONMENT" ]; then
 fi
 
 echo "🚀 Deploying WattAway to $ENVIRONMENT..."
+
+# Activate maintenance mode
+echo "🔒 Activating maintenance mode..."
+php artisan down
 
 # Pull latest code
 echo "📥 Pulling latest code..."
@@ -45,4 +56,4 @@ sudo systemctl restart wattaway-scheduler
 echo "🧪 Running smoke tests..."
 php artisan test --testsuite=Smoke
 
-echo "✅ Deployment complete!"
+echo "✅ Deployment complete! The trap will now bring the application online."
