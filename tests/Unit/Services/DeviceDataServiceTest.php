@@ -55,4 +55,28 @@ class DeviceDataServiceTest extends TestCase
 
         $this->assertTrue($result);
     }
+
+    public function test_logs_mqtt_message_correctly()
+    {
+        $device = Device::factory()->create();
+
+        $data = [
+            'voltage' => 230.1,
+            'current' => 1.5,
+            'power' => 345.15,
+            'energy' => 10.2,
+        ];
+
+        $this->service->logMqttMessage($device->id, $data);
+
+        $this->assertDatabaseHas('esp32messagelogs', [
+            'device_id' => $device->id,
+            'payload' => json_encode($data),
+            'metadata->source' => 'mqtt',
+        ]);
+
+        $device->refresh();
+        $this->assertNotNull($device->last_seen_at);
+        $this->assertEquals('online', $device->status);
+    }
 }
