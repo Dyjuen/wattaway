@@ -12,6 +12,7 @@ use App\Models\Esp32MessageLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use App\Services\DeviceDataService;
 use Throwable;
 
 class ProcessIncomingDeviceData implements ShouldQueue
@@ -26,47 +27,9 @@ class ProcessIncomingDeviceData implements ShouldQueue
         public array $data
     ) {}
 
-    public function handle(): void
+    public function handle(DeviceDataService $deviceDataService): void
     {
-        $device = Device::find($this->deviceId);
-
-        if (!$device) {
-            Log::warning("Device not found in ProcessIncomingDeviceData job: {$this->deviceId}");
-            return;
-        }
-
-        $validator = Validator::make($this->data, [
-            'voltage' => 'required|numeric',
-            'current' => 'required|numeric',
-            'power' => 'required|numeric',
-            'energy' => 'required|numeric',
-        ]);
-
-        if ($validator->fails()) {
-            Log::warning("Invalid data in ProcessIncomingDeviceData job for device: {$this->deviceId}", ['errors' => $validator->errors()]);
-            return;
-        }
-
-        $validatedData = $validator->validated();
-
-        DB::transaction(function () use ($device, $validatedData) {
-            Esp32MessageLog::create([
-                'device_id' => $device->id,
-                'content' => json_encode($validatedData),
-                'direction' => 'incoming',
-                'metadata' => [
-                    'source' => 'mqtt',
-                ],
-                'ip_address' => null, // Not available from MQTT
-                'endpoint' => 'mqtt',
-                'payload' => json_encode($validatedData)
-            ]);
-
-            $device->update([
-                'status' => 'online',
-                'last_seen_at' => now(),
-            ]);
-        });
+        $deviceDataService->logMqttMessage($this->deviceId, $this->data);
     }
 
     public function failed(Throwable $exception): void

@@ -9,10 +9,64 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class DeviceDataService
 {
+    /**
+     * Process and store incoming data from the MQTT pipeline.
+     *
+     * @param int $deviceId
+     * @param array $data
+     * @return void
+     */
+    public function logMqttMessage(int $deviceId, array $data): void
+    {
+        $device = Device::find($deviceId);
+
+        if (!$device) {
+            Log::warning("Device not found during MQTT data processing: {$deviceId}");
+            return;
+        }
+
+        $validator = Validator::make($data, [
+            'voltage' => 'required|numeric',
+            'current' => 'required|numeric',
+            'power' => 'required|numeric',
+            'energy' => 'required|numeric',
+        ]);
+
+        if ($validator->fails()) {
+            Log::warning("Invalid MQTT data for device: {$deviceId}", ['errors' => $validator->errors()]);
+            return;
+        }
+
+        $validatedData = $validator->validated();
+
+        DB::transaction(function () use ($device, $validatedData) {
+            Esp32MessageLog::create([
+                'device_id' => $device->id,
+                'content' => json_encode($validatedData),
+                'direction' => 'incoming',
+                'metadata' => [
+                    'source' => 'mqtt',
+                ],
+                'ip_address' => null, // Not available from MQTT
+                'endpoint' => 'mqtt',
+                'payload' => json_encode($validatedData)
+            ]);
+
+            $device->update([
+                'status' => 'online',
+                'last_seen_at' => now(),
+            ]);
+        });
+
+        // TODO: In the future, we can also trigger threshold alerts here.
+        // $this->checkPowerThresholdAlert($device, $validatedData['power']);
+    }
+
     /**
      * Process and store incoming data for a device.
      *

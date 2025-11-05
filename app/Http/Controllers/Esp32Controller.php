@@ -17,58 +17,6 @@ use App\Models\MqttMessageLog;
 class Esp32Controller extends Controller
 {
 
-    public function handleDeviceData(StoreDeviceDataRequest $request)
-    {
-        $device = $request->user(); // Authenticated device
-        try {
-            $validated = $request->validated();
-
-            // Log incoming message
-            MqttMessageLog::logIncoming(
-                deviceId: $device->id,
-                type: 'data',
-                payload: $validated,
-                endpoint: $request->path(),
-                status: 'success'
-            );
-
-            // Process data
-            Esp32MessageLog::create([
-                'device_id' => $device->id,
-                'voltage' => $validated['voltage'],
-                'current' => $validated['current'],
-                'power' => $validated['power'],
-                'energy' => $validated['energy'],
-                'frequency' => $validated['frequency'] ?? null,
-                'power_factor' => $validated['power_factor'] ?? null,
-            ]);
-
-            // Update device last_seen
-            $device->update(['last_seen_at' => now()]);
-
-            return response()->json([
-                'message' => 'Data received successfully',
-                'stored' => true,
-            ], 200);
-
-        } catch (\Exception $e) {
-            // Log error
-            MqttMessageLog::logIncoming(
-                deviceId: $device->id ?? null,
-                type: 'data',
-                payload: $request->all(),
-                endpoint: $request->path(),
-                status: 'error',
-                error: $e->getMessage()
-            );
-
-            return response()->json([
-                'message' => 'Failed to process data',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
     /**
      * Handle GET request from ESP32
      * Returns data in the format expected by the ESP32

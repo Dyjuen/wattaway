@@ -22,7 +22,7 @@ use App\Http\Controllers\Api\DeviceControlController;
 
 Route::prefix('v1')->group(function () {
     Route::middleware(['auth.device', 'throttle:120,1'])->group(function () {
-Route::post('/device/data', [Esp32Controller::class, 'store']);
+
     });
 
     Route::middleware(['auth:sanctum'])->prefix('devices')->group(function () {

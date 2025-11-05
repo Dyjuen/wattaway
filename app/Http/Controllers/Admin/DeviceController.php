@@ -45,10 +45,15 @@ class DeviceController extends Controller
 
     public function show(Device $device)
     {
-        $qrCodeDataUri = null;
-        if ($device->provisioningToken) {
-            $qrCodeDataUri = $this->qrCodeService->generateQrCode($device->provisioningToken);
+        $token = $device->provisioningToken;
+
+        if (!$token) {
+            $token = DeviceProvisioningToken::generate($device->serial_number, $device->hardware_id);
+            $device->update(['provisioning_token_id' => $token->id]);
+            $device->load('provisioningToken'); // Reload the relationship
         }
+
+        $qrCodeDataUri = $this->qrCodeService->generateQrCode($device->provisioningToken);
 
         return view('admin.devices.show', compact('device', 'qrCodeDataUri'));
     }
