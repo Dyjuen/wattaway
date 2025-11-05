@@ -41,21 +41,6 @@ Route::post('/device/data', [Esp32Controller::class, 'store']);
     });
 });
 
-// API endpoints for ESP32 messages
-Route::prefix('esp32')->group(function () {
-    // Store a new message from ESP32
-    Route::post('/messages', [Esp32MessageController::class, 'store']);
-    
-    // Get recent messages
-    Route::get('/messages', [Esp32MessageController::class, 'index']);
-    
-    // Get recent messages (for control panel)
-    Route::get('/messages/recent', [Esp32MessageController::class, 'getMessages']);
-    
-    // Get system status
-    Route::get('/status', [Esp32MessageController::class, 'getStatus']);
-});
-
 // Authenticated user routes
 Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     // Device pairing endpoints
