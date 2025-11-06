@@ -9,13 +9,11 @@ class AuditLog extends Model
     const UPDATED_AT = null; // Only track creation time
 
     protected $fillable = [
-        'account_id', 'device_id', 'action', 'description',
-        'ip_address', 'user_agent', 'old_values', 'new_values'
+        'account_id', 'action', 'description', 'auditable_id', 'auditable_type', 'context', 'ip_address', 'user_agent'
     ];
 
     protected $casts = [
-        'old_values' => 'array',
-        'new_values' => 'array',
+        'context' => 'array',
     ];
 
     public function account()
@@ -23,9 +21,9 @@ class AuditLog extends Model
         return $this->belongsTo(Account::class);
     }
 
-    public function device()
+    public function auditable()
     {
-        return $this->belongsTo(Device::class);
+        return $this->morphTo();
     }
 
     public static function log(string $action, string $description, array $context = []): void

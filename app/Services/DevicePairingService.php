@@ -61,21 +61,24 @@ class DevicePairingService
                 throw new \Exception('Expired token.');
             }
 
-            $device = Device::create([
-                'account_id' => $account->id,
-                'provisioning_token_id' => $provisioningToken->id,
-                'name' => $customName ?? 'Smart Socket ' . $provisioningToken->serial_number,
-                'serial_number' => $provisioningToken->serial_number,
-                'hardware_id' => $provisioningToken->hardware_id,
-                'status' => 'pending_activation',
-                'api_token' => Str::random(64),
-            ]);
+            $device = Device::updateOrCreate(
+                ['serial_number' => $provisioningToken->serial_number],
+                [
+                    'account_id' => $account->id,
+                    'provisioning_token_id' => $provisioningToken->id,
+                    'name' => $customName ?? 'Smart Socket ' . $provisioningToken->serial_number,
+                    'hardware_id' => $provisioningToken->hardware_id,
+                    'status' => 'pending_activation',
+                    'api_token' => Str::random(64),
+                ]
+            );
 
             $provisioningToken->markAsPaired($account, $device);
 
             $this->auditLog->create([
                 'account_id' => $account->id,
                 'action' => 'device.paired',
+                'description' => "User {$account->name} paired device {$device->name} ({$device->serial_number})",
                 'auditable_id' => $device->id,
                 'auditable_type' => Device::class,
                 'context' => [

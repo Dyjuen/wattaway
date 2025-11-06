@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\FirmwareController;
 */
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DevicePairingController;
 
 Route::get('/', function () {
     return view('home');
@@ -75,6 +76,10 @@ Route::middleware(['auth:account'])->group(function () {
         $devices = auth()->user()->devices()->with('latestMessage')->get();
         return view('devices.index', compact('devices'));
     })->name('devices.index');
+    Route::get('/pairing/confirm', [DevicePairingController::class, 'showConfirmPairing'])->name('pairing.confirm');
+    Route::post('/pairing/confirm', [DevicePairingController::class, 'pairDevice'])->name('pairing.pair');
 });
+
+Route::get('/provision/{token}', [DevicePairingController::class, 'handlePublicScan'])->name('pairing.public-scan');
 
 

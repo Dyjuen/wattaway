@@ -106,7 +106,7 @@ class DeviceProvisioningToken extends Model
 
     public function getQrCodeUrl(): string
     {
-        return config('app.url') . '/pair?token=' . $this->token;
+        return route('pairing.public-scan', ['token' => $this->token]);
     }
 
     public function getQrCodeData(): string

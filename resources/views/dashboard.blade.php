@@ -60,6 +60,18 @@
 
         <!-- Main Dashboard Content -->
         <main class="container mx-auto px-6 py-8 pt-24 stagger-container">
+            <!-- Session Status Messages -->
+            @if (session('status'))
+                <div class="bg-green-500/20 text-green-300 p-4 rounded-lg mb-6 border border-green-500/30">
+                    {{ session('status') }}
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="bg-red-500/20 text-red-300 p-4 rounded-lg mb-6 border border-red-500/30">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             <!-- Welcome Header -->
             <div class="mb-8 stagger-item">
                 <h1 class="text-4xl md:text-5xl font-bold mb-2">

@@ -28,6 +28,12 @@ class AuthController extends Controller
         if (Auth::guard('account')->attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
+            if (session()->has('provisioning_token')) {
+                $token = session('provisioning_token');
+                session()->forget('provisioning_token');
+                return redirect()->route('pairing.confirm', ['token' => $token]);
+            }
+
             $account = Auth::guard('account')->user();
             if ($account->isAdmin()) {
                 return redirect()->intended('/admin');
