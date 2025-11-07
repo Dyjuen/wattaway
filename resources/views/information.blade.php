@@ -1,38 +1,16 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+@extends('layouts.base')
 
-    <title>Support & Information - WattAway</title>
+@section('title', 'Support & Information - WattAway')
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@900&display=swap" rel="stylesheet">
-
-    <!-- Preload critical background image -->
+@push('styles')
     <link rel="preload" as="image" href="{{ asset('images/bg-main.png') }}">
-
-    <!-- Animations -->
     <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
-    <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
-
-    <!-- Styles -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            scroll-behavior: smooth;
-            /* Immediate fallback background color to prevent white flash */
-            background-color: #0B0F2A;
-        }
         .info-bg {
             background-image: url("{{ asset('images/bg-main.png') }}");
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            /* Ensure smooth transition from fallback color */
             transition: opacity 0.3s ease-in-out;
         }
         .info-bg.bg-loaded {
@@ -65,21 +43,16 @@
         .faq-item:hover {
             background: rgba(255, 255, 255, 0.05);
         }
-        /* Ensure proper layout with navbar */
-        .relative {
-            position: relative !important;
-        }
-        .sticky {
-            position: sticky !important;
-        }
         main {
             position: relative !important;
             z-index: 1 !important;
         }
     </style>
-</head>
+@endpush
 
-<body class="antialiased text-white info-bg min-h-screen">
+@section('body-class', 'antialiased text-white info-bg min-h-screen')
+
+@section('content')
     <div class="relative min-h-screen">
         <!--Navbar -->
         <x-navbar />
@@ -370,6 +343,9 @@
         </main>
     </div>
 
+@endsection
+
+@push('scripts')
     <script>
         // FAQ Toggle Functionality
         function toggleFAQ(element) {
@@ -502,5 +478,4 @@
             console.log('Animation system initialized');
         });
     </script>
-</body>
-</html>
+@endpush

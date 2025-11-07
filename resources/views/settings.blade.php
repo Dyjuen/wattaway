@@ -1,37 +1,16 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Settings - WattAway</title>
+@extends('layouts.base')
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@900&display=swap" rel="stylesheet">
+@section('title', 'Settings - WattAway')
 
-    <!-- Preload critical background image -->
+@push('styles')
     <link rel="preload" as="image" href="{{ asset('images/bg-main.png') }}">
-
-    <!-- Animations -->
     <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
-    <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
-
-    <!-- Styles -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            scroll-behavior: smooth;
-            /* Immediate fallback background color to prevent white flash */
-            background-color: #0B0F2A;
-        }
         .settings-bg {
             background-image: url("{{ asset('images/bg-main.png') }}");
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
-            /* Ensure smooth transition from fallback color */
             transition: opacity 0.3s ease-in-out;
         }
         .settings-bg.bg-loaded {
@@ -40,7 +19,6 @@
         body:not(.bg-loaded) .settings-bg {
             opacity: 0.8;
         }
-
         .gradient-text {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
@@ -54,75 +32,56 @@
             background: rgba(255, 255, 255, 0.05);
             transform: translateX(4px);
         }
-        /* Ensure proper layout with navbar */
-        .relative {
-            position: relative !important;
-        }
-        .sticky {
-            position: sticky !important;
-        }
         main {
             position: relative !important;
             z-index: 1 !important;
         }
-
-        /* Animation CSS - ensure these take precedence */
         .section-hidden {
             opacity: 0 !important;
             transform: translateY(50px) !important;
             transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
-
         .section-visible {
             opacity: 1 !important;
             transform: translateY(0) !important;
             transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
-
         .stagger-item {
             opacity: 0 !important;
             transform: translateY(30px) !important;
             transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
-
         .stagger-item.stagger-visible {
             opacity: 1 !important;
             transform: translateY(0) !important;
             transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
     </style>
-</head>
+@endpush
 
-<body class="antialiased text-white settings-bg min-h-screen">
+@section('body-class', 'antialiased text-white settings-bg min-h-screen')
+
+@section('content')
     <script>
-        // Immediate background image preloader
         document.addEventListener('DOMContentLoaded', function() {
-            // Preload the background image immediately
             const bgImage = new Image();
             bgImage.onload = function() {
                 document.body.classList.add('bg-loaded');
             };
             bgImage.src = "{{ asset('images/bg-main.png') }}";
 
-            // Immediate animation debug
             console.log('Settings page loading...');
 
-            // Force animations immediately
             setTimeout(() => {
                 console.log('Triggering animations now...');
-
-                // Force main section visible
                 const main = document.getElementById('main-content');
                 if (main) {
                     main.classList.add('section-visible');
                     main.classList.remove('section-hidden');
                     console.log('Main section made visible');
                 }
-
-                // Force all stagger items visible
                 const staggerItems = document.querySelectorAll('.stagger-item');
                 console.log('Found stagger items:', staggerItems.length);
-
                 staggerItems.forEach((item, index) => {
                     setTimeout(() => {
                         item.classList.add('stagger-visible');
@@ -608,7 +567,9 @@
             </div>
         </main>
     </div>
+@endsection
 
+@push('scripts')
     <script>
         // Add custom slider styling
         const style = document.createElement('style');
@@ -1001,5 +962,4 @@
             });
         });
     </script>
-</body>
-</html>
+@endpush
