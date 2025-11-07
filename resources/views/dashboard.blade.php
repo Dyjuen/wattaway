@@ -32,25 +32,25 @@
 
             <!-- Quick Stats Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 stagger-item">
-                <x-stat-card title="Total Devices" value="3" change="+2">
+                <x-stat-card title="Total Devices" value="{{ $totalDevices }}" change="+{{ $devicesChange }}">
                     <x-slot name="icon">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                     </x-slot>
                 </x-stat-card>
 
-                <x-stat-card title="Energy Saved" value="127 kWh" change="+12%" changeType="increase">
+                <x-stat-card title="Energy Saved" value="{{ round($totalEnergySaved, 2) }} kWh" change="{{ round($energyChange, 1) }}%" changeType="{{ $energyChange > 0 ? 'increase' : 'decrease' }}">
                     <x-slot name="icon">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                     </x-slot>
                 </x-stat-card>
 
-                <x-stat-card title="Active Now" value="2">
+                <x-stat-card title="Active Now" value="{{ $activeNow }}">
                     <x-slot name="icon">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
                     </x-slot>
                 </x-stat-card>
 
-                <x-stat-card title="This Month" value="89 kWh" change="+5%" changeType="decrease">
+                <x-stat-card title="This Month" value="{{ round($thisMonthEnergy, 2) }} kWh" change="{{ round($energyChange, 1) }}%" changeType="{{ $energyChange > 0 ? 'increase' : 'decrease' }}">
                     <x-slot name="icon">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
                     </x-slot>
@@ -128,27 +128,15 @@
                     <x-glass-card class="stagger-item">
                         <h3 class="text-xl font-bold mb-4">Recent Activity</h3>
                         <div class="space-y-4">
-                            <div class="flex items-start space-x-3 stagger-item">
-                                <div class="w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
-                                <div class="flex-1">
-                                    <p class="text-sm">Living Room socket turned ON</p>
-                                    <p class="text-xs text-gray-400">2 minutes ago</p>
+                            @foreach ($recentActivities as $activity)
+                                <div class="flex items-start space-x-3 stagger-item">
+                                    <div class="w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
+                                    <div class="flex-1">
+                                        <p class="text-sm">{{ $activity->description }}</p>
+                                        <p class="text-xs text-gray-400">{{ $activity->created_at->diffForHumans() }}</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="flex items-start space-x-3 stagger-item">
-                                <div class="w-2 h-2 bg-green-400 rounded-full mt-2"></div>
-                                <div class="flex-1">
-                                    <p class="text-sm">Energy usage report generated</p>
-                                    <p class="text-xs text-gray-400">1 hour ago</p>
-                                </div>
-                            </div>
-                            <div class="flex items-start space-x-3 stagger-item">
-                                <div class="w-2 h-2 bg-orange-400 rounded-full mt-2"></div>
-                                <div class="flex-1">
-                                    <p class="text-sm">Kitchen socket scheduled OFF</p>
-                                    <p class="text-xs text-gray-400">3 hours ago</p>
-                                </div>
-                            </div>
+                            @endforeach
                         </div>
                     </x-glass-card>
                 </div>

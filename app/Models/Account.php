@@ -50,6 +50,11 @@ class Account extends Authenticatable implements AuthenticatableContract
         return $this->hasMany(Device::class);
     }
 
+    public function auditLogs()
+    {
+        return $this->hasMany(AuditLog::class);
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';

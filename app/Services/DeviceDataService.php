@@ -54,7 +54,10 @@ class DeviceDataService
                 ],
                 'ip_address' => null, // Not available from MQTT
                 'endpoint' => 'mqtt',
-                'payload' => json_encode($validatedData)
+                'voltage' => $validatedData['voltage'],
+                'current' => $validatedData['current'],
+                'power' => $validatedData['power'],
+                'energy' => $validatedData['energy'],
             ]);
 
             $device->update([
