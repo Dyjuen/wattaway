@@ -16,11 +16,19 @@
             font-family: 'Playfair Display', serif;
         }
         .register-bg {
-            background-image: url('/images/bg-sign-up.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             position: relative;
+        }
+        .register-bg > img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
         }
         .register-bg::before {
             content: '';
@@ -83,10 +91,11 @@
 
 @section('content')
     <div class="register-bg min-h-screen flex items-center justify-center p-4">
+        <img data-src="{{ asset('images/dist/bg-sign-up.png') }}" src="{{ asset('images/dist/placeholders/bg-sign-up.png') }}" alt="Background" class="lazyload">
         <div class="register-container w-full max-w-md">
             <!-- Logo and Title -->
             <div class="text-center mb-8 animate-slide-up">
-                <img src="{{ asset('images/mascot.png') }}" alt="Wattaway Mascot" class="w-20 h-20 mx-auto mb-4 rounded-full">
+                <img data-src="{{ asset('images/dist/mascot.png') }}" src="{{ asset('images/dist/placeholders/mascot.png') }}" alt="Wattaway Mascot" class="lazyload w-20 h-20 mx-auto mb-4 rounded-full">
                 <h1 class="font-brand text-4xl font-black text-white mb-2">Join Wattaway</h1>
                 <p class="text-gray-300">Create your account to get started with smart energy management.</p>
             </div>

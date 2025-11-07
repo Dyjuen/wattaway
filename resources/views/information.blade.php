@@ -7,11 +7,19 @@
     <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
     <style>
         .info-bg {
-            background-image: url("{{ asset('images/bg-main.png') }}");
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
             transition: opacity 0.3s ease-in-out;
+        }
+        .info-bg > img {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
         }
         .info-bg.bg-loaded {
             opacity: 1;
@@ -53,6 +61,7 @@
 @section('body-class', 'antialiased text-white info-bg min-h-screen')
 
 @section('content')
+    <img data-src="{{ asset('images/dist/bg-main.png') }}" src="{{ asset('images/dist/placeholders/bg-main.png') }}" alt="Background" class="lazyload">
     <div class="relative min-h-screen">
         <!--Navbar -->
         <x-navbar />

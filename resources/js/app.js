@@ -1,3 +1,4 @@
+import 'lazysizes';
 import './bootstrap';
 import './animations.js';
 

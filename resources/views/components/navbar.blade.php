@@ -3,7 +3,7 @@
                 <div class="flex items-center justify-between">
                     <!-- Logo and Brand Name -->
                     <div class="flex items-center space-x-4">
-                        <a href="{{ url('/') }}"><img src="{{ asset('images/logo.png') }}" alt="WattAway Logo" class="h-10 w-10 rounded-full"></a>
+                        <a href="{{ url('/') }}"><img data-src="{{ asset('images/dist/logo.png') }}" src="{{ asset('images/dist/placeholders/logo.png') }}" alt="WattAway Logo" class="lazyload h-10 w-10 rounded-full"></a>
                         <a href="{{ url('/') }}" class="text-2xl font-bold text-white">WattAway</a>
                     </div>
 

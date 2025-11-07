@@ -7,11 +7,19 @@
     <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
     <style>
         .settings-bg {
-            background-image: url("{{ asset('images/bg-main.png') }}");
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
             transition: opacity 0.3s ease-in-out;
+        }
+        .settings-bg > img {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
         }
         .settings-bg.bg-loaded {
             opacity: 1;
@@ -62,6 +70,7 @@
 @section('body-class', 'antialiased text-white settings-bg min-h-screen')
 
 @section('content')
+    <img data-src="{{ asset('images/dist/bg-main.png') }}" src="{{ asset('images/dist/placeholders/bg-main.png') }}" alt="Background" class="lazyload">
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const bgImage = new Image();
@@ -82,7 +91,7 @@
                 }
                 const staggerItems = document.querySelectorAll('.stagger-item');
                 console.log('Found stagger items:', staggerItems.length);
-                staggerItems.forEach((item, index) => {
+                    staggerItems.forEach((item, index) => {
                     setTimeout(() => {
                         item.classList.add('stagger-visible');
                         console.log('Animated item:', index);

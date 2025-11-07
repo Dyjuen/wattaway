@@ -16,11 +16,19 @@
             font-family: 'Playfair Display', serif;
         }
         .login-bg {
-            background-image: url('/images/bg-login.png');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             position: relative;
+        }
+        .login-bg > img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
         }
         .login-bg::before {
             content: '';
@@ -70,10 +78,11 @@
 
 @section('content')
     <div class="login-bg min-h-screen flex items-center justify-center p-4">
+        <img data-src="{{ asset('images/dist/bg-login.png') }}" src="{{ asset('images/dist/placeholders/bg-login.png') }}" alt="Background" class="lazyload">
         <div class="login-container w-full max-w-md">
             <!-- Logo and Title -->
             <div class="text-center mb-8 animate-slide-up">
-                <img src="{{ asset('images/logo.png') }}" alt="Wattaway Logo" class="w-16 h-16 mx-auto mb-4 rounded-full">
+                <img data-src="{{ asset('images/dist/logo.png') }}" src="{{ asset('images/dist/placeholders/logo.png') }}" alt="Wattaway Logo" class="lazyload w-16 h-16 mx-auto mb-4 rounded-full">
                 <h1 class="font-brand text-4xl font-black text-white mb-2">Wattaway</h1>
                 <p class="text-gray-300">Welcome back! Please sign in to continue.</p>
             </div>

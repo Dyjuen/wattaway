@@ -6,9 +6,21 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
+    <style>
+        .dashboard-bg > img {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+    </style>
 @endpush
 
 @section('content')
+    <img data-src="{{ asset('images/dist/bg-main.png') }}" src="{{ asset('images/dist/placeholders/bg-main.png') }}" alt="Background" class="lazyload">
     <div class="relative min-h-screen">
         <!-- Navigation Bar -->
         <x-navbar />
