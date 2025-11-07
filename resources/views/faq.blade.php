@@ -1,25 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wattaway - FAQ</title>
+@extends('layouts.base')
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@900&display=swap" rel="stylesheet">
+@section('title', 'Wattaway - FAQ')
 
-    <!-- Animations -->
+@push('styles')
     <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
-
-    <!-- Styles & Scripts -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js for interactivity -->
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -56,9 +40,9 @@
         .faq-item.stagger-item:nth-child(6) { transition-delay: 0.6s; }
         .faq-item.stagger-item:nth-child(7) { transition-delay: 0.7s; }
     </style>
-</head>
+@endpush
 
-<body>
+@section('content')
     <!-- Background Gradient -->
     <div class="absolute top-0 left-0 w-full h-[900px] has-radial-gradient z-0"></div>
     
@@ -180,7 +164,9 @@
             </div>
         </section>
     </div>
+@endsection
 
+@push('scripts')
     <!-- Navigation Highlighting Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -222,5 +208,4 @@
             }, 800); // Start earlier than before
         });
     </script>
-</body>
-</html>
+@endpush

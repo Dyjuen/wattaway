@@ -1,24 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Wattaway - Register</title>
+@extends('layouts.base')
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@900&display=swap" rel="stylesheet">
+@section('title', 'Wattaway - Register')
 
-    <!-- Animations -->
+@push('styles')
     <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
     <link rel="stylesheet" href="{{ asset('css/login.css') }}">
-    <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
-
-    <!-- Styles -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -93,9 +79,9 @@
             animation: pulse-glow 2s ease-in-out infinite;
         }
     </style>
-</head>
+@endpush
 
-<body>
+@section('content')
     <div class="register-bg min-h-screen flex items-center justify-center p-4">
         <div class="register-container w-full max-w-md">
             <!-- Logo and Title -->
@@ -235,7 +221,9 @@
             </div>
         </div>
     </div>
+@endsection
 
+@push('scripts')
     <!-- Animation Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -268,5 +256,4 @@
             });
         });
     </script>
-</body>
-</html>
+@endpush

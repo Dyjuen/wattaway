@@ -1,4 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.base')
+
+@section('body-class', 'bg-gray-100 dark:bg-gray-900')
 
 @section('content')
 <div class="antialiased text-white dashboard-bg min-h-screen">

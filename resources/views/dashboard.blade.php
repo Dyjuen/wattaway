@@ -1,58 +1,14 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+@extends('layouts.base')
 
-    <title>Dashboard - WattAway</title>
+@section('title', 'Dashboard - WattAway')
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@900&display=swap" rel="stylesheet">
+@section('body-class', 'antialiased text-white dashboard-bg min-h-screen')
 
-    <!-- Preload critical background image -->
-    <link rel="preload" as="image" href="{{ asset('images/bg-main.png') }}">
-
-    <!-- Animations -->
+@push('styles')
     <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
+@endpush
 
-    <!-- Styles -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
-
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            scroll-behavior: smooth;
-            /* Immediate fallback background color to prevent white flash */
-            background-color: #0B0F2A;
-        }
-        .dashboard-bg {
-            background-image: url("{{ asset('images/bg-main.png') }}");
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            /* Ensure smooth transition from fallback color */
-            transition: opacity 0.3s ease-in-out;
-        }
-        .dashboard-bg.bg-loaded {
-            opacity: 1;
-        }
-        body:not(.bg-loaded) .dashboard-bg {
-            opacity: 0.8;
-        }
-
-        .gradient-text {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-    </style>
-</head>
-
-<body class="antialiased text-white dashboard-bg min-h-screen">
+@section('content')
     <div class="relative min-h-screen">
         <!-- Navigation Bar -->
         <x-navbar />
@@ -211,7 +167,9 @@
             </form>
         </div>
     </div>
+@endsection
 
+@push('scripts')
     <script>
         // Immediate background image preloader
         document.addEventListener('DOMContentLoaded', function() {
@@ -284,5 +242,4 @@
             });
         });
     </script>
-</body>
-</html>
+@endpush

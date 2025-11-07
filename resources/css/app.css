@@ -15,3 +15,48 @@
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
+
+body {
+    font-family: 'Inter', sans-serif;
+    scroll-behavior: smooth;
+}
+
+.font-brand {
+    font-family: 'Playfair Display', serif;
+}
+
+.has-radial-gradient {
+    background-image: radial-gradient(circle, #84145C, #070c27);
+}
+
+@media (min-width: 768px) {
+    .has-radial-gradient {
+        background-image: radial-gradient(ellipse, #84145C, #070c27 60%);
+        background-size: 100% 900px;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+}
+
+.dashboard-bg {
+    background-image: url("/images/bg-main.png");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.dashboard-bg.bg-loaded {
+    opacity: 1;
+}
+
+body:not(.bg-loaded) .dashboard-bg {
+    opacity: 0.8;
+}
+
+.gradient-text {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}

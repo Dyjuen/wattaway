@@ -1,24 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Wattaway - Login</title>
+@extends('layouts.base')
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@900&display=swap" rel="stylesheet">
+@section('title', 'Wattaway - Login')
 
-    <!-- Animations -->
+@push('styles')
     <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
     <link rel="stylesheet" href="{{ asset('css/login.css') }}">
-    <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
-
-    <!-- Styles -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -80,9 +66,9 @@
         }
         [x-cloak] { display: none !important; }
     </style>
-</head>
+@endpush
 
-<body>
+@section('content')
     <div class="login-bg min-h-screen flex items-center justify-center p-4">
         <div class="login-container w-full max-w-md">
             <!-- Logo and Title -->
@@ -120,6 +106,7 @@
                         <label for="password" class="block text-sm font-medium text-gray-300 mb-2">Password</label>
                         <div class="relative flex items-center">
                             <input
+                                x-model="password"
                                 id="password"
                                 name="password"
                                 type="password"
@@ -195,7 +182,9 @@
             </div>
         </div>
     </div>
+@endsection
 
+@push('scripts')
     <!-- Animation Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -241,5 +230,4 @@
             });
         });
     </script>
-</body>
-</html>
+@endpush

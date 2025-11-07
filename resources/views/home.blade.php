@@ -1,44 +1,14 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+@extends('layouts.base')
 
-    <title>WattAway</title>
+@section('title', 'WattAway - Effortless Energy Management')
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@900&display=swap" rel="stylesheet">
-
-    <!-- Styles -->
+@push('styles')
     <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            scroll-behavior: smooth;
-        }
-        .font-brand {
-            font-family: 'Playfair Display', serif;
-        }
-        .has-radial-gradient {
-            background-image: radial-gradient(circle, #84145C, #070c27);
-        }
-        /* Apply this style for screens 768px and wider (md breakpoint) */
-        @media (min-width: 768px) {
-            .has-radial-gradient {
-                background-image: radial-gradient(ellipse, #84145C, #070c27 60%);
-                background-size: 100% 900px; /* Full width, 900px height */
-                background-position: center;
-                background-repeat: no-repeat;
-            }
-        }
-    </style>
-</head>
 
-<body class="antialiased bg-[#0B0F2A] text-white">
+@endpush
+
+@section('content')
+<div class="antialiased bg-[#0B0F2A] text-white">
     <div class="relative min-h-screen flex flex-col items-center">
         <!-- Background Color -->
         <div class="absolute top-0 left-0 w-full h-full bg-[#070C27] z-0"></div>
@@ -116,31 +86,33 @@
                     </div>
 
                     <div class="flex flex-col items-center text-center space-y-6 stagger-item">
-                         <div class="bg-white/5 backdrop-blur-md w-full h-56 rounded-3xl flex items-center justify-center shadow-lg border border-white/10 overflow-hidden relative hover:bg-white/10 hover:border-white/20 hover:shadow-3xl hover:scale-105 transition-all duration-300 ease-out">
+                        <div x-data="{ currentSlide: 0, slides: 3 }" x-init="setInterval(() => { currentSlide = (currentSlide + 1) % slides }, 5000)" class="bg-white/5 backdrop-blur-md w-full h-56 rounded-3xl flex items-center justify-center shadow-lg border border-white/10 overflow-hidden relative hover:bg-white/10 hover:border-white/20 hover:shadow-3xl hover:scale-105 transition-all duration-300 ease-out">
                             <!-- Sliding Gallery Container -->
-                            <div class="gallery-container w-full h-full relative">
-                                <div class="gallery-slides flex transition-transform duration-500 ease-in-out h-full">
-                                    <div class="gallery-slide w-full h-full flex-shrink-0">
+                            <div class="w-full h-full relative">
+                                <div class="flex transition-transform duration-500 ease-in-out h-full" :style="`transform: translateX(-${currentSlide * 100}%)`">
+                                    <div class="w-full h-full flex-shrink-0">
                                         <img src="{{ asset('images/gallery1.jpeg') }}" alt="Gallery Image 1" class="w-full h-full object-cover">
                                     </div>
-                                    <div class="gallery-slide w-full h-full flex-shrink-0">
+                                    <div class="w-full h-full flex-shrink-0">
                                         <img src="{{ asset('images/gallery2.jpeg') }}" alt="Gallery Image 2" class="w-full h-full object-cover">
                                     </div>
-                                    <div class="gallery-slide w-full h-full flex-shrink-0">
+                                    <div class="w-full h-full flex-shrink-0">
                                         <img src="{{ asset('images/gallery3.jpeg') }}" alt="Gallery Image 3" class="w-full h-full object-cover">
                                     </div>
                                 </div>
                                 <!-- Navigation Dots -->
                                 <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                                    <button class="gallery-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white/80 transition-colors" data-slide="0"></button>
-                                    <button class="gallery-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white/80 transition-colors" data-slide="1"></button>
-                                    <button class="gallery-dot w-3 h-3 rounded-full bg-white/50 hover:bg-white/80 transition-colors" data-slide="2"></button>
+                                    <template x-for="i in slides" :key="i">
+                                        <button @click="currentSlide = i - 1" class="w-3 h-3 rounded-full transition-colors" :class="{'bg-white': currentSlide === i - 1, 'bg-white/50 hover:bg-white/80': currentSlide !== i - 1}"></button>
+                                    </template>
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-[#4a2c2a] p-2 rounded-full w-48 flex items-center justify-between shadow-lg border border-white/10 toggle-switch" data-state="on">
-                            <button class="bg-[#d47f5a] text-white px-8 py-3 rounded-full font-semibold shadow-md transition-all duration-300 toggle-btn">ON</button>
-                            <span class="text-white/50 px-6 font-semibold">OFF</span>
+                        <div x-data="{ isOn: true }" class="bg-[#4a2c2a] p-2 rounded-full w-48 flex items-center justify-between shadow-lg border border-white/10" :class="{ 'on': isOn, 'off': !isOn }">
+                            <button @click="isOn = !isOn" class="text-white px-8 py-3 rounded-full font-semibold shadow-md transition-all duration-300" :class="{ 'bg-[#d47f5a]': isOn, 'bg-gray-600': !isOn }">
+                                <span x-text="isOn ? 'ON' : 'OFF'"></span>
+                            </button>
+                            <span class="text-white/50 px-6 font-semibold" x-text="isOn ? 'OFF' : 'ON'"></span>
                         </div>
                          <p class="max-w-xs text-gray-300">With remote on/off functionality, Wattaway helps extend the life of your electronic devices—effortlessly and safely</p>
                     </div>
@@ -253,166 +225,15 @@
              </div>
         </section>
     </div>
+</div>
+@endsection
 
+@push('scripts')
     <!-- Navigation Highlighting Script -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const navLinks = document.querySelectorAll('nav a[data-section]');
-            const sections = ['top', 'product', 'about', 'contact'];
-
-            // Create intersection observer for each section
-            const observers = sections.map(sectionId => {
-                const section = document.getElementById(sectionId);
-                if (!section) return null;
-
-                const observer = new IntersectionObserver((entries) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            // Remove active class from all nav links
-                            navLinks.forEach(link => link.classList.remove('text-white', 'font-semibold'));
-                            navLinks.forEach(link => link.classList.add('text-gray-300'));
-
-                            // Add active class to current nav link
-                            const activeLink = document.querySelector(`nav a[data-section="${sectionId}"]`);
-                            if (activeLink) {
-                                activeLink.classList.remove('text-gray-300');
-                                activeLink.classList.add('text-white', 'font-semibold');
-                            }
-                        }
-                    });
-                }, {
-                    threshold: 0.3, // Trigger when 30% of the section is visible
-                    rootMargin: '-50px 0px -50px 0px' // Account for sticky navbar
-                });
-
-                // Store the section reference and observe it
-                observer.section = section;
-                observer.observe(section);
-                
-                return observer;
-            }).filter(Boolean);
-
-            // Section Appear Animation Observer
-            const sectionObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('section-visible');
-                        entry.target.classList.remove('section-hidden');
-                    }
-                });
-            }, {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            });
-
-            // Observe all sections for appear animations
-            const animatedSections = document.querySelectorAll('section, .hero-section, .intro-section');
-            animatedSections.forEach(section => {
-                section.classList.add('section-hidden');
-                sectionObserver.observe(section);
-            });
-
-            // Staggered animation for child elements
-            const staggerObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const children = entry.target.querySelectorAll('.stagger-item');
-                        children.forEach((child, index) => {
-                            let delay = 0;
-                            // Mascot appears first (index 0)
-                            if (child.classList.contains('hero-mascot')) {
-                                delay = 0;
-                            }
-                            // Text boxes appear after mascot with staggered delay
-                            else {
-                                delay = 300 + (index * 200); // 300ms after mascot, then 200ms between text boxes
-                            }
-
-                            setTimeout(() => {
-                                child.classList.add('stagger-visible');
-                            }, delay);
-                        });
-                    }
-                });
-            }, {
-                threshold: 0.1
-            });
-
-            // Observe elements with staggered children
-            const staggerContainers = document.querySelectorAll('.stagger-container');
-            staggerContainers.forEach(container => {
-                staggerObserver.observe(container);
-            });
-
-            // Gallery Slider Functionality
-            const galleryContainers = document.querySelectorAll('.gallery-container');
-            galleryContainers.forEach(container => {
-                const slides = container.querySelector('.gallery-slides');
-                const dots = container.querySelectorAll('.gallery-dot');
-                let currentSlide = 0;
-
-                function updateGallery() {
-                    // Update slide position
-                    slides.style.transform = `translateX(-${currentSlide * 100}%)`;
-
-                    // Update dots
-                    dots.forEach((dot, index) => {
-                        if (index === currentSlide) {
-                            dot.classList.remove('bg-white/50');
-                            dot.classList.add('bg-white');
-                        } else {
-                            dot.classList.remove('bg-white');
-                            dot.classList.add('bg-white/50');
-                        }
-                    });
-                }
-
-                // Dot click handlers
-                dots.forEach((dot, index) => {
-                    dot.addEventListener('click', () => {
-                        currentSlide = index;
-                        updateGallery();
-                    });
-                });
-
-                // Auto-advance gallery (optional - can be removed if not wanted)
-                setInterval(() => {
-                    currentSlide = (currentSlide + 1) % dots.length;
-                    updateGallery();
-                }, 5000); // Change slide every 5 seconds
-
-                // Initialize gallery
-                updateGallery();
-            });
-
-            // Toggle Switch Functionality
-            const toggleSwitches = document.querySelectorAll('.toggle-switch');
-            toggleSwitches.forEach(toggleSwitch => {
-                const toggleBtn = toggleSwitch.querySelector('.toggle-btn');
-                const state = toggleSwitch.dataset.state;
-
-                toggleBtn.addEventListener('click', () => {
-                    if (toggleSwitch.dataset.state === 'on') {
-                        // Switch to OFF
-                        toggleSwitch.dataset.state = 'off';
-                        toggleBtn.style.transform = 'translateX(83%)';
-                        toggleBtn.textContent = 'OFF';
-                        toggleBtn.classList.remove('bg-[#d47f5a]');
-                        toggleBtn.classList.add('bg-gray-600');
-                    } else {
-                        // Switch to ON
-                        toggleSwitch.dataset.state = 'on';
-                        toggleBtn.style.transform = 'translateX(0%)';
-                        toggleBtn.textContent = 'ON';
-                        toggleBtn.classList.remove('bg-gray-600');
-                        toggleBtn.classList.add('bg-[#d47f5a]');
-                    }
-                });
-            });
-        });
+        
     </script>
-</body>
-</html>
+@endpush
 
 
 
