@@ -40,6 +40,10 @@ Route::middleware(['auth:account'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DeviceController::class, 'index'])->name('dashboard');
     Route::get('/devices/{device}', [\App\Http\Controllers\DeviceController::class, 'show'])->name('devices.show');
 
+    Route::get('/style-guide', function () {
+        return view('style-guide');
+    })->name('style-guide');
+
     Route::get('/settings', [Esp32Controller::class, 'settings'])->name('settings');
 
     Route::get('/information', function () {

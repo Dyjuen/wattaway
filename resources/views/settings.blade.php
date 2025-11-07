@@ -40,18 +40,7 @@
         body:not(.bg-loaded) .settings-bg {
             opacity: 0.8;
         }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            position: relative;
-            z-index: 10;
-        }
 
-        .glass-card * {
-            position: relative;
-            z-index: 11;
-        }
         .gradient-text {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
@@ -202,36 +191,36 @@
                 <!-- Settings Content -->
                 <div class="lg:col-span-3 stagger-item">
                     <!-- Profile Settings -->
-                    <div id="profile-section" class="glass-card rounded-2xl p-6 mb-6 stagger-item">
+                    <x-glass-card id="profile-section" class="mb-6 stagger-item">
                         <h2 class="text-2xl font-bold mb-6">Profile Settings</h2>
                         <form class="space-y-6">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 stagger-item">
                                 <div>
                                     <label class="block text-sm font-medium mb-2">First Name</label>
-                                    <input type="text" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" value="John">
+                                    <x-input type="text" name="first_name" id="first_name" value="John" />
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium mb-2">Last Name</label>
-                                    <input type="text" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" value="Doe">
+                                    <x-input type="text" name="last_name" id="last_name" value="Doe" />
                                 </div>
                             </div>
                             <div class="stagger-item">
                                 <label class="block text-sm font-medium mb-2">Email Address</label>
-                                <input type="email" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" value="john.doe@example.com">
+                                <x-input type="email" name="email" id="email" value="john.doe@example.com" />
                             </div>
                             <div class="stagger-item">
                                 <label class="block text-sm font-medium mb-2">Phone Number</label>
-                                <input type="tel" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" value="+1 (555) 123-4567">
+                                <x-input type="tel" name="phone" id="phone" value="+1 (555) 123-4567" />
                             </div>
                             <div class="stagger-item">
                                 <label class="block text-sm font-medium mb-2">Bio</label>
                                 <textarea class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 h-24" placeholder="Tell us about yourself...">Smart home enthusiast and energy efficiency advocate.</textarea>
                             </div>
                         </form>
-                    </div>
+                    </x-glass-card>
 
                     <!-- Device Settings -->
-                    <div id="devices-section" class="glass-card rounded-2xl p-6 mb-6 hidden">
+                    <x-glass-card id="devices-section" class="mb-6 hidden">
                         <h2 class="text-2xl font-bold mb-6">Device Management</h2>
 
                         @if($devices->count() > 0)
@@ -247,26 +236,26 @@
                                                 <span class="text-sm {{ $device->status === 'online' ? 'text-green-400' : 'text-gray-400' }}">
                                                     {{ ucfirst($device->status) }}
                                                 </span>
-                                                <button class="text-red-400 hover:text-red-300" onclick="deleteDevice('{{ $device->device_id }}')">
+                                                <x-button variant="danger" onclick="deleteDevice('{{ $device->device_id }}')">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                                     </svg>
-                                                </button>
+                                                </x-button>
                                             </div>
                                         </div>
 
                                         <!-- Device Configuration Tabs -->
                                         <div class="border-t border-white/10 pt-4">
                                             <div class="flex space-x-1 mb-4" role="tablist">
-                                                <button id="scheduler-tab-{{ $device->device_id }}" class="config-tab flex-1 py-2 px-3 text-sm rounded-lg transition-colors" data-tab="scheduler-{{ $device->device_id }}" data-device="{{ $device->device_id }}">
+                                                <x-button variant="secondary" id="scheduler-tab-{{ $device->device_id }}" class="config-tab flex-1 py-2 px-3 text-sm" data-tab="scheduler-{{ $device->device_id }}" data-device="{{ $device->device_id }}">
                                                     Scheduler
-                                                </button>
-                                                <button id="timer-tab-{{ $device->device_id }}" class="config-tab flex-1 py-2 px-3 text-sm rounded-lg transition-colors" data-tab="timer-{{ $device->device_id }}" data-device="{{ $device->device_id }}">
+                                                </x-button>
+                                                <x-button variant="secondary" id="timer-tab-{{ $device->device_id }}" class="config-tab flex-1 py-2 px-3 text-sm" data-tab="timer-{{ $device->device_id }}" data-device="{{ $device->device_id }}">
                                                     Timer
-                                                </button>
-                                                <button id="wattlimit-tab-{{ $device->device_id }}" class="config-tab flex-1 py-2 px-3 text-sm rounded-lg transition-colors" data-tab="wattlimit-{{ $device->device_id }}" data-device="{{ $device->device_id }}">
+                                                </x-button>
+                                                <x-button variant="secondary" id="wattlimit-tab-{{ $device->device_id }}" class="config-tab flex-1 py-2 px-3 text-sm" data-tab="wattlimit-{{ $device->device_id }}" data-device="{{ $device->device_id }}">
                                                     Watt Limit
-                                                </button>
+                                                </x-button>
                                             </div>
 
                                             <!-- Scheduler Configuration -->
@@ -284,23 +273,13 @@
                                                         <div class="space-y-2">
                                                             <label class="block text-sm font-medium text-gray-300">Start Time</label>
                                                             <div class="relative">
-                                                                <input type="time" id="scheduler-start-{{ $device->device_id }}" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white" value="08:00">
-                                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                                    </svg>
-                                                                </div>
+                                                                <x-input type="time" id="scheduler-start-{{ $device->device_id }}" name="scheduler-start-{{ $device->device_id }}" value="08:00" />
                                                             </div>
                                                         </div>
                                                         <div class="space-y-2">
                                                             <label class="block text-sm font-medium text-gray-300">End Time</label>
                                                             <div class="relative">
-                                                                <input type="time" id="scheduler-end-{{ $device->device_id }}" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white" value="18:00">
-                                                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                                    </svg>
-                                                                </div>
+                                                                <x-input type="time" id="scheduler-end-{{ $device->device_id }}" name="scheduler-end-{{ $device->device_id }}" value="18:00" />
                                                             </div>
                                                         </div>
                                                     </div>
@@ -421,7 +400,7 @@
                                                     <h4 class="font-semibold mb-3">Power Limit Settings</h4>
                                                     <div>
                                                         <label class="block text-sm font-medium mb-2">Maximum Watt-hours (Wh)</label>
-                                                        <input type="number" id="watt-limit-{{ $device->device_id }}" min="1" max="10000" class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="1000" value="1000">
+                                                        <x-input type="number" id="watt-limit-{{ $device->device_id }}" name="watt-limit-{{ $device->device_id }}" min="1" max="10000" placeholder="1000" value="1000" />
                                                     </div>
                                                     <div class="flex items-center mt-3">
                                                         <input type="checkbox" id="wattlimit-active-{{ $device->device_id }}" class="mr-2" checked>
@@ -431,12 +410,8 @@
                                             </div>
 
                                             <div class="flex justify-end space-x-3 mt-4 pt-4 border-t border-white/10">
-                                                <button onclick="saveDeviceConfiguration('{{ $device->device_id }}')" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
-                                                    Save Configuration
-                                                </button>
-                                                <button onclick="loadDeviceConfiguration('{{ $device->device_id }}')" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm">
-                                                    Load Current Settings
-                                                </button>
+                                                <x-button variant="primary" onclick="saveDeviceConfiguration('{{ $device->device_id }}')">Save Configuration</x-button>
+                                                <x-button variant="secondary" onclick="loadDeviceConfiguration('{{ $device->device_id }}')">Load Current Settings</x-button>
                                             </div>
                                         </div>
                                     </div>
@@ -452,26 +427,26 @@
                                     </div>
                                     <div class="flex items-center space-x-3">
                                         <span class="text-sm text-green-400">Online</span>
-                                        <button class="text-red-400 hover:text-red-300" onclick="deleteDevice('192.168.1.100')">
+                                        <x-button variant="danger" onclick="deleteDevice('192.168.1.100')">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                             </svg>
-                                        </button>
+                                        </x-button>
                                     </div>
                                 </div>
 
                                 <!-- Device Configuration Tabs -->
                                 <div class="border-t border-white/10 pt-4">
                                     <div class="flex space-x-1 mb-4" role="tablist">
-                                        <button id="scheduler-tab-demo" class="config-tab flex-1 py-2 px-3 text-sm rounded-lg transition-colors active bg-blue-500 text-white" data-tab="scheduler-demo" data-device="demo">
+                                        <x-button id="scheduler-tab-demo" class="config-tab flex-1 py-2 px-3 text-sm" data-tab="scheduler-demo" data-device="demo">
                                             Scheduler
-                                        </button>
-                                        <button id="timer-tab-demo" class="config-tab flex-1 py-2 px-3 text-sm rounded-lg transition-colors bg-white/10 text-gray-300" data-tab="timer-demo" data-device="demo">
+                                        </x-button>
+                                        <x-button id="timer-tab-demo" class="config-tab flex-1 py-2 px-3 text-sm" data-tab="timer-demo" data-device="demo">
                                             Timer
-                                        </button>
-                                        <button id="wattlimit-tab-demo" class="config-tab flex-1 py-2 px-3 text-sm rounded-lg transition-colors bg-white/10 text-gray-300" data-tab="wattlimit-demo" data-device="demo">
+                                        </x-button>
+                                        <x-button id="wattlimit-tab-demo" class="config-tab flex-1 py-2 px-3 text-sm" data-tab="wattlimit-demo" data-device="demo">
                                             Watt Limit
-                                        </button>
+                                        </x-button>
                                     </div>
 
                                     <!-- Scheduler Configuration -->
@@ -489,23 +464,13 @@
                                                 <div class="space-y-2">
                                                     <label class="block text-sm font-medium text-gray-300">Start Time</label>
                                                     <div class="relative">
-                                                        <input type="time" id="scheduler-start-demo" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white" value="08:00">
-                                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                            </svg>
-                                                        </div>
+                                                        <x-input type="time" id="scheduler-start-demo" name="scheduler-start-demo" value="08:00" />
                                                     </div>
                                                 </div>
                                                 <div class="space-y-2">
                                                     <label class="block text-sm font-medium text-gray-300">End Time</label>
                                                     <div class="relative">
-                                                        <input type="time" id="scheduler-end-demo" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white" value="18:00">
-                                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                                            </svg>
-                                                        </div>
+                                                        <x-input type="time" id="scheduler-end-demo" name="scheduler-end-demo" value="18:00" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -626,7 +591,7 @@
                                             <h4 class="font-semibold mb-3">Power Limit Settings</h4>
                                             <div>
                                                 <label class="block text-sm font-medium mb-2">Maximum Watt-hours (Wh)</label>
-                                                <input type="number" id="watt-limit-demo" min="1" max="10000" class="w-full bg-white/10 border border-white/20 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="1000" value="1000">
+                                                <x-input type="number" id="watt-limit-demo" name="watt-limit-demo" min="1" max="10000" placeholder="1000" value="1000" />
                                             </div>
                                             <div class="flex items-center mt-3">
                                                 <input type="checkbox" id="wattlimit-active-demo" class="mr-2" checked>
@@ -636,26 +601,20 @@
                                     </div>
 
                                     <div class="flex justify-end space-x-3 mt-4 pt-4 border-t border-white/10">
-                                        <button onclick="saveDeviceConfiguration('demo')" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
-                                            Save Configuration
-                                        </button>
-                                        <button onclick="loadDeviceConfiguration('demo')" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm">
-                                            Load Current Settings
-                                        </button>
+                                        <x-button variant="primary" onclick="saveDeviceConfiguration('demo')">Save Configuration</x-button>
+                                        <x-button variant="secondary" onclick="loadDeviceConfiguration('demo')">Load Current Settings</x-button>
                                     </div>
                                 </div>
                             </div>
                         @endif
 
                         <div class="mt-6">
-                            <button class="w-full bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition-colors">
-                                Add New Device
-                            </button>
+                            <x-button variant="primary" class="w-full">Add New Device</x-button>
                         </div>
-                    </div>
+                    </x-glass-card>
 
                     <!-- Notification Settings -->
-                    <div id="notifications-section" class="glass-card rounded-2xl p-6 mb-6 hidden">
+                    <x-glass-card id="notifications-section" class="mb-6 hidden">
                         <h2 class="text-2xl font-bold mb-6">Notification Preferences</h2>
                         <div class="space-y-6">
                             <div class="flex items-center justify-between">
@@ -699,47 +658,43 @@
                                 </label>
                             </div>
                         </div>
-                    </div>
+                    </x-glass-card>
 
                     <!-- Security Settings -->
-                    <div id="security-section" class="glass-card rounded-2xl p-6 mb-6 hidden">
+                    <x-glass-card id="security-section" class="mb-6 hidden">
                         <h2 class="text-2xl font-bold mb-6">Security Settings</h2>
                         <div class="space-y-6">
                             <div>
                                 <label class="block text-sm font-medium mb-2">Current Password</label>
-                                <input type="password" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter current password">
+                                <x-input type="password" name="current_password" id="current_password" placeholder="Enter current password" />
                             </div>
                             <div>
                                 <label class="block text-sm font-medium mb-2">New Password</label>
-                                <input type="password" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter new password">
+                                <x-input type="password" name="new_password" id="new_password" placeholder="Enter new password" />
                             </div>
                             <div>
                                 <label class="block text-sm font-medium mb-2">Confirm New Password</label>
-                                <input type="password" class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Confirm new password">
+                                <x-input type="password" name="new_password_confirmation" id="new_password_confirmation" placeholder="Confirm new password" />
                             </div>
                             <div class="flex items-center justify-between p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
                                 <div>
                                     <h3 class="font-semibold text-yellow-400">Two-Factor Authentication</h3>
                                     <p class="text-sm text-gray-400">Add an extra layer of security to your account</p>
                                 </div>
-                                <button class="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-lg font-semibold">
-                                    Enable 2FA
-                                </button>
+                                <x-button variant="secondary">Enable 2FA</x-button>
                             </div>
                             <div class="flex items-center justify-between p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
                                 <div>
                                     <h3 class="font-semibold text-red-400">Danger Zone</h3>
                                     <p class="text-sm text-gray-400">Permanently delete your account and all data</p>
                                 </div>
-                                <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg">
-                                    Delete Account
-                                </button>
+                                <x-button variant="danger">Delete Account</x-button>
                             </div>
                         </div>
-                    </div>
+                    </x-glass-card>
 
                     <!-- Preferences Settings -->
-                    <div id="preferences-section" class="glass-card rounded-2xl p-6 mb-6 hidden">
+                    <x-glass-card id="preferences-section" class="mb-6 hidden">
                         <h2 class="text-2xl font-bold mb-6">App Preferences</h2>
                         <div class="space-y-6">
                             <div>
@@ -789,7 +744,7 @@
                                 </label>
                             </div>
                         </div>
-                    </div>
+                    </x-glass-card>
                 </div>
             </div>
         </main>

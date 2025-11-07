@@ -9,13 +9,6 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-
-    <script>
-        // Make the API token available to JS
-        @auth('account')
-            window.apiToken = "{{ auth('account')->user()->createToken('frontend')->plainTextToken }}";
-        @endauth
-    </script>
 </head>
 <body class="font-sans antialiased">
     <div class="min-h-screen bg-gray-100 dark:bg-gray-900">

@@ -14,6 +14,9 @@
     <!-- Preload critical background image -->
     <link rel="preload" as="image" href="{{ asset('images/bg-main.png') }}">
 
+    <!-- Animations -->
+    <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
+
     <!-- Styles -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/x-icon">
@@ -39,11 +42,7 @@
         body:not(.bg-loaded) .dashboard-bg {
             opacity: 0.8;
         }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+
         .gradient-text {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             -webkit-background-clip: text;
@@ -62,144 +61,66 @@
         <main class="container mx-auto px-6 py-8 pt-24 stagger-container">
             <!-- Session Status Messages -->
             @if (session('status'))
-                <div class="bg-green-500/20 text-green-300 p-4 rounded-lg mb-6 border border-green-500/30">
-                    {{ session('status') }}
-                </div>
+                <x-alert type="success" :message="session('status')" />
             @endif
             @if (session('error'))
-                <div class="bg-red-500/20 text-red-300 p-4 rounded-lg mb-6 border border-red-500/30">
-                    {{ session('error') }}
-                </div>
+                <x-alert type="error" :message="session('error')" />
             @endif
 
             <!-- Welcome Header -->
             <div class="mb-8 stagger-item">
-                <h1 class="text-4xl md:text-5xl font-bold mb-2">
-                    Welcome back, <span class="gradient-text">{{ auth()->guard('account')->user()->name ?? 'User' }}</span>
-                </h1>
-                <p class="text-gray-300 text-lg">Manage your WattAway smart devices and monitor your energy usage</p>
+                <x-page-header 
+                    title="Welcome back, {{ auth()->guard('account')->user()->name ?? 'User' }}" 
+                    subtitle="Manage your WattAway smart devices and monitor your energy usage" />
             </div>
 
             <!-- Quick Stats Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 stagger-item">
-                <!-- Total Devices -->
-                <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-transform duration-300 stagger-item">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-300 text-sm font-medium">Total Devices</p>
-                            <p class="text-3xl font-bold mt-2">3</p>
-                        </div>
-                        <div class="p-3 bg-blue-500/20 rounded-full">
-                            <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center text-sm">
-                        <span class="text-green-400">+2</span>
-                        <span class="text-gray-400 ml-1">from last month</span>
-                    </div>
-                </div>
+                <x-stat-card title="Total Devices" value="3" change="+2">
+                    <x-slot name="icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </x-slot>
+                </x-stat-card>
 
-                <!-- Energy Saved -->
-                <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-transform duration-300 stagger-item">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-300 text-sm font-medium">Energy Saved</p>
-                            <p class="text-3xl font-bold mt-2">127</p>
-                            <p class="text-sm text-gray-400">kWh</p>
-                        </div>
-                        <div class="p-3 bg-green-500/20 rounded-full">
-                            <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center text-sm">
-                        <span class="text-green-400">+12%</span>
-                        <span class="text-gray-400 ml-1">efficiency increase</span>
-                    </div>
-                </div>
+                <x-stat-card title="Energy Saved" value="127 kWh" change="+12%" changeType="increase">
+                    <x-slot name="icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </x-slot>
+                </x-stat-card>
 
-                <!-- Active Sessions -->
-                <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-transform duration-300 stagger-item">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-300 text-sm font-medium">Active Now</p>
-                            <p class="text-3xl font-bold mt-2">2</p>
-                        </div>
-                        <div class="p-3 bg-purple-500/20 rounded-full">
-                            <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center text-sm">
-                        <span class="text-blue-400">Living Room</span>
-                        <span class="text-gray-400 ml-1">• Kitchen</span>
-                    </div>
-                </div>
+                <x-stat-card title="Active Now" value="2">
+                    <x-slot name="icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                    </x-slot>
+                </x-stat-card>
 
-                <!-- Monthly Usage -->
-                <div class="glass-card rounded-2xl p-6 hover:scale-105 transition-transform duration-300 stagger-item">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-300 text-sm font-medium">This Month</p>
-                            <p class="text-3xl font-bold mt-2">89</p>
-                            <p class="text-sm text-gray-400">kWh used</p>
-                        </div>
-                        <div class="p-3 bg-orange-500/20 rounded-full">
-                            <svg class="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="mt-4 flex items-center text-sm">
-                        <span class="text-red-400">+5%</span>
-                        <span class="text-gray-400 ml-1">vs last month</span>
-                    </div>
-                </div>
+                <x-stat-card title="This Month" value="89 kWh" change="+5%" changeType="decrease">
+                    <x-slot name="icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                    </x-slot>
+                </x-stat-card>
             </div>
 
             <!-- Main Content Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 stagger-item">
                 <!-- Device Control Panel -->
                 <div class="lg:col-span-2">
-                    <div class="glass-card rounded-2xl p-6 mb-6 stagger-item">
+                    <x-glass-card class="mb-6 stagger-item">
                         <div class="flex items-center justify-between mb-6">
                             <h2 class="text-2xl font-bold">Device Control</h2>
-                            <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
-                                Add Device
-                            </button>
+                            <x-button>Add Device</x-button>
                         </div>
 
                         <!-- Device Cards -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 stagger-item">
                             @foreach ($devices as $device)
-                            <div class="bg-white/5 rounded-xl p-4 border border-white/10 stagger-item">
-                                <div class="flex items-center justify-between mb-3">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-3 h-3 {{ $device->status === 'online' ? 'bg-green-400' : 'bg-red-400' }} rounded-full"></div>
-                                        <div>
-                                            <h3 class="font-semibold">{{ $device->name }}</h3>
-                                            <p class="text-sm text-gray-400">{{ $device->description }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center space-x-2">
-                                        <a href="{{ route('devices.show', $device) }}" class="text-sm text-blue-400 hover:text-blue-300">Details</a>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between items-center text-sm">
-                                    <span class="text-gray-400">Status: {{ ucfirst($device->status) }}</span>
-                                    <span class="text-gray-400">Last seen: {{ $device->last_seen_at?->diffForHumans() ?? 'Never' }}</span>
-                                </div>
-                            </div>
+                                <x-device-card :device="$device" />
                             @endforeach
                         </div>
-                    </div>
+                    </x-glass-card>
 
                     <!-- Energy Usage Chart Placeholder -->
-                    <div class="glass-card rounded-2xl p-6 stagger-item">
+                    <x-glass-card class="stagger-item">
                         <h2 class="text-2xl font-bold mb-6">Energy Usage Analytics</h2>
                         <div class="bg-white/5 rounded-xl h-64 flex items-center justify-center border border-white/10">
                             <div class="text-center">
@@ -210,13 +131,13 @@
                                 <p class="text-sm text-gray-500 mt-2">Connect your devices to see real-time analytics</p>
                             </div>
                         </div>
-                    </div>
+                    </x-glass-card>
                 </div>
 
                 <!-- Sidebar -->
                 <div class="space-y-6 stagger-item">
                     <!-- Quick Actions -->
-                    <div class="glass-card rounded-2xl p-6 stagger-item">
+                    <x-glass-card class="stagger-item">
                         <h3 class="text-xl font-bold mb-4">Quick Actions</h3>
                         <div class="space-y-3">
                             <a href="{{ route('settings') }}" class="block w-full bg-white/10 hover:bg-white/20 rounded-lg p-3 transition-colors">
@@ -245,10 +166,10 @@
                                 </div>
                             </a>
                         </div>
-                    </div>
+                    </x-glass-card>
 
                     <!-- Recent Activity -->
-                    <div class="glass-card rounded-2xl p-6 stagger-item">
+                    <x-glass-card class="stagger-item">
                         <h3 class="text-xl font-bold mb-4">Recent Activity</h3>
                         <div class="space-y-4">
                             <div class="flex items-start space-x-3 stagger-item">
@@ -273,7 +194,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </x-glass-card>
                 </div>
             </div>
         </main>
