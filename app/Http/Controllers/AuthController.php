@@ -80,4 +80,25 @@ class AuthController extends Controller
 
         return redirect('/');
     }
+
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $account = Auth::guard('account')->user();
+
+        if (!Hash::check($request->current_password, $account->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => ['The provided password does not match your current password.'],
+            ]);
+        }
+
+        $account->password = Hash::make($request->new_password);
+        $account->save();
+
+        return redirect()->route('settings')->with('success', 'Password updated successfully.');
+    }
 }

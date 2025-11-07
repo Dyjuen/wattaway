@@ -159,29 +159,12 @@
                                     <span>Devices</span>
                                 </div>
                             </button>
-                            <button data-section="notifications" class="setting-item w-full text-left p-3 rounded-lg stagger-item">
-                                <div class="flex items-center space-x-3">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                                    </svg>
-                                    <span>Notifications</span>
-                                </div>
-                            </button>
                             <button data-section="security" class="setting-item w-full text-left p-3 rounded-lg stagger-item">
                                 <div class="flex items-center space-x-3">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                                     </svg>
                                     <span>Security</span>
-                                </div>
-                            </button>
-                            <button data-section="preferences" class="setting-item w-full text-left p-3 rounded-lg stagger-item">
-                                <div class="flex items-center space-x-3">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    </svg>
-                                    <span>Preferences</span>
                                 </div>
                             </button>
                         </nav>
@@ -194,27 +177,13 @@
                     <x-glass-card id="profile-section" class="mb-6 stagger-item">
                         <h2 class="text-2xl font-bold mb-6">Profile Settings</h2>
                         <form class="space-y-6">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 stagger-item">
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">First Name</label>
-                                    <x-input type="text" name="first_name" id="first_name" value="John" />
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Last Name</label>
-                                    <x-input type="text" name="last_name" id="last_name" value="Doe" />
-                                </div>
+                            <div class="stagger-item">
+                                <label class="block text-sm font-medium mb-2">Username</label>
+                                <x-input type="text" name="username" id="username" value="{{ $account->username }}" readonly />
                             </div>
                             <div class="stagger-item">
                                 <label class="block text-sm font-medium mb-2">Email Address</label>
-                                <x-input type="email" name="email" id="email" value="john.doe@example.com" />
-                            </div>
-                            <div class="stagger-item">
-                                <label class="block text-sm font-medium mb-2">Phone Number</label>
-                                <x-input type="tel" name="phone" id="phone" value="+1 (555) 123-4567" />
-                            </div>
-                            <div class="stagger-item">
-                                <label class="block text-sm font-medium mb-2">Bio</label>
-                                <textarea class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 h-24" placeholder="Tell us about yourself...">Smart home enthusiast and energy efficiency advocate.</textarea>
+                                <x-input type="email" name="email" id="email" value="{{ $account->email }}" />
                             </div>
                         </form>
                     </x-glass-card>
@@ -273,20 +242,20 @@
                                                         <div class="space-y-2">
                                                             <label class="block text-sm font-medium text-gray-300">Start Time</label>
                                                             <div class="relative">
-                                                                <x-input type="time" id="scheduler-start-{{ $device->device_id }}" name="scheduler-start-{{ $device->device_id }}" value="08:00" />
+                                                                <x-input type="time" id="scheduler-start-{{ $device->device_id }}" name="scheduler-start-{{ $device->device_id }}" value="{{ $device->configurations['scheduler']['start_time'] ?? '08:00' }}" />
                                                             </div>
                                                         </div>
                                                         <div class="space-y-2">
                                                             <label class="block text-sm font-medium text-gray-300">End Time</label>
                                                             <div class="relative">
-                                                                <x-input type="time" id="scheduler-end-{{ $device->device_id }}" name="scheduler-end-{{ $device->device_id }}" value="18:00" />
+                                                                <x-input type="time" id="scheduler-end-{{ $device->device_id }}" name="scheduler-end-{{ $device->device_id }}" value="{{ $device->configurations['scheduler']['end_time'] ?? '18:00' }}" />
                                                             </div>
                                                         </div>
                                                     </div>
                                                     <div class="flex items-center justify-between mt-6 p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
                                                         <div>
                                                             <div class="flex items-center">
-                                                                <input type="checkbox" id="scheduler-active-{{ $device->device_id }}" class="mr-3 w-4 h-4 text-blue-500 bg-white/10 border-white/20 rounded focus:ring-blue-500 focus:ring-2" checked>
+                                                                <input type="checkbox" id="scheduler-active-{{ $device->device_id }}" class="mr-3 w-4 h-4 text-blue-500 bg-white/10 border-white/20 rounded focus:ring-blue-500 focus:ring-2" {{ isset($device->configurations['scheduler']['is_active']) && $device->configurations['scheduler']['is_active'] ? 'checked' : '' }}>
                                                                 <label for="scheduler-active-{{ $device->device_id }}" class="text-sm font-medium text-blue-300">Enable Automatic Scheduling</label>
                                                             </div>
                                                             <p class="text-xs text-gray-400 mt-1">Device will turn on/off automatically based on schedule</p>
@@ -352,7 +321,7 @@
                                                                        id="timer-duration-{{ $device->device_id }}"
                                                                        min="5"
                                                                        max="120"
-                                                                       value="30"
+                                                                       value="{{ $device->configurations['timer']['duration'] ?? 30 }}"
                                                                        step="5"
                                                                        class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer slider"
                                                                        oninput="updateTimerDisplay('{{ $device->device_id }}', this.value)"
@@ -381,7 +350,7 @@
                                                             <input type="checkbox"
                                                                    id="timer-active-{{ $device->device_id }}"
                                                                    class="mr-3 w-4 h-4 text-blue-500 bg-white/10 border-white/20 rounded focus:ring-blue-500 focus:ring-2"
-                                                                   checked>
+                                                                   {{ isset($device->configurations['timer']['is_active']) && $device->configurations['timer']['is_active'] ? 'checked' : '' }}>
                                                             <div>
                                                                 <label for="timer-active-{{ $device->device_id }}" class="text-sm font-medium text-blue-300">Enable Auto-Shutoff Timer</label>
                                                                 <p class="text-xs text-gray-400 mt-1">Device will automatically turn off after set duration</p>
@@ -400,10 +369,10 @@
                                                     <h4 class="font-semibold mb-3">Power Limit Settings</h4>
                                                     <div>
                                                         <label class="block text-sm font-medium mb-2">Maximum Watt-hours (Wh)</label>
-                                                        <x-input type="number" id="watt-limit-{{ $device->device_id }}" name="watt-limit-{{ $device->device_id }}" min="1" max="10000" placeholder="1000" value="1000" />
+                                                        <x-input type="number" id="watt-limit-{{ $device->device_id }}" name="watt-limit-{{ $device->device_id }}" min="1" max="10000" placeholder="1000" value="{{ $device->configurations['watt_limit']['limit'] ?? 1000 }}" />
                                                     </div>
                                                     <div class="flex items-center mt-3">
-                                                        <input type="checkbox" id="wattlimit-active-{{ $device->device_id }}" class="mr-2" checked>
+                                                        <input type="checkbox" id="wattlimit-active-{{ $device->device_id }}" class="mr-2" {{ isset($device->configurations['watt_limit']['is_active']) && $device->configurations['watt_limit']['is_active'] ? 'checked' : '' }}>
                                                         <label for="wattlimit-active-{{ $device->device_id }}" class="text-sm">Enable Watt Limit</label>
                                                     </div>
                                                 </div>
@@ -613,57 +582,11 @@
                         </div>
                     </x-glass-card>
 
-                    <!-- Notification Settings -->
-                    <x-glass-card id="notifications-section" class="mb-6 hidden">
-                        <h2 class="text-2xl font-bold mb-6">Notification Preferences</h2>
-                        <div class="space-y-6">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="font-semibold">Device Status Alerts</h3>
-                                    <p class="text-sm text-gray-400">Get notified when devices go online/offline</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                </label>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="font-semibold">Energy Usage Reports</h3>
-                                    <p class="text-sm text-gray-400">Daily and weekly energy consumption summaries</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                </label>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="font-semibold">Security Alerts</h3>
-                                    <p class="text-sm text-gray-400">Critical security notifications and updates</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                </label>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="font-semibold">Maintenance Reminders</h3>
-                                    <p class="text-sm text-gray-400">Scheduled maintenance and firmware updates</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer">
-                                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                </label>
-                            </div>
-                        </div>
-                    </x-glass-card>
-
                     <!-- Security Settings -->
                     <x-glass-card id="security-section" class="mb-6 hidden">
                         <h2 class="text-2xl font-bold mb-6">Security Settings</h2>
-                        <div class="space-y-6">
+                        <form method="POST" action="{{ route('password.update') }}" class="space-y-6">
+                            @csrf
                             <div>
                                 <label class="block text-sm font-medium mb-2">Current Password</label>
                                 <x-input type="password" name="current_password" id="current_password" placeholder="Enter current password" />
@@ -676,74 +599,10 @@
                                 <label class="block text-sm font-medium mb-2">Confirm New Password</label>
                                 <x-input type="password" name="new_password_confirmation" id="new_password_confirmation" placeholder="Confirm new password" />
                             </div>
-                            <div class="flex items-center justify-between p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-                                <div>
-                                    <h3 class="font-semibold text-yellow-400">Two-Factor Authentication</h3>
-                                    <p class="text-sm text-gray-400">Add an extra layer of security to your account</p>
-                                </div>
-                                <x-button variant="secondary">Enable 2FA</x-button>
+                            <div class="flex justify-end">
+                                <x-button type="submit" variant="primary">Save</x-button>
                             </div>
-                            <div class="flex items-center justify-between p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-                                <div>
-                                    <h3 class="font-semibold text-red-400">Danger Zone</h3>
-                                    <p class="text-sm text-gray-400">Permanently delete your account and all data</p>
-                                </div>
-                                <x-button variant="danger">Delete Account</x-button>
-                            </div>
-                        </div>
-                    </x-glass-card>
-
-                    <!-- Preferences Settings -->
-                    <x-glass-card id="preferences-section" class="mb-6 hidden">
-                        <h2 class="text-2xl font-bold mb-6">App Preferences</h2>
-                        <div class="space-y-6">
-                            <div>
-                                <label class="block text-sm font-medium mb-2">Theme</label>
-                                <select class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <option value="dark" selected>Dark Theme</option>
-                                    <option value="light">Light Theme</option>
-                                    <option value="auto">Auto (System)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-2">Language</label>
-                                <select class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <option value="en" selected>English</option>
-                                    <option value="es">Español</option>
-                                    <option value="fr">Français</option>
-                                    <option value="de">Deutsch</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-2">Timezone</label>
-                                <select class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <option value="UTC-8" selected>Pacific Time (UTC-8)</option>
-                                    <option value="UTC-5">Eastern Time (UTC-5)</option>
-                                    <option value="UTC+0">GMT (UTC+0)</option>
-                                    <option value="UTC+1">Central European Time (UTC+1)</option>
-                                </select>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="font-semibold">Auto Energy Reports</h3>
-                                    <p class="text-sm text-gray-400">Automatically generate energy usage reports</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer" checked>
-                                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                </label>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h3 class="font-semibold">Smart Scheduling</h3>
-                                    <p class="text-sm text-gray-400">Automatically schedule devices based on usage patterns</p>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer">
-                                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                                </label>
-                            </div>
-                        </div>
+                        </form>
                     </x-glass-card>
                 </div>
             </div>

@@ -52,7 +52,7 @@ class Esp32Controller extends Controller
             ];
         });
 
-        return view('settings', compact('devices'));
+        return view('settings', compact('account', 'devices'));
     }
 
     public function updateConfiguration(Request $request, $deviceId)

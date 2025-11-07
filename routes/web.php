@@ -45,6 +45,7 @@ Route::middleware(['auth:account'])->group(function () {
     })->name('style-guide');
 
     Route::get('/settings', [Esp32Controller::class, 'settings'])->name('settings');
+    Route::post('/settings/password', [AuthController::class, 'updatePassword'])->name('password.update');
 
     Route::get('/information', function () {
         return view('information');
