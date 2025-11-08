@@ -7,11 +7,14 @@ use App\Models\AuditLog;
 use App\Http\Requests\ControlDeviceRequest;
 use App\Http\Requests\CreateScheduleRequest;
 use App\Http\Resources\DeviceResource;
+use App\Http\Resources\DeviceReadingResource;
 use App\Models\Device;
+use App\Models\DeviceReading;
 use App\Services\DeviceDataService;
 use App\Services\MqttPublishService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class DeviceController extends Controller
 {
@@ -72,5 +75,28 @@ class DeviceController extends Controller
         ]);
 
         return $this->deviceDataService->getDeviceDataHistory($device, $validated['hours'] ?? 24);
+    }
+
+    public function readings(Request $request, Device $device)
+    {
+        $this->authorize('view', $device);
+
+        $range = $request->query('range', '24h'); // Default to 24 hours
+        $endDate = now();
+        $startDate = match($range) {
+            '1h' => now()->subHour(),
+            '6h' => now()->subHours(6),
+            '24h' => now()->subDay(),
+            '7d' => now()->subDays(7),
+            default => now()->subDay(),
+        };
+
+        $readings = $device->deviceReadings()
+                        ->with('channelReadings')
+                        ->whereBetween('timestamp', [$startDate, $endDate])
+                        ->orderBy('timestamp', 'asc') // Order ascending for charts
+                        ->get();
+
+        return DeviceReadingResource::collection($readings);
     }
 }

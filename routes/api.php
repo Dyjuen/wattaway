@@ -33,6 +33,7 @@ Route::prefix('v1')->group(function () {
         Route::post('/{device}/schedule', [DeviceController::class, 'setSchedule']);
         Route::get('/{device}/data', [DeviceController::class, 'getData']);
         Route::get('/{device}/history', [DeviceController::class, 'getHistory']);
+        Route::get('/{device}/readings', [DeviceController::class, 'readings']);
     });
 
     Route::middleware(['auth.device', 'throttle:10,1'])->prefix('ota')->group(function () {

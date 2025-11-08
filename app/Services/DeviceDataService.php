@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Device;
+use App\Models\DeviceReading;
+use App\Models\ChannelReading;
 use App\Models\Esp32MessageLog;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -81,40 +83,48 @@ class DeviceDataService
     public function processIncomingData(Device $device, array $data): void
     {
         $validator = Validator::make($data, [
+            'firmware_version' => 'required|string|max:255',
+            'timestamp' => 'required|date_format:Y-m-d\TH:i:s\Z',
             'voltage' => 'required|numeric',
-            'channels' => 'required|array',
+            'voltage_raw' => 'required|integer',
+            'channels' => 'required|array|min:1',
             'channels.*.channel' => 'required|integer',
             'channels.*.current' => 'required|numeric',
+            'channels.*.current_raw' => 'required|integer',
             'channels.*.power' => 'required|numeric',
         ]);
 
         $validatedData = $validator->validate();
 
-        // Calculate aggregate values
-        $totalCurrent = 0;
-        $totalPower = 0;
-        foreach ($validatedData['channels'] as $channel) {
-            $totalCurrent += $channel['current'];
-            $totalPower += $channel['power'];
-        }
+        DB::transaction(function () use ($device, $validatedData) {
+            $deviceReading = $device->deviceReadings()->create([
+                'firmware_version' => $validatedData['firmware_version'],
+                'timestamp' => Carbon::parse($validatedData['timestamp']),
+                'voltage' => $validatedData['voltage'],
+                'voltage_raw' => $validatedData['voltage_raw'],
+            ]);
 
-        Esp32MessageLog::create([
-            'device_id' => $device->id,
-            'content' => json_encode($validatedData),
-            'direction' => 'incoming',
-            'payload' => json_encode($validatedData),
-            'voltage' => $validatedData['voltage'],
-            'current' => $totalCurrent,
-            'power' => $totalPower,
-            'energy' => 0, // Placeholder
-        ]);
+            $channelReadings = [];
+            $totalPower = 0;
+            foreach ($validatedData['channels'] as $channelData) {
+                $channelReadings[] = [
+                    'channel' => $channelData['channel'],
+                    'current' => $channelData['current'],
+                    'current_raw' => $channelData['current_raw'],
+                    'power' => $channelData['power'],
+                ];
+                $totalPower += $channelData['power'];
+            }
 
-        // Update device state caches
-        $device->update(['last_seen_at' => now()]);
-        Cache::forget("device:{$device->id}:latest_data");
-        Cache::forget("device:{$device->id}:stats:daily");
+            $deviceReading->channelReadings()->createMany($channelReadings);
 
-        $this->checkPowerThresholdAlert($device, $totalPower);
+            // Update device state caches
+            $device->update(['last_seen_at' => now()]);
+            Cache::forget("device:{$device->id}:latest_data");
+            Cache::forget("device:{$device->id}:stats:daily");
+
+            $this->checkPowerThresholdAlert($device, $totalPower);
+        });
     }
 
     /**
