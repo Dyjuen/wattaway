@@ -4,10 +4,12 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
-
 @endpush
 
 @section('content')
+<div class="loading-overlay">
+    <img src="{{ asset('images/wattaway.svg') }}" alt="WattAway Logo" class="loading-logo h-28">
+</div>
 <div class="antialiased bg-[#0B0F2A] text-white">
     <div class="relative min-h-screen flex flex-col items-center">
         <!-- Background Color -->
@@ -231,9 +233,8 @@
 @push('scripts')
     <!-- Navigation Highlighting Script -->
     <script>
-        
+        window.addEventListener('load', function() {
+            document.body.classList.add('loaded');
+        });
     </script>
 @endpush
-
-
-
