@@ -23,12 +23,12 @@
             <!-- Hero Section -->
             <h2 class="text-2xl md:text-3xl text-gray-300 hero-subtitle">Welcome!</h2>
             <h1 class="font-brand md:text-9xl font-black my-4 hero-title" style="text-shadow: 0 5px 15px rgba(0,0,0,0.3);">
-                <img data-src="{{ asset('images/dist/wattaway.svg') }}" src="{{ asset('images/dist/placeholders/wattaway.svg') }}" alt="WattAway" class="lazyload h-20 md:h-28 lg:h-36 w-auto inline-block" style="filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));">
+                <img data-src="{{ asset('images/dist/wattaway.svg') }}" src="{{ asset('images/dist/placeholders/wattaway.svg') }}" alt="WattAway" class="lazyload h-20 md:h-28 lg:h-36 w-auto inline-block" width="959" height="144" decoding="async" style="filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));">
             </h1>
 
             <div class="relative md:mt-4 w-full flex flex-col md:flex-row justify-center items-center">
                 <!-- Mascot Image -->
-                <img data-src="{{ asset('images/dist/mascot.svg') }}" src="{{ asset('images/dist/placeholders/mascot.svg') }}" alt="WattAway Mascot" class="lazyload w-[28rem] h-[28rem] md:w-[50rem] md:h-[50rem] object-contain z-0 hero-mascot stagger-item">
+                <img data-src="{{ asset('images/dist/mascot.svg') }}" src="{{ asset('images/dist/placeholders/mascot.svg') }}" alt="WattAway Mascot" class="lazyload w-[28rem] h-[28rem] md:w-[50rem] md:h-[50rem] object-contain z-0 hero-mascot stagger-item" width="800" height="800" decoding="async">
 
                 <!-- Left Text Box -->
                 <div class="hidden md:block absolute md:left-8 lg:left-[5%] top-1/2 -translate-y-1/4 bg-black/20 backdrop-blur-md border border-white/10 rounded-3xl p-6 max-w-xs shadow-2xl transform z-10 stagger-item hover:bg-black/30 hover:border-white/20 hover:shadow-3xl hover:scale-105 transition-all duration-300 ease-out">
@@ -75,7 +75,7 @@
                     
                     <div class="flex flex-col items-center text-center space-y-6 stagger-item">
                         <div class="bg-white/5 backdrop-blur-md w-full max-w-sm h-56 rounded-3xl flex items-center justify-center shadow-lg border border-white/10 overflow-hidden hover:bg-white/10 hover:border-white/20 hover:shadow-3xl hover:scale-105 transition-all duration-300 ease-out">
-                            <img data-src="{{ asset('images/dist/product.png') }}" src="{{ asset('images/dist/placeholders/product.png') }}" alt="Wattaway Product" class="lazyload w-full h-full object-cover">
+                            <img data-src="{{ asset('images/dist/product.png') }}" src="{{ asset('images/dist/placeholders/product.png') }}" alt="Wattaway Product" class="lazyload w-full h-full object-cover" width="384" height="224" decoding="async">
                         </div>
                         <div class="relative w-36 h-36 flex items-center justify-center">
                             <svg class="w-full h-full" viewBox="0 0 100 100">
@@ -93,13 +93,13 @@
                             <div class="w-full h-full relative">
                                 <div class="flex transition-transform duration-500 ease-in-out h-full" :style="`transform: translateX(-${currentSlide * 100}%)`">
                                     <div class="w-full h-full flex-shrink-0">
-                                        <img data-src="{{ asset('images/dist/gallery1.jpeg') }}" src="{{ asset('images/dist/placeholders/gallery1.jpeg') }}" alt="Gallery Image 1" class="lazyload w-full h-full object-cover">
+                                        <img data-src="{{ asset('images/dist/gallery1.jpeg') }}" src="{{ asset('images/dist/placeholders/gallery1.jpeg') }}" alt="Gallery Image 1" class="lazyload w-full h-full object-cover" width="384" height="224" decoding="async">
                                     </div>
                                     <div class="w-full h-full flex-shrink-0">
-                                        <img data-src="{{ asset('images/dist/gallery2.jpeg') }}" src="{{ asset('images/dist/placeholders/gallery2.jpeg') }}" alt="Gallery Image 2" class="lazyload w-full h-full object-cover">
+                                        <img data-src="{{ asset('images/dist/gallery2.jpeg') }}" src="{{ asset('images/dist/placeholders/gallery2.jpeg') }}" alt="Gallery Image 2" class="lazyload w-full h-full object-cover" width="384" height="224" decoding="async">
                                     </div>
                                     <div class="w-full h-full flex-shrink-0">
-                                        <img data-src="{{ asset('images/dist/gallery3.jpeg') }}" src="{{ asset('images/dist/placeholders/gallery3.jpeg') }}" alt="Gallery Image 3" class="lazyload w-full h-full object-cover">
+                                        <img data-src="{{ asset('images/dist/gallery3.jpeg') }}" src="{{ asset('images/dist/placeholders/gallery3.jpeg') }}" alt="Gallery Image 3" class="lazyload w-full h-full object-cover" width="384" height="224" decoding="async">
                                     </div>
                                 </div>
                                 <!-- Navigation Dots -->
@@ -156,7 +156,7 @@
         <!-- Contact Section -->
         <section id="contact" class="w-full mx-auto z-10 text-center stagger-container">
              <!-- Bat Wing Background PNG is now in the normal document flow -->
-             <img data-src="{{ asset('images/dist/batwings.png') }}" src="{{ asset('images/dist/placeholders/batwings.png') }}" alt="Bat Wing Background" class="lazyload mx-auto w-full h-auto opacity-40 stagger-item">
+             <img data-src="{{ asset('images/dist/batwings.png') }}" src="{{ asset('images/dist/placeholders/batwings.png') }}" alt="Bat Wing Background" class="lazyload mx-auto w-full h-auto opacity-40 stagger-item" decoding="async">
              
              <!-- Text content is now positioned below the image -->
              <div class="relative mt-8">
@@ -178,7 +178,7 @@
                     <!-- Shopee -->
                     <a href="http://shopee.co.id/wattaway" class="group flex items-center p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 hover:scale-105 transition-all duration-300">
                         <div class="w-12 h-12 bg-orange-500/20 rounded-full flex items-center justify-center mr-4 group-hover:bg-orange-500/30 transition-colors">
-                            <img data-src="{{ asset('images/dist/shopee.svg') }}" src="{{ asset('images/dist/placeholders/shopee.svg') }}" alt="Shopee" class="lazyload w-8 h-8">
+                            <img data-src="{{ asset('images/dist/shopee.svg') }}" src="{{ asset('images/dist/placeholders/shopee.svg') }}" alt="Shopee" class="lazyload w-8 h-8" width="32" height="32" decoding="async">
                         </div>
                         <div>
                             <p class="text-sm text-gray-400 mb-1">Shopee Store</p>
@@ -202,7 +202,7 @@
                     <!-- Tokopedia -->
                     <div class="group flex items-center p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all duration-300">
                         <div class="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center mr-4 group-hover:bg-red-500/30 transition-colors">
-                            <img data-src="{{ asset('images/dist/tokopedia.svg') }}" src="{{ asset('images/dist/placeholders/tokopedia.svg') }}" alt="Tokopedia" class="lazyload w-8 h-8">
+                            <img data-src="{{ asset('images/dist/tokopedia.svg') }}" src="{{ asset('images/dist/placeholders/tokopedia.svg') }}" alt="Tokopedia" class="lazyload w-8 h-8" width="32" height="32" decoding="async">
                         </div>
                         <div>
                             <p class="text-sm text-gray-400 mb-1">Tokopedia Store</p>
