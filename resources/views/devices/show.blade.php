@@ -1,46 +1,127 @@
 @extends('layouts.base')
 
-@section('body-class', 'bg-gray-100 dark:bg-gray-900')
+@section('title', '{{ $device->name }} - WattAway')
+
+@push('styles')
+    <link rel="preload" as="image" href="{{ asset('images/bg-main.png') }}">
+    <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
+    <style>
+        .settings-bg {
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .settings-bg > img {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
+        }
+        .settings-bg.bg-loaded {
+            opacity: 1;
+        }
+        body:not(.bg-loaded) .settings-bg {
+            opacity: 0.8;
+        }
+        main {
+            position: relative !important;
+            z-index: 1 !important;
+        }
+        .section-hidden {
+            opacity: 0 !important;
+            transform: translateY(50px) !important;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .section-visible {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .stagger-item {
+            opacity: 0 !important;
+            transform: translateY(30px) !important;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .stagger-item.stagger-visible {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+    </style>
+@endpush
+
+@section('body-class', 'antialiased text-white settings-bg min-h-screen')
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
-    <x-glass-card>
-        <h1 class="text-3xl font-bold mb-6">{{ $device->name }}</h1>
+    <img data-src="{{ asset('images/dist/bg-main.png') }}" src="{{ asset('images/dist/placeholders/bg-main.png') }}" alt="Background" class="lazyload">
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
-                <h3 class="text-xl font-semibold mb-2">Device Details</h3>
-                <p class="text-gray-600 dark:text-gray-400"><strong>Serial Number:</strong> {{ $device->serial_number }}</p>
-                <p class="text-gray-600 dark:text-gray-400"><strong>Hardware ID:</strong> {{ $device->hardware_id }}</p>
-                <p class="text-gray-600 dark:text-gray-400"><strong>Status:</strong> {{ ucfirst($device->status) }}</p>
-                <p class="text-gray-600 dark:text-gray-400"><strong>Last Seen:</strong> {{ $device->last_seen_at?->diffForHumans() ?? 'Never' }}</p>
-                <p class="text-gray-600 dark:text-gray-400"><strong>Activated At:</strong> {{ $device->activated_at?->format('Y-m-d H:i') ?? 'Not Activated' }}</p>
-            </div>
-            @if ($device->provisioningToken)
-            <div class="flex flex-col items-center justify-center">
-                <h3 class="text-xl font-semibold mb-2">Pairing QR Code</h3>
-                <img src="{{ route('admin.provisioning-tokens.qr', $device->provisioningToken) }}" alt="QR Code for {{ $device->provisioningToken->token }}" class="w-48 h-48 border border-gray-300 p-2 rounded-lg">
-                <x-button tag="a" href="{{ route('admin.provisioning-tokens.qr', $device->provisioningToken) }}" download="{{ $device->serial_number }}_qr.png" class="mt-4">Download QR Code</x-button>
-            </div>
-            @endif
+    <!--Navbar -->
+    <x-navbar />
+
+    <!-- Main Content -->
+    <main class="container mx-auto mt-12 px-6 py-8 stagger-container section-hidden" id="main-content">
+        <div class="stagger-item">
+            <x-glass-card>
+                <h1 class="text-3xl font-bold mb-6">{{ $device->name }}</h1>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">Device Details</h3>
+                        <p class="text-gray-300"><strong>Serial Number:</strong> {{ $device->serial_number }}</p>
+                        <p class="text-gray-300"><strong>Hardware ID:</strong> {{ $device->hardware_id }}</p>
+                        <p class="text-gray-300"><strong>Status:</strong> {{ ucfirst($device->status) }}</p>
+                        <p class="text-gray-300"><strong>Last Seen:</strong> {{ $device->last_seen_at?->diffForHumans() ?? 'Never' }}</p>
+                        <p class="text-gray-300"><strong>Activated At:</strong> {{ $device->activated_at?->format('Y-m-d H:i') ?? 'Not Activated' }}</p>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <x-button tag="a" href="{{ route('dashboard') }}" variant="secondary">Back to Dashboard</x-button>
+                </div>
+            </x-glass-card>
         </div>
 
-        <div class="mt-6 flex justify-end">
-            <x-button tag="a" href="{{ route('dashboard') }}" variant="secondary">Back to Dashboard</x-button>
+        {{-- Chart Section --}}
+        <div class="stagger-item mt-8">
+            <x-glass-card>
+                <h3 class="text-xl font-semibold mb-4">Real-time Power Consumption (24h)</h3>
+                <div class="p-4 rounded-lg">
+                    <div id="power-chart" style="height: 300px;"></div>
+                </div>
+            </x-glass-card>
         </div>
-    </x-glass-card>
-
-    {{-- Chart Section --}}
-    <x-glass-card class="mt-8">
-        <h3 class="text-xl font-semibold mb-4">Real-time Power Consumption (24h)</h3>
-        <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-            <div id="power-chart" style="height: 300px;"></div>
-        </div>
-    </x-glass-card>
-</div>
+    </main>
 @endsection
 
 @push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const bgImage = new Image();
+        bgImage.onload = function() {
+            document.body.classList.add('bg-loaded');
+        };
+        bgImage.src = "{{ asset('images/bg-main.png') }}";
+
+        setTimeout(() => {
+            const main = document.getElementById('main-content');
+            if (main) {
+                main.classList.add('section-visible');
+                main.classList.remove('section-hidden');
+            }
+            const staggerItems = document.querySelectorAll('.stagger-item');
+                staggerItems.forEach((item, index) => {
+                setTimeout(() => {
+                    item.classList.add('stagger-visible');
+                }, index * 100); // Stagger delay
+            });
+        }, 100);
+    });
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -64,6 +145,7 @@
                         speed: 1000
                     }
                 },
+                background: 'transparent' // Make chart background transparent
             },
             dataLabels: {
                 enabled: false
@@ -76,7 +158,7 @@
                 type: 'datetime',
                 labels: {
                     style: {
-                        colors: '#9CA3AF'
+                        colors: '#E5E7EB' // Lighter gray for dark theme
                     }
                 }
             },
@@ -84,12 +166,12 @@
                 title: {
                     text: 'Power (Watts)',
                     style: {
-                        color: '#9CA3AF'
+                        color: '#D1D5DB' // Lighter gray
                     }
                 },
                 labels: {
                     style: {
-                        colors: '#9CA3AF'
+                        colors: '#E5E7EB' // Lighter gray
                     }
                 }
             },
@@ -100,7 +182,7 @@
                 theme: 'dark'
             },
             grid: {
-                borderColor: '#4B5563'
+                borderColor: 'rgba(255, 255, 255, 0.1)' // Lighter grid lines
             },
             noData: {
                 text: 'Loading data...',
