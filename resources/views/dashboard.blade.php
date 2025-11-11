@@ -38,7 +38,7 @@
             <!-- Welcome Header -->
             <div class="mb-8 stagger-item">
                 <x-page-header 
-                    title="Welcome back, {{ auth()->guard('account')->user()->name ?? 'User' }}" 
+                    title="Welcome back, {{ auth()->guard('account')->user()->username ?? 'User' }}" 
                     subtitle="Manage your WattAway smart devices and monitor your energy usage" />
             </div>
 

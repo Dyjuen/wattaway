@@ -7,6 +7,7 @@ $variantClasses = [
     'primary' => 'bg-blue-500 hover:bg-blue-600 text-white',
     'secondary' => 'bg-white/10 hover:bg-white/20 text-white',
     'danger' => 'bg-red-500 hover:bg-red-600 text-white',
+    'success' => 'bg-green-600 hover:bg-green-700 text-white',
 ];
 
 $classes = $baseClasses . ' ' . $variantClasses[$variant];
