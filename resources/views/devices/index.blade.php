@@ -68,7 +68,6 @@
             <div class="flex flex-col md:flex-row justify-between md:items-center">
                 <h1 class="text-3xl font-bold mb-4 md:mb-0">My Devices</h1>
                 <div class="flex gap-4">
-                    <a href="{{ route('pairing.scan') }}" class="px-4 py-2 rounded-lg transition-colors bg-blue-500 hover:bg-blue-600 text-white">Add New Device</a>
                     <a href="{{ route('dashboard') }}" class="px-4 py-2 rounded-lg transition-colors bg-white/10 hover:bg-white/20 text-white">Back to Dashboard</a>
                 </div>
             </div>

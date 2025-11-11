@@ -1,7 +1,5 @@
 <?php
 
-use App\Http\Controllers\Esp32Controller;
-use App\Http\Controllers\Esp32MessageController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\FirmwareController;
 
@@ -44,34 +42,18 @@ Route::middleware(['auth:account'])->group(function () {
         return view('style-guide');
     })->name('style-guide');
 
-    Route::get('/settings', [Esp32Controller::class, 'settings'])->name('settings');
+    Route::get('/settings', function () {
+        return view('settings', [
+            'account' => auth()->user(),
+            'devices' => auth()->user()->devices,
+        ]);
+    })->name('settings');
+
     Route::post('/settings/password', [AuthController::class, 'updatePassword'])->name('password.update');
 
     Route::get('/information', function () {
         return view('information');
     })->name('information');
-
-    // ESP32 Configuration Routes
-    Route::prefix('esp32')->group(function () {
-        Route::post('/{deviceId}/configuration', [Esp32Controller::class, 'updateConfiguration'])->name('esp32.configuration.update');
-        Route::get('/{deviceId}/configuration', [Esp32Controller::class, 'getConfiguration'])->name('esp32.configuration.get');
-    });
-
-    // ESP32 Messages Management
-    Route::prefix('esp32/messages')->group(function () {
-        Route::get('/', [Esp32MessageController::class, 'index'])->name('esp32.messages.index');
-        Route::get('/recent', [Esp32MessageController::class, 'getMessages'])->name('esp32.messages.recent');
-        Route::delete('/clear', [Esp32MessageController::class, 'clear'])->name('esp32.messages.clear');
-    });
-
-    // ESP32 Control Panel (Public routes for ESP32 setup)
-    Route::get('/control', function () {
-        return view('esp32.control');
-    })->name('esp32.control');
-
-    Route::get('/wifisetup', function () {
-        return view('esp32.wifisetup');
-    })->name('esp32.wifisetup');
 
     Route::get('/pair', function () {
         return view('pairing.scan');
