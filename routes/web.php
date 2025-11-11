@@ -78,7 +78,7 @@ Route::middleware(['auth:account'])->group(function () {
     })->name('pairing.scan');
 
     Route::get('/devices', function () {
-        $devices = auth()->user()->devices()->with('latestMessage')->get();
+        $devices = auth()->user()->devices;
         return view('devices.index', compact('devices'));
     })->name('devices.index');
     Route::get('/pairing/confirm', [DevicePairingController::class, 'showConfirmPairing'])->name('pairing.confirm');
