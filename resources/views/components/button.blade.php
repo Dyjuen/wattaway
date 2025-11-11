@@ -1,7 +1,7 @@
-@props(['type' => 'button', 'variant' => 'primary'])
+@props(['tag' => 'button', 'type' => 'button', 'variant' => 'primary', 'href' => null])
 
 @php
-$baseClasses = 'px-4 py-2 rounded-lg transition-colors';
+$baseClasses = 'px-4 py-2 rounded-lg transition-colors text-center';
 
 $variantClasses = [
     'primary' => 'bg-blue-500 hover:bg-blue-600 text-white',
@@ -11,8 +11,16 @@ $variantClasses = [
 ];
 
 $classes = $baseClasses . ' ' . $variantClasses[$variant];
+
+$tag = $href ? 'a' : 'button';
 @endphp
 
-<button type="{{ $type }}" {{ $attributes->merge(['class' => $classes]) }}>
-    {{ $slot }}
-</button>
+@if ($tag === 'a')
+    <a href="{{ $href }}" {{ $attributes->merge(['class' => $classes]) }}>
+        {{ $slot }}
+    </a>
+@else
+    <button type="{{ $type }}" {{ $attributes->merge(['class' => $classes]) }}>
+        {{ $slot }}
+    </button>
+@endif

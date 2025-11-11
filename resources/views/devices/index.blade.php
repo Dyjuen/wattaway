@@ -101,7 +101,7 @@
                             </div>
 
                             <div class="mt-6">
-                                <x-button tag="a" href="{{ route('devices.show', $device) }}" class="w-full">View Details</x-button>
+                                <x-button href="{{ route('devices.show', $device) }}" class="w-full">View Details</x-button>
                             </div>
                         </x-glass-card>
                     </div>
