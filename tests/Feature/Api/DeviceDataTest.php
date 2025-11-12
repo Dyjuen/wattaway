@@ -2,11 +2,11 @@
 
 namespace Tests\Feature\Api;
 
-use Tests\TestCase;
-use App\Models\Device;
 use App\Models\Account;
+use App\Models\Device;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Tests\TestCase;
 
 class DeviceDataTest extends TestCase
 {
@@ -19,7 +19,7 @@ class DeviceDataTest extends TestCase
         // Rate limit is 60/minute as per the user prompt, let's test that
         for ($i = 0; $i < 61; $i++) {
             $response = $this->withHeaders([
-                'Authorization' => 'Bearer ' . $device->api_token,
+                'Authorization' => 'Bearer '.$device->api_token,
             ])->postJson('/api/v1/device/data', [
                 'voltage' => 220,
                 'current' => 5,

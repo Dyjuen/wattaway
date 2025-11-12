@@ -30,13 +30,18 @@ class ProcessSchedulesCommand extends Command
         $this->info('Processing device schedules...');
         Log::info('Processing device schedules...');
 
-        $schedules = DeviceSchedule::enabled()->dueNow()->get();
+        // Eager load the device relationship
+        $schedules = DeviceSchedule::with('device')->enabled()->dueNow()->get();
 
         foreach ($schedules as $schedule) {
-            if ($schedule->shouldExecuteNow()) {
-                $this->info("Executing schedule: {$schedule->name}");
-                Log::info("Executing schedule: {$schedule->name}");
+            // Check if the device relationship is loaded and not null
+            if ($schedule->device && $schedule->shouldExecuteNow()) {
+                $this->info("Executing schedule: {$schedule->name} for device ID: {$schedule->device->id}");
+                Log::info("Executing schedule: {$schedule->name} for device ID: {$schedule->device->id}");
                 $schedule->execute();
+            } elseif (! $schedule->device) {
+                $this->warn("Skipping schedule ID: {$schedule->id} because its device is missing.");
+                Log::warning("Skipping schedule ID: {$schedule->id} because its device is missing.");
             }
         }
 

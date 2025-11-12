@@ -23,12 +23,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'auth.device' => \App\Http\Middleware\AuthenticateDevice::class,
-        'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
+            'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
             'throttle.device.commands' => \App\Http\Middleware\ThrottleDeviceCommands::class,
         ]);
 
         $middleware->group('api', [
-            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+            // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
 
         // Register CORS middleware

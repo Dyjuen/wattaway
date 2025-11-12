@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Services\DevicePairingService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class DevicePairingController extends Controller
@@ -13,7 +13,7 @@ class DevicePairingController extends Controller
     public function handlePublicScan(Request $request, $token)
     {
         // Basic validation for the token format
-        if (!preg_match('/^WS-[A-Z0-9]{12}$/', $token)) {
+        if (! preg_match('/^WS-[A-Z0-9]{12}$/', $token)) {
             return redirect()->route('login')->with('error', 'Invalid provisioning token format.');
         }
 
@@ -26,7 +26,7 @@ class DevicePairingController extends Controller
     {
         $token = $request->query('token');
 
-        if (!$token || !preg_match('/^WS-[A-Z0-9]{12}$/', $token)) {
+        if (! $token || ! preg_match('/^WS-[A-Z0-9]{12}$/', $token)) {
             return redirect()->route('dashboard')->with('error', 'Invalid or missing provisioning token.');
         }
 

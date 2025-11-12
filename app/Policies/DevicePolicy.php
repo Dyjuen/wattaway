@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Account;
 use App\Models\Device;
-use Illuminate\Auth\Access\Response;
 
 class DevicePolicy
 {

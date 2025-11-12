@@ -51,6 +51,50 @@
             transform: translateY(0) !important;
             transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
+        .relay-toggle-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid transparent;
+        }
+        .relay-toggle-btn.state-on {
+            background-color: #10B981; /* Green-500 */
+            color: white;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+            border-color: #6EE7B7;
+        }
+        .relay-toggle-btn.state-off {
+            background-color: #EF4444; /* Red-500 */
+            color: white;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+            border-color: #FCA5A5;
+        }
+        .power-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        .power-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+        .power-btn svg {
+            width: 40px;
+            height: 40px;
+            color: #FDBA74; /* Orange-300 */
+        }
     </style>
 @endpush
 
@@ -81,6 +125,49 @@
 
                 <div class="mt-6 flex justify-end">
                     <x-button tag="a" href="{{ route('dashboard') }}" variant="secondary">Back to Dashboard</x-button>
+                </div>
+            </x-glass-card>
+        </div>
+
+        {{-- Relay Controls --}}
+        <div class="stagger-item mt-8">
+            @php
+            function getRelayState($latestReading, $channel) {
+                if (!$latestReading || !$latestReading->channelReadings) {
+                    return 'off'; // Default to off if no data
+                }
+                $reading = $latestReading->channelReadings->firstWhere('channel', $channel);
+                return $reading ? $reading->relay_state : 'off';
+            }
+            @endphp
+            <x-glass-card>
+                <div class="flex items-center justify-around p-4 flex-wrap">
+                    {{-- Master Power Button --}}
+                    <div class="text-center m-2">
+                        <button class="power-btn" id="master-power-btn" aria-label="Toggle All Relays">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5.636 5.636a9 9 0 1 0 12.728 0M12 3v9" />
+                            </svg>
+                        </button>
+                        <span class="block mt-2 text-sm font-medium">ALL</span>
+                    </div>
+
+                    {{-- Individual Relay Buttons --}}
+                    @foreach ([1, 2, 3] as $channel)
+                        @php
+                            $state = getRelayState($latestReading, $channel);
+                        @endphp
+                        <div class="text-center m-2">
+                            <button
+                                class="relay-toggle-btn state-{{ $state }}"
+                                data-channel="{{ $channel }}"
+                                data-state="{{ $state }}"
+                            >
+                                {{ strtoupper($state) }}
+                            </button>
+                            <span class="block mt-2 text-sm font-medium">RELAY {{ $channel }}</span>
+                        </div>
+                    @endforeach
                 </div>
             </x-glass-card>
         </div>
@@ -709,14 +796,95 @@
     })();
 </script>
 
-{{-- Device Configuration Scripts --}}
+{{-- Relay Control and Device Configuration Scripts --}}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // --- Relay Control ---
+        const apiTokenEl = document.querySelector('meta[name="api-token"]');
+        if (!apiTokenEl) {
+            console.error('API token meta tag not found.');
+        }
+        const apiToken = apiTokenEl ? apiTokenEl.getAttribute('content') : null;
+        const deviceId = '{{ $device->id }}';
+
+        function sendRelayCommand(channel, state, button) {
+            if (!apiToken) {
+                showNotification('Could not find API token. Cannot send command.', 'error');
+                return;
+            }
+
+            const originalButtonContent = button.innerHTML;
+            button.innerHTML = '...';
+            button.disabled = true;
+
+            fetch(`/api/v1/devices/${deviceId}/relay`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiToken}`,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ channel, state })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw new Error(err.message || 'Request failed') });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    button.dataset.state = state;
+                    button.textContent = state.toUpperCase();
+                    button.classList.remove('state-on', 'state-off');
+                    button.classList.add(`state-${state}`);
+                    showNotification(`Relay ${channel} turned ${state}.`, 'success');
+                } else {
+                    showNotification('Failed to send relay command: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('An error occurred: ' + error.message, 'error');
+            })
+            .finally(() => {
+                button.innerHTML = state.toUpperCase();
+                setTimeout(() => {
+                    button.disabled = false;
+                }, 500);
+            });
+        }
+
+        document.querySelectorAll('.relay-toggle-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const channel = this.dataset.channel;
+                const currentState = this.dataset.state;
+                const newState = currentState === 'on' ? 'off' : 'on';
+                sendRelayCommand(channel, newState, this);
+            });
+        });
+
+        const masterPowerBtn = document.getElementById('master-power-btn');
+        if (masterPowerBtn) {
+            masterPowerBtn.addEventListener('click', function() {
+                const anyRelayOff = !!document.querySelector('.relay-toggle-btn[data-state="off"]');
+                const masterState = anyRelayOff ? 'on' : 'off';
+
+                document.querySelectorAll('.relay-toggle-btn').forEach(button => {
+                    const channel = button.dataset.channel;
+                    if (button.dataset.state !== masterState) {
+                        sendRelayCommand(channel, masterState, button);
+                    }
+                });
+            });
+        }
+
+        // --- Device Configuration ---
         // Timer functionality
         window.adjustTimer = function(deviceId, adjustment) {
             const slider = document.getElementById(`timer-duration-${deviceId}`);
             const currentValue = parseInt(slider.value);
-            const newValue = Math.max(5, Math.min(120, currentValue + adjustment));
+            const newValue = Math.max(1, Math.min(120, currentValue + adjustment));
             slider.value = newValue;
             updateTimerDisplay(deviceId, newValue);
         };
@@ -734,8 +902,8 @@
                 display.textContent = `${minutes}m`;
             }
 
-            // Update the SVG arc based on the percentage (5-120 minutes)
-            const percentage = Math.min(((minutes - 5) / (120 - 5)) * 100, 100);
+            // The range is now 1 to 120.
+            const percentage = Math.max(0, Math.min(((minutes - 1) / (120 - 1)) * 100, 100));
             const circumference = 2 * Math.PI * 19; // radius is 19
             const dashArray = `${(percentage / 100) * circumference} ${circumference}`;
 
@@ -747,7 +915,6 @@
             }
         };
 
-        // Save device configuration
         window.saveConfiguration = async function(deviceId, type) {
             const saveBtn = document.querySelector(`button[onclick="saveConfiguration('${deviceId}', '${type}')"]`);
             const originalText = saveBtn ? saveBtn.textContent : 'Save';
@@ -778,15 +945,20 @@
                 }
 
                 const response = await axios.post(`/api/v1/devices/${deviceId}/configuration/${type}`, { configuration: configData });
-
                 showNotification(`${type.replace('_', ' ')} configuration saved!`, 'success');
-
-                // Reload the configuration to show the saved values
                 await loadConfiguration(deviceId, type);
 
             } catch (error) {
-                console.error(`Error saving ${type} configuration:`, error);
-                showNotification(error.response?.data?.message || `Failed to save ${type} configuration.`, 'error');
+                console.error(`Error saving ${type} configuration:`, error.response);
+                let message = `Failed to save ${type} configuration.`;
+                if (error.response && error.response.data) {
+                    message = error.response.data.message || message;
+                    if (error.response.data.errors) {
+                        const errors = Object.values(error.response.data.errors).flat().join(' ');
+                        message += ` ${errors}`;
+                    }
+                }
+                showNotification(message, 'error');
             } finally {
                 if (saveBtn) {
                     saveBtn.textContent = originalText;
@@ -795,7 +967,6 @@
             }
         };
 
-        // Load device configuration
         window.loadConfiguration = async function(deviceId, type) {
             try {
                 const response = await axios.get(`/api/v1/devices/${deviceId}/configuration`);
@@ -824,14 +995,12 @@
             }
         };
 
-        // Initialize timer displays
         document.querySelectorAll('[id^="timer-duration-"]').forEach(slider => {
             const deviceId = slider.id.replace('timer-duration-', '');
             updateTimerDisplay(deviceId, slider.value);
             slider.addEventListener('input', (e) => updateTimerDisplay(deviceId, e.target.value));
         });
 
-        // Notification system
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
             notification.className = `fixed top-24 right-4 px-6 py-3 rounded-lg z-50 shadow-lg text-white ${

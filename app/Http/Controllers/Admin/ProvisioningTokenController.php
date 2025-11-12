@@ -7,8 +7,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\DeviceProvisioningToken;
 use App\Services\QrCodeService;
-use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -55,7 +55,7 @@ class ProvisioningTokenController extends Controller
             ->when($request->input('batch'), fn ($query, $batch) => $query->whereJsonContains('metadata->batch', $batch))
             ->get();
 
-        $filename = "provisioning_tokens.csv";
+        $filename = 'provisioning_tokens.csv';
         $handle = fopen('php://output', 'w');
 
         fputcsv($handle, ['Token', 'Serial Number', 'Hardware ID', 'Status', 'Expires At']);
@@ -72,7 +72,7 @@ class ProvisioningTokenController extends Controller
 
         fclose($handle);
 
-        return new Response("", 200, [
+        return new Response('', 200, [
             'Content-Type' => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",
         ]);

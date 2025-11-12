@@ -2,14 +2,15 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\Account;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 class CreateAdminCommand extends Command
 {
     protected $signature = 'admin:create {email} {password} {name} {username}';
+
     protected $description = 'Create a new admin user';
 
     public function handle()
@@ -36,6 +37,7 @@ class CreateAdminCommand extends Command
             foreach ($validator->errors()->all() as $error) {
                 $this->error($error);
             }
+
             return 1;
         }
 
@@ -48,9 +50,9 @@ class CreateAdminCommand extends Command
             'email_verified_at' => now(),
         ]);
 
-        $this->info("✅ Admin user created successfully!");
+        $this->info('✅ Admin user created successfully!');
         $this->info("📧 Email: {$email}");
-        
+
         return 0;
     }
 }

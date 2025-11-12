@@ -12,6 +12,7 @@ use PhpMqtt\Client\MqttClient;
 class MqttListenCommand extends Command
 {
     protected $signature = 'mqtt:listen';
+
     protected $description = 'Listen to MQTT broker for device messages';
 
     public function handle(MqttClient $mqtt)
@@ -20,12 +21,12 @@ class MqttListenCommand extends Command
         $password = config('mqtt.password');
 
         pcntl_async_signals(true);
-        pcntl_signal(SIGINT, fn() => $mqtt->interrupt());
-        pcntl_signal(SIGTERM, fn() => $mqtt->interrupt());
+        pcntl_signal(SIGINT, fn () => $mqtt->interrupt());
+        pcntl_signal(SIGTERM, fn () => $mqtt->interrupt());
 
         while (true) {
             try {
-                if (!$mqtt->isConnected()) {
+                if (! $mqtt->isConnected()) {
                     $connectionSettings = (new \PhpMqtt\Client\ConnectionSettings)
                         ->setUsername($username)
                         ->setPassword($password)
@@ -46,7 +47,7 @@ class MqttListenCommand extends Command
 
                             $data = json_decode($message, true);
 
-                            if (!$data) {
+                            if (! $data) {
                                 throw new \Exception('Invalid JSON format');
                             }
 
@@ -73,7 +74,7 @@ class MqttListenCommand extends Command
                                 error: $e->getMessage()
                             );
 
-                            $this->error("Error processing message: " . $e->getMessage());
+                            $this->error('Error processing message: '.$e->getMessage());
                         }
                     }, 1);
 
@@ -81,6 +82,7 @@ class MqttListenCommand extends Command
                     $statusTopic = config('mqtt.topics.status');
                     if ($statusTopic === null) {
                         Log::critical('MQTT status topic is null. Aborting.');
+
                         return 1;
                     }
                     $mqtt->subscribe($statusTopic, function ($topic, $message) {
@@ -90,7 +92,7 @@ class MqttListenCommand extends Command
                             preg_match('/devices\/(\d+)\/status/', $topic, $matches);
                             $deviceId = $matches[1] ?? null;
 
-                            if (!$deviceId) {
+                            if (! $deviceId) {
                                 throw new \Exception('Could not parse device ID from status topic');
                             }
 
@@ -102,12 +104,12 @@ class MqttListenCommand extends Command
                             }
 
                             // Use MonitoringService to update the device status in the DB
-                            (new MonitoringService())->updateStatusFromMqtt((int)$deviceId, $status);
+                            (new MonitoringService)->updateStatusFromMqtt((int) $deviceId, $status);
 
                             $this->info("Processed status update for device {$deviceId}: {$status}");
 
                         } catch (\Exception $e) {
-                            $this->error("Error processing status message for device {$deviceId}: " . $e->getMessage());
+                            $this->error("Error processing status message for device {$deviceId}: ".$e->getMessage());
                             Log::error("Error processing status message for device {$deviceId}", [
                                 'topic' => $topic,
                                 'message' => $message,
@@ -120,10 +122,11 @@ class MqttListenCommand extends Command
                 $mqtt->loop(true);
 
             } catch (\Exception $e) {
-                Log::error('MQTT connection error: ' . $e->getMessage());
-                $this->error('MQTT connection error: ' . $e->getMessage());
+                Log::error('MQTT connection error: '.$e->getMessage());
+                $this->error('MQTT connection error: '.$e->getMessage());
                 $this->info('Attempting to reconnect in 5 seconds...');
                 sleep(5);
-                    }
-                }    }
+            }
+        }
+    }
 }

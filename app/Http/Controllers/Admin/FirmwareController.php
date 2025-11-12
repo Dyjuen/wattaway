@@ -12,6 +12,7 @@ class FirmwareController extends Controller
     public function index()
     {
         $firmwareVersions = FirmwareVersion::latest()->paginate(20);
+
         return view('admin.firmware.index', compact('firmwareVersions'));
     }
 
@@ -59,6 +60,6 @@ class FirmwareController extends Controller
 
     public function download(FirmwareVersion $firmware)
     {
-        return Storage::download($firmware->file_path, $firmware->version . '.bin');
+        return Storage::download($firmware->file_path, $firmware->version.'.bin');
     }
 }

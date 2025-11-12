@@ -1,13 +1,11 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Esp32Controller;
-use App\Http\Controllers\Esp32MessageController;
-use App\Http\Controllers\Api\DeviceController;
-use App\Http\Controllers\Api\OtaController;
-use App\Http\Controllers\Api\DevicePairingController;
 use App\Http\Controllers\Api\DeviceActivationController;
 use App\Http\Controllers\Api\DeviceControlController;
+use App\Http\Controllers\Api\DeviceController;
+use App\Http\Controllers\Api\DevicePairingController;
+use App\Http\Controllers\Api\OtaController;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,11 +19,9 @@ use App\Http\Controllers\Api\DeviceControlController;
 */
 
 Route::prefix('v1')->group(function () {
-    Route::middleware(['auth.device', 'throttle:120,1'])->group(function () {
+    Route::middleware(['auth.device', 'throttle:120,1'])->group(function () {});
 
-    });
-
-    Route::middleware(['auth:sanctum'])->prefix('devices')->group(function () {
+    Route::middleware(['auth:account_token'])->prefix('devices')->group(function () {
         Route::get('/', [DeviceController::class, 'index']);
         Route::get('/{device}', [DeviceController::class, 'show']);
         Route::post('/{device}/control', [DeviceController::class, 'control'])->middleware('throttle:30,1');
@@ -45,7 +41,7 @@ Route::prefix('v1')->group(function () {
 });
 
 // Authenticated user routes
-Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
+Route::middleware('auth:account_token')->prefix('v1')->group(function () {
     // Device pairing endpoints
     Route::post('/pairing/validate', [DevicePairingController::class, 'validateToken']);
     Route::post('/pairing/pair', [DevicePairingController::class, 'pairDevice']);
@@ -54,3 +50,10 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
 
 // Device activation (no user auth, device self-identifies)
 Route::post('/v1/device/activate', [DeviceActivationController::class, 'activate']);
+
+// MQTT Auth Webhooks
+Route::prefix('v1/mqtt')->group(function () {
+    Route::post('auth', [App\Http\Controllers\Api\MqttAuthController::class, 'auth']);
+    Route::post('superuser', [App\Http\Controllers\Api\MqttAuthController::class, 'superuser']);
+    Route::post('acl', [App\Http\Controllers\Api\MqttAuthController::class, 'acl']);
+});

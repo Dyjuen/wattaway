@@ -28,7 +28,7 @@ class DeviceActivationController extends Controller
             ->where('status', 'pending_activation')
             ->first();
 
-        if (!$device) {
+        if (! $device) {
             return response()->json(['status' => 'NOT_PAIRED'], 404);
         }
 
@@ -41,7 +41,7 @@ class DeviceActivationController extends Controller
                     'expected_hardware_id' => $device->hardware_id,
                     'received_hardware_id' => $validated['hardware_id'],
                     'ip_address' => $request->ip(),
-                ]
+                ],
             ]);
 
             return response()->json(['error' => 'Hardware verification failed'], 403);
@@ -63,15 +63,15 @@ class DeviceActivationController extends Controller
                 'username' => config('mqtt.username'),
                 'password' => config('mqtt.password'),
                 'topics' => [
-                    'publish' => 'device/' . $device->id . '/data',
-                    'subscribe' => 'device/' . $device->id . '/commands',
-                ]
+                    'publish' => 'device/'.$device->id.'/data',
+                    'subscribe' => 'device/'.$device->id.'/commands',
+                ],
             ],
             'user' => [
                 'id' => $device->account->id,
                 'name' => $device->account->username,
                 'email' => $device->account->email,
-            ]
+            ],
         ]);
     }
 }

@@ -15,6 +15,7 @@ class CreateScheduleRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:100',
+            'channel' => 'required|integer|min:1|max:3',
             'action' => 'required|in:on,off',
             'schedule_type' => 'required|in:once,daily,weekly,custom',
             'scheduled_time' => 'required|date_format:H:i',

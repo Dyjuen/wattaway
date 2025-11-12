@@ -2,13 +2,13 @@
 
 namespace Tests\Feature\Api;
 
-use Tests\TestCase;
-use App\Models\Device;
 use App\Models\Account;
-use Laravel\Sanctum\Sanctum;
+use App\Models\Device;
 use App\Services\MqttPublishService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
 use Mockery\MockInterface;
+use Tests\TestCase;
 
 class DeviceControlTest extends TestCase
 {

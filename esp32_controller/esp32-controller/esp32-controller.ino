@@ -3,25 +3,20 @@
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <time.h>
-// #include <HTTPUpdate.h>
-// #include <Update.h>
-
-// Libraries for BLE Provisioning (using NimBLE to reduce flash size)
-#include <NimBLEDevice.h> // Single include is sufficient; exposes NimBLEServer, NimBLE2902, etc.
-#include <Preferences.h> // Used for saving credentials to Non-Volatile Storage (NVS)
+#include <Preferences.h>
 
 // -- Firmware Version --
-#define FIRMWARE_VERSION "1.0.0"
+#define FIRMWARE_VERSION "1.0.1"
 
 // -- API Configuration --
-#define API_URL "202.10.61.100/api/v1"
+#define API_URL "172.16.100.63:8000/api/v1"
 
 // -- MQTT Configuration --
-#define MQTT_HOST "202.10.61.100" // Replace with your broker's IP or hostname
+#define MQTT_HOST "172.16.100.63"
 #define MQTT_PORT 1883
 
 // TODO: These should be unique for each device
-#define DEVICE_ID "1"
+#define DEVICE_ID "33"
 #define API_TOKEN "zT944wjUkYCO2JYVyYXdgEJeVHA60rxVoL1HLX6UDbU38SmEbkRKLlNQ5IZ9c2kA"
 
 // MQTT Topics
@@ -29,201 +24,109 @@
 #define MQTT_TOPIC_COMMANDS "devices/" DEVICE_ID "/commands"
 #define MQTT_TOPIC_STATUS "devices/" DEVICE_ID "/status"
 
-// -- DEFAULT (HARDCODED) WIFI CREDENTIALS --
-#define DEFAULT_WIFI_SSID      "anak kost 2.4G"
-#define DEFAULT_WIFI_PASSWORD  "sekotique"
+// -- WIFI CREDENTIALS --
+#define WIFI_SSID      "anak kost 2.4G"
+#define WIFI_PASSWORD  "sekotique"
 
-// -- BLE DEFINITIONS FOR PROVISIONING --
-#define SERVICE_UUID           "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
-#define CHARACTERISTIC_UUID_WIFI "beb5483e-36e1-4688-b7f5-ea07361b26a8"
-// Read-only + notify status characteristic to report provisioning state to clients
-#define CHARACTERISTIC_UUID_STATUS "6e400003-b5a3-f393-e0a9-e50e24dcca9e"
-// SSID scan command (write) and streaming results (read/notify)
-#define CHARACTERISTIC_UUID_SCAN_CMD     "6e400010-b5a3-f393-e0a9-e50e24dcca9e"
-#define CHARACTERISTIC_UUID_SCAN_RESULTS "6e400011-b5a3-f393-e0a9-e50e24dcca9e"
+// -- ESP32-C3 MINI PIN DEFINITIONS --
+// Voltage and Current Sensors (ADC1)
+#define PIN_VOLTAGE_ADC    1   // GPIO1 (ADC1_CH1) - Shared voltage sensor
+#define PIN_CURRENT1_ADC   2   // GPIO2 (ADC1_CH2) - Current sensor 1
+#define PIN_CURRENT2_ADC   3   // GPIO3 (ADC1_CH3) - Current sensor 2
+#define PIN_CURRENT3_ADC   4   // GPIO4 (ADC1_CH4) - Current sensor 3
 
-// -- ANALOG SENSOR PINS (ADC1 ONLY; RELIABLE WITH WIFI) --
-#define PIN_CURRENT_ADC   34   // GPIO34 (ADC1)
-#define PIN_VOLTAGE_ADC   35   // GPIO35 (ADC1)
-#define RELAY_PIN 26
+// Relay Controls
+#define RELAY1_PIN         5   // GPIO5 - Relay 1
+#define RELAY2_PIN         7   // GPIO7 - Relay 2
+#define RELAY3_PIN         10  // GPIO10 - Relay 3
+
+#define MSG_PUBLISH_INTERVAL 30000 // 30 seconds
 
 // Preferences object to store credentials
 Preferences preferences;
-
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
-
 unsigned long lastMsg = 0;
-#define MSG_PUBLISH_INTERVAL 30000 // 30 seconds
 
-// unsigned long lastOtaCheck = 0;
-// #define OTA_CHECK_INTERVAL 86400000 // 24 hours
-
-// Global status characteristic pointer so we can update status from anywhere
-NimBLECharacteristic* gStatusChar = nullptr;
-// Scan characteristics
-NimBLECharacteristic* gScanResultsChar = nullptr;
-volatile bool gScanRequested = false;
-volatile bool gScanBusy = false;
-
-// Forward decl
-void performWifiScanAndNotify();
+// Forward declarations
 void reconnectMQTT();
 void publishData();
 const char* getTimestamp();
-// void checkForUpdate();
-// void performOTAUpdate(const char* url);
 
-#define DEBUG_PRINTLN(x)
-// Helper to set and (if subscribed) notify status updates
-void setProvisioningStatus(const char* statusMsg) {
-  DEBUG_PRINTLN(String("[STATUS] ") + statusMsg);
-  if (gStatusChar != nullptr) {
-    gStatusChar->setValue((uint8_t*)statusMsg, strlen(statusMsg));
-    // Notify if a client has subscribed
-    gStatusChar->notify();
-  }
-}
+#define DEBUG_PRINTLN(x) Serial.println(x)
+#define DEBUG_PRINT(x) Serial.print(x)
 
-// --- SIMPLE ANALOG SENSOR READS (PLACEHOLDER APPROXIMATIONS) ---
-static inline uint16_t readAdcAveraged(int pin, int samples = 16) {
-  uint32_t sum = 0;
-  for (int i = 0; i < samples; ++i) {
-    sum += analogRead(pin);
-    delayMicroseconds(500);
-  }
-  return (uint16_t)(sum / (uint32_t)samples);
-}
+// -- SENSOR CALIBRATION CONSTANTS --
+// Voltage Sensor (ZMPT101B) - This is a scaling factor applied after RMS calculation.
+const float VOLTAGE_CALIBRATION = 145.58; 
 
-// Convert ADC counts to voltage at ADC pin. With 11dB attenuation, full-scale is approx ~3.3–3.6V; we'll use 3.3V.
-static inline float adcCountsToVolts(uint16_t counts) {
-  return (counts / 4095.0f) * 3.3f;
-}
+// Current Sensor (ACS712) - Sensitivity in V/A.
+const float ACS_SENS = 0.185; // For 5A model. Use 0.100 for 20A, 0.066 for 30A.
 
-// Approximate current (A) from analog sensor connected to PIN_CURRENT_ADC.
-// Without sensor specifics, we return raw and an uncalibrated centered estimate.
-// Assumes midpoint ~1.65V corresponds to 0 A (typical hall sensors); sensitivity placeholder 0.1 V/A.
-static inline float readCurrentApproxA(uint16_t &rawCounts) {
-  rawCounts = readAdcAveraged(PIN_CURRENT_ADC);
-  float v = adcCountsToVolts(rawCounts);
-  const float VREF = 1.65f; // midpoint for 3.3V supply
-  const float SENS = 0.10f; // V/A placeholder (adjust per sensor)
-  return (v - VREF) / SENS;
-}
 
-// Approximate external voltage using a simple divider to ADC pin.
-// Without known divider, we return the ADC pin voltage as "approx".
-static inline float readVoltageApproxV(uint16_t &rawCounts) {
-  rawCounts = readAdcAveraged(PIN_VOLTAGE_ADC);
-  float vAdc = adcCountsToVolts(rawCounts);
-  // If using a divider: Vext = vAdc * ((R1 + R2) / R2). For now, report vAdc as approximate.
-  return vAdc;
-}
+// --- RMS AC SENSOR READING ---
 
-// Callback class to handle incoming BLE data
-class MyCharacteristicCallbacks: public NimBLECharacteristicCallbacks {
-    void onWrite(NimBLECharacteristic *pCharacteristic) {
-        const char* receivedData = pCharacteristic->getValue().c_str();
-
-        if (strlen(receivedData) > 0) {
-            // Data should be in the format: "ssid,password"
-            const char* comma = strchr(receivedData, ',');
-            if (comma != nullptr) {
-                int ssidLen = comma - receivedData;
-                char ssid[ssidLen + 1];
-                strncpy(ssid, receivedData, ssidLen);
-                ssid[ssidLen] = '\0';
-
-                const char* password = comma + 1;
-
-                // Save credentials to NVS
-                preferences.begin("wifi-creds", false);
-                preferences.putString("ssid", ssid);
-                preferences.putString("password", password);
-                preferences.end();
-
-                setProvisioningStatus("Received Credentials");
-
-                setProvisioningStatus("Restarting");
-                delay(3000);
-                ESP.restart();
-            } else {
-                setProvisioningStatus("Invalid Format");
-            }
-        }
+// Function to calculate the RMS value of a signal from an ADC pin.
+// It first determines the DC offset (zero-point) of the signal,
+// then samples the signal for a given duration to calculate the RMS value.
+double getRMS(int pin, unsigned int sampleDuration = 20) {
+    long adc_sum = 0;
+    int num_samples_offset = 200;
+    for (int i = 0; i < num_samples_offset; i++) {
+        adc_sum += analogRead(pin);
+        delayMicroseconds(100);
     }
-};
+    int dc_offset = adc_sum / num_samples_offset;
 
-// Callback for scan command writes
-class MyScanCmdCallbacks: public NimBLECharacteristicCallbacks {
-    void onWrite(NimBLECharacteristic *pCharacteristic) {
-      const char* cmd = pCharacteristic->getValue().c_str();
-      if (gScanBusy) {
-        if (gScanResultsChar) {
-          const char* busy = "SCAN_BUSY";
-          gScanResultsChar->setValue((uint8_t*)busy, strlen(busy));
-          gScanResultsChar->notify();
-        }
-        return;
-      }
-      if (strcasecmp(cmd, "SCAN") == 0 || strcasecmp(cmd, "START") == 0 || strlen(cmd) == 0) {
-        gScanRequested = true; // handled in loop()
-      } else {
-        if (gScanResultsChar) {
-          char msg[128];
-          snprintf(msg, sizeof(msg), "SCAN_ERROR:Unknown command '%s'", cmd);
-          gScanResultsChar->setValue((uint8_t*)msg, strlen(msg));
-          gScanResultsChar->notify();
-        }
-      }
+    unsigned long startTime = millis();
+    int numberOfSamples = 0;
+    double squaredSum = 0;
+
+    while (millis() - startTime < sampleDuration) {
+        double sample = analogRead(pin) - dc_offset;
+        squaredSum += sample * sample;
+        numberOfSamples++;
+        delayMicroseconds(250); // Adjust for sampling frequency
     }
-};
 
-void startBleProvisioning(const char* initialStatus = "Waiting for Credentials") {
-  DEBUG_PRINTLN("Starting BLE Server for WiFi Configuration");
-  
-  NimBLEDevice::init("ESP32_WiFi_Config");
-  NimBLEServer *pServer = NimBLEDevice::createServer();
-  NimBLEService *pService = pServer->createService(SERVICE_UUID);
-  
-  NimBLECharacteristic *pCharacteristic = pService->createCharacteristic(
-                                         CHARACTERISTIC_UUID_WIFI,
-                                         NIMBLE_PROPERTY::WRITE
-                                       );
+    if (numberOfSamples == 0) return 0;
 
-  pCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
+    double meanSquare = squaredSum / numberOfSamples;
+    return sqrt(meanSquare);
+}
 
-  // Create status characteristic (READ + NOTIFY)
-  gStatusChar = pService->createCharacteristic(
-                    CHARACTERISTIC_UUID_STATUS,
-                    (NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY)
-                 );
-  gStatusChar->setValue(initialStatus);
+// Read RMS voltage
+static inline float readVoltageV(uint16_t &rawOffset) {
+    double rms_adc = getRMS(PIN_VOLTAGE_ADC);
+    
+    // The rawOffset for voltage is not as meaningful as for current,
+    // but we can store the RMS ADC value for debugging.
+    rawOffset = rms_adc;
 
-  // Create scan command characteristic (WRITE)
-  NimBLECharacteristic* pScanCmd = pService->createCharacteristic(
-                                   CHARACTERISTIC_UUID_SCAN_CMD,
-                                   NIMBLE_PROPERTY::WRITE
-                               );
-  pScanCmd->setCallbacks(new MyScanCmdCallbacks());
+    // V_rms = RMS_ADC_delta * (V_supply / ADC_resolution) * Calibration_Factor
+    float vRms = rms_adc * (3.3f / 4095.0f) * VOLTAGE_CALIBRATION;
+    
+    // Filter for noise when no voltage is present
+    if (vRms < 10.0) {
+        return 0.0;
+    }
+    return vRms;
+}
 
-  // Create scan results characteristic (READ + NOTIFY)
-  gScanResultsChar = pService->createCharacteristic(
-                         CHARACTERISTIC_UUID_SCAN_RESULTS,
-                         (NIMBLE_PROPERTY::READ | NIMBLE_PROPERTY::NOTIFY)
-                      );
-  gScanResultsChar->setValue("SCAN_IDLE");
-  pService->start();
+// Read RMS current
+static inline float readCurrentA(int pin, uint16_t &rawOffset) {
+    double rms_adc = getRMS(pin);
+    rawOffset = rms_adc; // Store the RMS ADC value for debugging
 
-  NimBLEAdvertising *pAdvertising = NimBLEDevice::getAdvertising();
-  pAdvertising->addServiceUUID(SERVICE_UUID);
-  NimBLEDevice::startAdvertising();
-  
-  DEBUG_PRINTLN("Characteristic defined. Ready for BLE connection.");
-  DEBUG_PRINTLN("Send WiFi credentials in the format: Your_SSID,Your_Password");
+    // Convert RMS ADC value to voltage, then to current
+    float vRms = rms_adc * (3.3f / 4095.0f);
+    float current_Amps = vRms / ACS_SENS;
 
-  // Broadcast initial status
-  setProvisioningStatus(initialStatus);
+    // Filter for noise when no current is flowing
+    if (current_Amps < 0.05) { // 50mA threshold
+        return 0.0;
+    }
+    return current_Amps;
 }
 
 void sendAck(const char* command, const char* result) {
@@ -238,163 +141,284 @@ void sendAck(const char* command, const char* result) {
 }
 
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
-  DEBUG_PRINTLN(String("Message arrived on topic: ") + topic + ". Message: ");
+  DEBUG_PRINT("Message arrived on topic: ");
+  DEBUG_PRINT(topic);
+  DEBUG_PRINTLN(". Message: ");
+  
   char message[length + 1];
   memcpy(message, payload, length);
   message[length] = '\0';
   DEBUG_PRINTLN(message);
-
-    StaticJsonDocument<256> doc;
-    DeserializationError error = deserializeJson(doc, payload, length);
     
-    if (error) {
-        DEBUG_PRINTLN("Failed to parse command JSON");
-        return;
-    }
-    
-    const char* command = doc["command"];
-    
-    if (strcmp(command, "set_relay_state") == 0) {
-        const char* state = doc["payload"]["state"];
-        if (strcmp(state, "on") == 0) {
-            digitalWrite(RELAY_PIN, HIGH);
-        } else if (strcmp(state, "off") == 0) {
-            digitalWrite(RELAY_PIN, LOW);
-        }
-        sendAck(command, "success");
-    }
-    else if (strcmp(command, "get_status") == 0) {
-        publishData();
-        sendAck(command, "success");
-    }
-    else if (strcmp(command, "restart") == 0) {
-        sendAck(command, "success");
-        delay(1000);
-        ESP.restart();
-    }
-    else if (strcmp(command, "ota_update") == 0) {
-        // checkForUpdate();
-    }
+  StaticJsonDocument<256> doc;
+  DeserializationError error = deserializeJson(doc, payload, length);
+  
+  if (error) {
+      DEBUG_PRINTLN("Failed to parse command JSON");
+      return;
+  }
+  
+  const char* command = doc["command"];
+  
+  if (strcmp(command, "set_relay_state") == 0) {
+      // Expected payload: {"command": "set_relay_state", "channel": 1-3, "state": "on"/"off"}
+      int relayNum = doc["channel"];
+      const char* state = doc["state"];
+      
+      int relayPin = -1;
+      switch(relayNum) {
+        case 1: relayPin = RELAY1_PIN; break;
+        case 2: relayPin = RELAY2_PIN; break;
+        case 3: relayPin = RELAY3_PIN; break;
+        default:
+          DEBUG_PRINTLN("Invalid relay number");
+          sendAck(command, "error: invalid relay");
+          return;
+      }
+      
+      if (strcmp(state, "on") == 0) {
+          digitalWrite(relayPin, LOW);
+          DEBUG_PRINT("Relay ");
+          DEBUG_PRINT(relayNum);
+          DEBUG_PRINTLN(" turned ON (Active LOW)");
+      } else if (strcmp(state, "off") == 0) {
+          digitalWrite(relayPin, HIGH);
+          DEBUG_PRINT("Relay ");
+          DEBUG_PRINT(relayNum);
+          DEBUG_PRINTLN(" turned OFF (Active LOW)");
+      }
+      sendAck(command, "success");
+  }
+  else if (strcmp(command, "set_all_relays") == 0) {
+      // Turn all relays on or off
+      const char* state = doc["payload"]["state"];
+      bool setState = (strcmp(state, "on") == 0);
+      
+      digitalWrite(RELAY1_PIN, setState);
+      digitalWrite(RELAY2_PIN, setState);
+      digitalWrite(RELAY3_PIN, setState);
+      
+      DEBUG_PRINT("All relays turned ");
+      DEBUG_PRINTLN(state);
+      sendAck(command, "success");
+  }
+  else if (strcmp(command, "get_status") == 0) {
+      publishData();
+      sendAck(command, "success");
+  }
+  else if (strcmp(command, "restart") == 0) {
+      sendAck(command, "success");
+      delay(1000);
+      ESP.restart();
+  }
 }
 
 void reconnectMQTT() {
   while (!mqttClient.connected()) {
     DEBUG_PRINTLN("Attempting MQTT connection...");
-
-    // Define the Last Will and Testament (LWT) message
     const char* lwt_payload = "offline";
     
-    // Attempt to connect to the broker with the LWT configured.
-    // If the device disconnects ungracefully, the broker will publish "offline" to the status topic.
     if (mqttClient.connect(DEVICE_ID, DEVICE_ID, API_TOKEN, MQTT_TOPIC_STATUS, 1, true, lwt_payload)) {
       DEBUG_PRINTLN("MQTT connected.");
-
-      // Upon successful connection, publish "online" to the status topic.
-      // The 'retain' flag (true) ensures that the broker saves this message, so any new
-      // client can get the device's current status immediately.
       DEBUG_PRINTLN("Publishing online status...");
       mqttClient.publish(MQTT_TOPIC_STATUS, "online", true);
       
-      // Subscribe to the commands topic as before
       DEBUG_PRINTLN("Subscribing to commands topic...");
       mqttClient.subscribe(MQTT_TOPIC_COMMANDS);
-
     } else {
-      DEBUG_PRINTLN(String("MQTT connection failed, rc=") + mqttClient.state() + ". Retrying in 5 seconds...");
-      // Wait 5 seconds before retrying
+      DEBUG_PRINT("MQTT connection failed, rc=");
+      DEBUG_PRINT(mqttClient.state());
+      DEBUG_PRINTLN(". Retrying in 5 seconds...");
       delay(5000);
     }
   }
 }
 
-bool connectToWiFi(const char* ssid, const char* password, const char* status) {
-    DEBUG_PRINTLN(String("Connecting to: ") + ssid);
-    if (gStatusChar == nullptr) {
-      startBleProvisioning(status);
-    } else {
-      setProvisioningStatus(status);
-    }
-    WiFi.begin(ssid, password);
-    
-    int timeout_counter = 0;
-    while (WiFi.status() != WL_CONNECTED && timeout_counter < 30) {
-      delay(500);
-      DEBUG_PRINTLN(".");
-      timeout_counter++;
-    }
-
-    if (WiFi.status() == WL_CONNECTED) {
-      setProvisioningStatus("Connected");
-      NimBLEAdvertising* adv = NimBLEDevice::getAdvertising();
-      if (adv) adv->stop();
-      return true;
-    } else {
-      setProvisioningStatus("Connection Failed");
-      return false;
-    }
+const char* getWiFiStatusString(int status) {
+  switch(status) {
+    case WL_IDLE_STATUS: return "IDLE";
+    case WL_NO_SSID_AVAIL: return "NO_SSID_AVAILABLE";
+    case WL_SCAN_COMPLETED: return "SCAN_COMPLETED";
+    case WL_CONNECTED: return "CONNECTED";
+    case WL_CONNECT_FAILED: return "CONNECT_FAILED";
+    case WL_CONNECTION_LOST: return "CONNECTION_LOST";
+    case WL_DISCONNECTED: return "DISCONNECTED";
+    default: return "UNKNOWN";
+  }
 }
 
 void setup()
 {
+  // CRITICAL: For ESP32-C3 USB CDC, initialize Serial FIRST
   Serial.begin(115200);
-  DEBUG_PRINTLN("\nESP32 Starting...");
   
-  pinMode(RELAY_PIN, OUTPUT);
-
-  // Configure ADC for analog sensors (approximate; fine-tune later)
-  analogReadResolution(12); // 0..4095
-  analogSetPinAttenuation(PIN_CURRENT_ADC, ADC_11db); // wider range (~3.3V)
-  analogSetPinAttenuation(PIN_VOLTAGE_ADC, ADC_11db);
-
-  // Try to connect to WiFi with saved credentials
-  preferences.begin("wifi-creds", true); // Read-only mode
-  char ssid[64];
-  char password[64];
-  preferences.getString("ssid", ssid, sizeof(ssid));
-  preferences.getString("password", password, sizeof(password));
-  preferences.end();
-  
-  bool connected = false;
-  if (strlen(ssid) > 0) {
-    connected = connectToWiFi(ssid, password, "Connecting...");
-  } else {
-    // No saved credentials; try default hardcoded ones first
-    strcpy(ssid, DEFAULT_WIFI_SSID);
-    strcpy(password, DEFAULT_WIFI_PASSWORD);
-    connected = connectToWiFi(ssid, password, "Connecting (Default)...");
+  // Wait for Serial Monitor to connect (optional - remove for production)
+  unsigned long serialTimeout = millis() + 3000;
+  while (!Serial && millis() < serialTimeout) {
+    delay(10);
   }
-
-  // Check if connection was successful
-  if (connected) {
-    // ---- NORMAL OPERATION ----
-    DEBUG_PRINTLN("\nWiFi connected!");
-    DEBUG_PRINTLN(String("IP address: ") + WiFi.localIP());
+  
+  delay(100);
+  
+  DEBUG_PRINTLN("\n\n==================================");
+  DEBUG_PRINTLN("ESP32-C3 Mini 3-Channel Power Monitor");
+  DEBUG_PRINTLN("==================================");
+  DEBUG_PRINT("Firmware Version: ");
+  DEBUG_PRINTLN(FIRMWARE_VERSION);
+  DEBUG_PRINTLN("\n--- Pin Configuration ---");
+  DEBUG_PRINT("Voltage Sensor: GPIO");
+  DEBUG_PRINTLN(PIN_VOLTAGE_ADC);
+  DEBUG_PRINT("Current Sensor 1: GPIO");
+  DEBUG_PRINTLN(PIN_CURRENT1_ADC);
+  DEBUG_PRINT("Current Sensor 2: GPIO");
+  DEBUG_PRINTLN(PIN_CURRENT2_ADC);
+  DEBUG_PRINT("Current Sensor 3: GPIO");
+  DEBUG_PRINTLN(PIN_CURRENT3_ADC);
+  DEBUG_PRINT("Relay 1: GPIO");
+  DEBUG_PRINTLN(RELAY1_PIN);
+  DEBUG_PRINT("Relay 2: GPIO");
+  DEBUG_PRINTLN(RELAY2_PIN);
+  DEBUG_PRINT("Relay 3: GPIO");
+  DEBUG_PRINTLN(RELAY3_PIN);
+  DEBUG_PRINTLN("==================================\n");
+  
+  // Initialize relay pins
+  pinMode(RELAY1_PIN, OUTPUT);
+  pinMode(RELAY2_PIN, OUTPUT);
+  pinMode(RELAY3_PIN, OUTPUT);
+  
+  // Ensure all relays start OFF (Active LOW, so set to HIGH)
+  digitalWrite(RELAY1_PIN, HIGH);
+  digitalWrite(RELAY2_PIN, HIGH);
+  digitalWrite(RELAY3_PIN, HIGH);
+  DEBUG_PRINTLN("All relays initialized to OFF state (Active LOW)");
+  
+  // Configure ADC
+  analogReadResolution(12); // 0..4095
+  analogSetAttenuation(ADC_11db); // ~0-3.3V range
+  
+  // ===== IMPROVED WIFI CONNECTION =====
+  DEBUG_PRINTLN("\n--- WiFi Setup ---");
+  
+  // Set WiFi to station mode and disconnect from any previous connection
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(100);
+  
+  DEBUG_PRINT("Connecting to WiFi SSID: ");
+  DEBUG_PRINTLN(WIFI_SSID);
+  DEBUG_PRINT("Password length: ");
+  DEBUG_PRINTLN(strlen(WIFI_PASSWORD));
+  DEBUG_PRINTLN("Note: ESP32-C3 only supports 2.4GHz WiFi");
+  
+  // Start WiFi connection
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  
+  // Extended timeout with detailed status reporting
+  int timeout_counter = 0;
+  int max_attempts = 40; // 20 seconds total
+  
+  DEBUG_PRINT("Connecting");
+  while (WiFi.status() != WL_CONNECTED && timeout_counter < max_attempts) {
+    delay(500);
+    DEBUG_PRINT(".");
+    
+    // Print detailed status every 5 seconds
+    if (timeout_counter % 10 == 0 && timeout_counter > 0) {
+      int status = WiFi.status();
+      DEBUG_PRINT("\n[");
+      DEBUG_PRINT(timeout_counter/2);
+      DEBUG_PRINT("s] WiFi Status: ");
+      DEBUG_PRINT(status);
+      DEBUG_PRINT(" (");
+      DEBUG_PRINT(getWiFiStatusString(status));
+      DEBUG_PRINT(")");
+      
+      // Provide helpful hints based on status
+      if (status == WL_NO_SSID_AVAIL) {
+        DEBUG_PRINTLN("\n  ⚠ Cannot find network. Check:");
+        DEBUG_PRINTLN("     - SSID spelling is correct");
+        DEBUG_PRINTLN("     - Router is on and broadcasting");
+        DEBUG_PRINTLN("     - Router is on 2.4GHz (not 5GHz)");
+        DEBUG_PRINTLN("     - Device is in range");
+      } else if (status == WL_CONNECT_FAILED) {
+        DEBUG_PRINTLN("\n  ⚠ Connection failed. Check:");
+        DEBUG_PRINTLN("     - Password is correct");
+        DEBUG_PRINTLN("     - Router security is WPA2 (not WPA3)");
+        DEBUG_PRINTLN("     - MAC filtering not blocking device");
+      }
+      DEBUG_PRINT("Continuing");
+    }
+    timeout_counter++;
+  }
+  
+  DEBUG_PRINTLN("");
+  
+  if (WiFi.status() == WL_CONNECTED) {
+    DEBUG_PRINTLN("\n✓✓✓ WiFi Connected Successfully! ✓✓✓");
+    DEBUG_PRINT("IP address: ");
+    DEBUG_PRINTLN(WiFi.localIP());
+    DEBUG_PRINT("Gateway: ");
+    DEBUG_PRINTLN(WiFi.gatewayIP());
+    DEBUG_PRINT("Subnet: ");
+    DEBUG_PRINTLN(WiFi.subnetMask());
+    DEBUG_PRINT("DNS: ");
+    DEBUG_PRINTLN(WiFi.dnsIP());
+    DEBUG_PRINT("RSSI: ");
+    DEBUG_PRINT(WiFi.RSSI());
+    DEBUG_PRINTLN(" dBm");
+    DEBUG_PRINT("MAC Address: ");
+    DEBUG_PRINTLN(WiFi.macAddress());
     
     // Initialize time
-    DEBUG_PRINTLN("Contacting time server...");
+    DEBUG_PRINTLN("\nContacting time server...");
     configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+    
     struct tm timeinfo;
-    if(!getLocalTime(&timeinfo)){
-      DEBUG_PRINTLN("Failed to obtain time. Using default time.");
-    } else {
-      char timeStr[25];
-      strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", &timeinfo);
-      DEBUG_PRINTLN(String("Current time: ") + timeStr);
+    int retries = 0;
+    while(!getLocalTime(&timeinfo) && retries < 10) {
+      DEBUG_PRINT(".");
+      delay(500);
+      retries++;
     }
     
-    mqttClient.setServer(MQTT_HOST, MQTT_PORT);
-    mqttClient.setCallback(mqttCallback);
-
-  } else {
-    // ---- PROVISIONING MODE ----
-    DEBUG_PRINTLN("\nCould not connect to WiFi.");
-    WiFi.disconnect(); // Ensure WiFi is off
-    // Start/ensure BLE is running and show waiting state for new credentials
-    if (gStatusChar == nullptr) {
-      startBleProvisioning("Waiting for Credentials");
+    if(retries < 10) {
+      char timeStr[25];
+      strftime(timeStr, sizeof(timeStr), "%Y-%m-%d %H:%M:%S", &timeinfo);
+      DEBUG_PRINT("\n✓ Current time: ");
+      DEBUG_PRINTLN(timeStr);
     } else {
-      setProvisioningStatus("Waiting for Credentials");
+      DEBUG_PRINTLN("\n⚠ Failed to obtain time. Continuing anyway...");
     }
+    
+    DEBUG_PRINT("\nConfiguring MQTT broker: ");
+    DEBUG_PRINT(MQTT_HOST);
+    DEBUG_PRINT(":");
+    DEBUG_PRINTLN(MQTT_PORT);
+    
+    mqttClient.setServer(MQTT_HOST, MQTT_PORT);
+    mqttClient.setBufferSize(1024);
+    mqttClient.setCallback(mqttCallback);
+    
+    DEBUG_PRINTLN("\n✓✓✓ Setup Complete - Entering Main Loop ✓✓✓\n");
+  } else {
+    DEBUG_PRINTLN("\n✗✗✗ WiFi Connection FAILED ✗✗✗");
+    DEBUG_PRINT("Final Status: ");
+    DEBUG_PRINT(WiFi.status());
+    DEBUG_PRINT(" (");
+    DEBUG_PRINT(getWiFiStatusString(WiFi.status()));
+    DEBUG_PRINTLN(")");
+    
+    DEBUG_PRINTLN("\n=== Troubleshooting Steps ===");
+    DEBUG_PRINTLN("1. Verify WiFi credentials are correct");
+    DEBUG_PRINTLN("2. Ensure router is on 2.4GHz (ESP32-C3 doesn't support 5GHz)");
+    DEBUG_PRINTLN("3. Check router security is WPA2, not WPA3");
+    DEBUG_PRINTLN("4. Verify device is within WiFi range");
+    DEBUG_PRINTLN("5. Check if MAC filtering is enabled on router");
+    DEBUG_PRINTLN("6. Try power cycling the router");
+    DEBUG_PRINTLN("\nDevice will restart in 10 seconds...");
+    delay(10000);
+    ESP.restart();
   }
 }
 
@@ -405,50 +429,102 @@ void loop()
       reconnectMQTT();
     }
     mqttClient.loop();
-
+    
     unsigned long now = millis();
     if (now - lastMsg > MSG_PUBLISH_INTERVAL) {
       lastMsg = now;
       publishData();
     }
-
-    // if (now - lastOtaCheck > OTA_CHECK_INTERVAL) {
-    //   lastOtaCheck = now;
-    //   checkForUpdate();
-    // }
-
   } else {
-    // If not connected, we are in BLE provisioning mode.
-    // The device will restart automatically once credentials are received.
-    // Handle deferred Wi-Fi scans requested via BLE
-    if (gScanRequested && !gScanBusy) {
-      gScanRequested = false;
-      performWifiScanAndNotify();
-    }
-    DEBUG_PRINTLN("In BLE provisioning mode. Waiting for credentials...");
+    DEBUG_PRINTLN("WiFi disconnected! Attempting reconnection...");
+    DEBUG_PRINT("Status: ");
+    DEBUG_PRINTLN(getWiFiStatusString(WiFi.status()));
+    WiFi.disconnect();
+    delay(1000);
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
     delay(5000);
   }
 }
 
 void publishData() {
-  // Read sensors and create JSON payload
-  uint16_t rawCurrent = 0, rawVoltage = 0;
-  float currentA = readCurrentApproxA(rawCurrent);
-  float voltageV = readVoltageApproxV(rawVoltage);
-  float powerW = voltageV * currentA;
-  float energyWh = powerW * (MSG_PUBLISH_INTERVAL / 1000.0 / 3600.0);
+  DEBUG_PRINTLN("\n======= Publishing Sensor Data =======");
+  
+  // Read shared voltage sensor
+  uint16_t rawVoltage = 0;
+  float voltageV = readVoltageV(rawVoltage);
+  
+  DEBUG_PRINT("Voltage: ");
+  DEBUG_PRINT(voltageV);
+  DEBUG_PRINT(" V (raw: ");
+  DEBUG_PRINT(rawVoltage);
+  DEBUG_PRINTLN(")");
+  
+  // Read current sensors
+  uint16_t rawCurrent1 = 0, rawCurrent2 = 0, rawCurrent3 = 0;
+  float current1A = readCurrentA(PIN_CURRENT1_ADC, rawCurrent1);
+  float current2A = readCurrentA(PIN_CURRENT2_ADC, rawCurrent2);
+  float current3A = readCurrentA(PIN_CURRENT3_ADC, rawCurrent3);
+  
+  // Calculate power for each channel
+  float power1W = voltageV * current1A;
+  float power2W = voltageV * current2A;
+  float power3W = voltageV * current3A;
 
-  StaticJsonDocument<256> jsonDoc;
+  // Get relay states (Active LOW logic)
+  bool isRelay1On = (digitalRead(RELAY1_PIN) == LOW);
+  bool isRelay2On = (digitalRead(RELAY2_PIN) == LOW);
+  bool isRelay3On = (digitalRead(RELAY3_PIN) == LOW);
+
+  // Create JSON payload
+  StaticJsonDocument<768> jsonDoc;
+
+  jsonDoc["firmware_version"] = FIRMWARE_VERSION;
+  jsonDoc["timestamp"] = getTimestamp();
   jsonDoc["voltage"] = voltageV;
-  jsonDoc["current"] = currentA;
-  jsonDoc["power"] = powerW;
-  jsonDoc["energy"] = energyWh;
+  jsonDoc["voltage_raw"] = rawVoltage;
 
-  char jsonBuffer[512];
+  JsonArray channels = jsonDoc.createNestedArray("channels");
+
+  // Channel 1
+  JsonObject ch1 = channels.createNestedObject();
+  ch1["channel"] = 1;
+  ch1["current"] = current1A;
+  ch1["current_raw"] = rawCurrent1;
+  ch1["power"] = power1W;
+  ch1["relay_state"] = isRelay1On ? "on" : "off";
+  
+  // Channel 2
+  JsonObject ch2 = channels.createNestedObject();
+  ch2["channel"] = 2;
+  ch2["current"] = current2A;
+  ch2["current_raw"] = rawCurrent2;
+  ch2["power"] = power2W;
+  ch2["relay_state"] = isRelay2On ? "on" : "off";
+
+  // Channel 3
+  JsonObject ch3 = channels.createNestedObject();
+  ch3["channel"] = 3;
+  ch3["current"] = current3A;
+  ch3["current_raw"] = rawCurrent3;
+  ch3["power"] = power3W;
+  ch3["relay_state"] = isRelay3On ? "on" : "off";
+
+  char jsonBuffer[768];
   serializeJson(jsonDoc, jsonBuffer);
-
-  mqttClient.publish(MQTT_TOPIC_DATA, jsonBuffer);
-  DEBUG_PRINTLN("Published MQTT message");
+  
+  DEBUG_PRINTLN("\n--- MQTT Publish ---");
+  DEBUG_PRINT("Topic: ");
+  DEBUG_PRINTLN(MQTT_TOPIC_DATA);
+  DEBUG_PRINT("Payload: ");
+  DEBUG_PRINTLN(jsonBuffer);
+  
+  if (mqttClient.publish(MQTT_TOPIC_DATA, jsonBuffer)) {
+    DEBUG_PRINTLN("✓ Published successfully");
+  } else {
+    DEBUG_PRINTLN("✗ Publish failed!");
+  }
+  
+  DEBUG_PRINTLN("======================================\n");
 }
 
 const char* getTimestamp() {
@@ -460,118 +536,4 @@ const char* getTimestamp() {
     }
     strftime(timeStr, sizeof(timeStr), "%Y-%m-%dT%H:%M:%SZ", &timeinfo);
     return timeStr;
-}
-
-// void checkForUpdate() {
-//     HTTPClient http;
-//     char url[128];
-//     snprintf(url, sizeof(url), "%s/ota/check", API_URL);
-//     http.begin(url);
-//     char authHeader[100];
-//     snprintf(authHeader, sizeof(authHeader), "Bearer %s", API_TOKEN);
-//     http.addHeader("Authorization", authHeader);
-//     http.addHeader("x-firmware-version", FIRMWARE_VERSION);
-    
-//     int httpCode = http.GET();
-    
-//     if (httpCode == 200) {
-//         String payload = http.getString();
-//         StaticJsonDocument<512> doc;
-//         deserializeJson(doc, payload);
-        
-//         if (doc["update_available"]) {
-//             const char* downloadUrl = doc["download_url"];
-//             const char* newVersion = doc["version"];
-            
-//             DEBUG_PRINTLN(String("Update available: ") + newVersion);
-//             performOTAUpdate(downloadUrl);
-//         }
-//     }
-    
-//     http.end();
-// }
-
-// void performOTAUpdate(const char* url) {
-//     DEBUG_PRINTLN("Starting OTA update...");
-    
-//     WiFiClient client;
-    
-//     httpUpdate.setLedPin(LED_BUILTIN, LOW);
-    
-//     t_httpUpdate_return ret = httpUpdate.update(client, url);
-    
-//     switch(ret) {
-//         case HTTP_UPDATE_FAILED:
-//             DEBUG_PRINTLN(String("Update failed: ") + httpUpdate.getLastErrorString());
-//             break;
-//         case HTTP_UPDATE_NO_UPDATES:
-//             DEBUG_PRINTLN("No updates available");
-//             break;
-//         case HTTP_UPDATE_OK:
-//             DEBUG_PRINTLN("Update successful! Restarting...");
-//             ESP.restart();
-//             break;
-//     }
-// }
-
-// Perform a Wi-Fi scan and stream results over BLE scan results characteristic
-void performWifiScanAndNotify() {
-  if (gScanResultsChar == nullptr) return;
-  gScanBusy = true;
-  setProvisioningStatus("Scanning...");
-
-  // Announce start
-  const char* startMsg = "SCAN_START";
-  gScanResultsChar->setValue((uint8_t*)startMsg, strlen(startMsg));
-  gScanResultsChar->notify();
-
-  // Ensure station mode for scanning
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect(true);
-  delay(100);
-
-  int n = WiFi.scanNetworks(/*async=*/false, /*hidden=*/true);
-  if (n < 0) {
-    char err[32];
-    snprintf(err, sizeof(err), "SCAN_ERROR:%d", WiFi.status());
-    gScanResultsChar->setValue((uint8_t*)err, strlen(err));
-    gScanResultsChar->notify();
-  } else {
-    for (int i = 0; i < n; ++i) {
-      const char* ssid = WiFi.SSID(i).c_str();
-      if (strlen(ssid) == 0) {
-        // skip hidden
-        continue;
-      }
-      int32_t rssi = WiFi.RSSI(i);
-      wifi_auth_mode_t auth = (wifi_auth_mode_t)WiFi.encryptionType(i);
-      const char* sec;
-      switch (auth) {
-        case WIFI_AUTH_OPEN: sec = "OPEN"; break;
-        case WIFI_AUTH_WEP: sec = "WEP"; break;
-        case WIFI_AUTH_WPA_PSK: sec = "WPA"; break;
-        case WIFI_AUTH_WPA2_PSK: sec = "WPA2"; break;
-        case WIFI_AUTH_WPA_WPA2_PSK: sec = "WPA/WPA2"; break;
-        case WIFI_AUTH_WPA2_ENTERPRISE: sec = "WPA2-ENT"; break;
-        case WIFI_AUTH_WPA3_PSK: sec = "WPA3"; break;
-        case WIFI_AUTH_WPA2_WPA3_PSK: sec = "WPA2/WPA3"; break;
-        default: sec = "UNKNOWN"; break;
-      }
-      // Build line: SSID|RSSI|SEC
-      char line[128];
-      snprintf(line, sizeof(line), "%s|%d|%s", ssid, rssi, sec);
-      gScanResultsChar->setValue((uint8_t*)line, strlen(line));
-      gScanResultsChar->notify();
-      delay(30);
-    }
-  }
-
-  // Done marker
-  const char* doneMsg = "SCAN_DONE";
-  gScanResultsChar->setValue((uint8_t*)doneMsg, strlen(doneMsg));
-  gScanResultsChar->notify();
-
-  // Reset busy and restore waiting status
-  gScanBusy = false;
-  setProvisioningStatus("Waiting for Credentials");
 }

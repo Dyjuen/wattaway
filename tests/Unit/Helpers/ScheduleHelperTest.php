@@ -2,11 +2,11 @@
 
 namespace Tests\Unit\Helpers;
 
-use Tests\TestCase;
 use App\Helpers\ScheduleHelper;
 use App\Models\DeviceSchedule;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class ScheduleHelperTest extends TestCase
 {

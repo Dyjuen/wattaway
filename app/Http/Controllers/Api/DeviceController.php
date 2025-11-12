@@ -3,19 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\AuditLog;
 use App\Http\Requests\ControlDeviceRequest;
 use App\Http\Requests\CreateScheduleRequest;
 use App\Http\Requests\UpdateDeviceConfigurationRequest;
-use App\Http\Resources\DeviceResource;
 use App\Http\Resources\DeviceReadingResource;
+use App\Http\Resources\DeviceResource;
+use App\Models\AuditLog;
 use App\Models\Device;
-use App\Models\DeviceReading;
 use App\Services\DeviceDataService;
 use App\Services\MqttPublishService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
 class DeviceController extends Controller
 {
@@ -27,6 +25,7 @@ class DeviceController extends Controller
     public function index()
     {
         $devices = Auth::user()->account->devices()->withLatestData()->paginate(20);
+
         return DeviceResource::collection($devices);
     }
 
@@ -34,11 +33,18 @@ class DeviceController extends Controller
     {
         $this->authorize('view', $device);
         $device->load('esp32MessageLogs');
+
         return new DeviceResource($device);
     }
 
-    public function control(ControlDeviceRequest $request, Device $device)
+    public function control(ControlDeviceRequest $request, $deviceId)
     {
+        $device = Device::find($deviceId);
+        if (!$device) {
+            return response()->json(['message' => 'Device not found.'], 404);
+        }
+        $this->authorize('update', $device);
+
         $validated = $request->validated();
 
         $this->mqttPublishService->setRelayState($device, $validated['channel'], $validated['action']);
@@ -64,6 +70,7 @@ class DeviceController extends Controller
     public function getData(Device $device)
     {
         $this->authorize('view', $device);
+
         return $this->deviceDataService->getDeviceLatestData($device);
     }
 
@@ -84,7 +91,7 @@ class DeviceController extends Controller
 
         $range = $request->query('range', '24h'); // Default to 24 hours
         $endDate = now();
-        $startDate = match($range) {
+        $startDate = match ($range) {
             '1h' => now()->subHour(),
             '6h' => now()->subHours(6),
             '24h' => now()->subDay(),
@@ -93,16 +100,20 @@ class DeviceController extends Controller
         };
 
         $readings = $device->deviceReadings()
-                        ->with('channelReadings')
-                        ->whereBetween('timestamp', [$startDate, $endDate])
-                        ->orderBy('timestamp', 'asc') // Order ascending for charts
-                        ->get();
+            ->with('channelReadings')
+            ->whereBetween('timestamp', [$startDate, $endDate])
+            ->orderBy('timestamp', 'asc') // Order ascending for charts
+            ->get();
 
         return DeviceReadingResource::collection($readings);
     }
 
-    public function updateConfiguration(UpdateDeviceConfigurationRequest $request, Device $device, string $type)
+    public function updateConfiguration(UpdateDeviceConfigurationRequest $request, $deviceId, string $type)
     {
+        $device = Device::find($deviceId);
+        if (!$device) {
+            return response()->json(['message' => 'Device not found.'], 404);
+        }
         $this->authorize('update', $device);
 
         $validated = $request->validated();

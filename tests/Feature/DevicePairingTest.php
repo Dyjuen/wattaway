@@ -20,20 +20,20 @@ class DevicePairingTest extends TestCase
         // Arrange
         $account = Account::factory()->create();
         $token = DeviceProvisioningToken::generate('WS20250001234', 'ESP32-AABBCCDDEEFF');
-        
+
         // Act
         $response = $this->actingAs($account, 'sanctum')
             ->postJson('/api/v1/pairing/validate', [
                 'token' => $token->token,
             ]);
-        
+
         // Assert
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
                 'device_info' => [
                     'serial_number' => 'WS20250001234',
-                ]
+                ],
             ]);
     }
 
@@ -69,12 +69,12 @@ class DevicePairingTest extends TestCase
         $account = Account::factory()->create();
         $token = DeviceProvisioningToken::generate('WS20250001235', 'ESP32-AABBCCDDEEF0');
         $token->update(['expires_at' => now()->subDay()]);
-        
+
         $response = $this->actingAs($account, 'sanctum')
             ->postJson('/api/v1/pairing/validate', [
                 'token' => $token->token,
             ]);
-        
+
         $response->assertStatus(400)
             ->assertJson([
                 'success' => false,
@@ -89,12 +89,12 @@ class DevicePairingTest extends TestCase
         $device = Device::factory()->create(['account_id' => $account->id]);
         $token = DeviceProvisioningToken::generate('WS20250001236', 'ESP32-AABBCCDDEEF1');
         $token->markAsPaired($account, $device);
-        
+
         $response = $this->actingAs($account, 'sanctum')
             ->postJson('/api/v1/pairing/validate', [
                 'token' => $token->token,
             ]);
-        
+
         $response->assertStatus(400)
             ->assertJson([
                 'success' => false,
@@ -107,12 +107,12 @@ class DevicePairingTest extends TestCase
         $account = Account::factory()->create();
         $token = DeviceProvisioningToken::generate('WS20250001237', 'ESP32-AABBCCDDEEF2');
         $token->revoke();
-        
+
         $response = $this->actingAs($account, 'sanctum')
             ->postJson('/api/v1/pairing/validate', [
                 'token' => $token->token,
             ]);
-        
+
         $response->assertStatus(400)
             ->assertJson([
                 'success' => false,
@@ -124,16 +124,16 @@ class DevicePairingTest extends TestCase
     {
         $account = Account::factory()->create();
         $token = DeviceProvisioningToken::generate('WS20250001238', 'ESP32-AABBCCDDEEF3');
-        
+
         $response = $this->actingAs($account, 'sanctum')
             ->postJson('/api/v1/pairing/pair', [
                 'token' => $token->token,
                 'device_name' => 'My Test Device',
             ]);
-        
+
         $response->assertStatus(201)
             ->assertJson(['success' => true]);
-        
+
         $this->assertDatabaseHas('devices', [
             'account_id' => $account->id,
             'provisioning_token_id' => $token->id,
@@ -148,12 +148,12 @@ class DevicePairingTest extends TestCase
     {
         $account = Account::factory()->create();
         $token = DeviceProvisioningToken::generate('WS20250001239', 'ESP32-AABBCCDDEEF4');
-        
+
         $this->actingAs($account, 'sanctum')
             ->postJson('/api/v1/pairing/pair', [
                 'token' => $token->token,
             ])->assertStatus(201);
-        
+
         $this->assertEquals('paired', $token->fresh()->status);
         $this->assertNotNull($token->fresh()->paired_at);
         $this->assertNotNull($token->fresh()->device_id);
@@ -218,7 +218,7 @@ class DevicePairingTest extends TestCase
                 'mqtt_credentials' => ['host', 'port', 'username', 'password', 'topics' => ['publish', 'subscribe']],
                 'user' => ['id', 'name', 'email'],
             ]);
-        
+
         $this->assertEquals('online', $device->fresh()->status);
         $this->assertNotNull($device->fresh()->activated_at);
     }
@@ -245,7 +245,7 @@ class DevicePairingTest extends TestCase
 
         $response->assertStatus(403)
             ->assertJson(['error' => 'Hardware verification failed']);
-        
+
         $this->assertDatabaseHas('audit_logs', [
             'action' => 'device.activation_failed',
             'auditable_id' => $device->id,
@@ -288,7 +288,7 @@ class DevicePairingTest extends TestCase
 
         $this->assertSoftDeleted('devices', ['id' => $device->id]); // Assuming soft deletes
         $this->assertEquals('revoked', $token->fresh()->status);
-        
+
         $this->assertDatabaseHas('audit_logs', [
             'action' => 'device.unpaired',
             'auditable_id' => $device->id,

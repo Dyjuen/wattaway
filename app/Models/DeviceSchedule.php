@@ -2,19 +2,19 @@
 
 namespace App\Models;
 
+use App\Services\MqttPublishService;
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
-use App\Services\MqttPublishService;
 
 class DeviceSchedule extends Model
 {
-    use HasFactory, Auditable;
+    use Auditable, HasFactory;
 
     protected $fillable = [
         'device_id',
         'name',
+        'channel',
         'action',
         'schedule_type',
         'scheduled_time',
@@ -48,6 +48,7 @@ class DeviceSchedule extends Model
     public function scopeForToday($query)
     {
         $dayOfWeek = now()->dayOfWeek;
+
         return $query->whereJsonContains('days_of_week', $dayOfWeek);
     }
 
@@ -58,7 +59,7 @@ class DeviceSchedule extends Model
 
     public function shouldExecuteNow(): bool
     {
-        if (!$this->is_enabled) {
+        if (! $this->is_enabled) {
             return false;
         }
 
@@ -79,12 +80,12 @@ class DeviceSchedule extends Model
 
     public function execute(): bool
     {
-        if (!$this->shouldExecuteNow()) {
+        if (! $this->shouldExecuteNow()) {
             return false;
         }
 
         $mqttService = app(MqttPublishService::class);
-        $mqttService->setRelayState($this->device, $this->action);
+        $mqttService->setRelayState($this->device, $this->channel, $this->action);
 
         $this->markExecuted();
 

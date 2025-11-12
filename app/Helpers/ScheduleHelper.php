@@ -9,14 +9,10 @@ class ScheduleHelper
 {
     /**
      * Check if a given schedule is due to run at a specific time.
-     *
-     * @param DeviceSchedule $schedule
-     * @param Carbon $now
-     * @return bool
      */
     public static function isDue(DeviceSchedule $schedule, Carbon $now): bool
     {
-        if (!$schedule->is_enabled) {
+        if (! $schedule->is_enabled) {
             return false;
         }
 
@@ -33,6 +29,7 @@ class ScheduleHelper
                 return true;
             case 'weekly':
                 $days = $schedule->days_of_week ?? [];
+
                 return in_array($now->dayOfWeekIso, $days);
         }
 

@@ -3,17 +3,22 @@
 namespace App\Services;
 
 use App\Models\Device;
-use PhpMqtt\Client\MqttClient;
 use App\Models\MqttMessageLog;
 use Illuminate\Support\Facades\Log;
+use PhpMqtt\Client\MqttClient;
 
 class MqttPublishService
 {
     protected MqttClient $mqtt;
+
     protected string $host;
+
     protected int $port;
+
     protected string $clientId;
+
     protected string $username;
+
     protected string $password;
 
     public function __construct(MqttClient $mqtt)
@@ -26,14 +31,18 @@ class MqttPublishService
     public function sendCommand(Device $device, string $command, array $payload = []): bool
     {
         $topic = str_replace('{device_id}', $device->id, config('mqtt.topics.commands'));
-        $message = [
-            'command' => $command,
-            'payload' => $payload,
-            'timestamp' => now()->toIso8601String(),
-        ];
+        
+        // Flatten the payload for simpler parsing on the device
+        $message = array_merge(
+            [
+                'command' => $command,
+                'timestamp' => now()->toIso8601String(),
+            ],
+            $payload
+        );
 
         try {
-            if (!$this->mqtt->isConnected()) {
+            if (! $this->mqtt->isConnected()) {
                 $connectionSettings = (new \PhpMqtt\Client\ConnectionSettings)
                     ->setUsername($this->username)
                     ->setPassword($this->password);
@@ -52,6 +61,7 @@ class MqttPublishService
             );
 
             Log::info("Command sent to device {$device->id}", ['command' => $command, 'payload' => $payload]);
+
             return true;
         } catch (\Exception $e) {
             MqttMessageLog::logOutgoing(
@@ -65,12 +75,19 @@ class MqttPublishService
             );
 
             Log::error("Failed to send command to device {$device->id}", ['error' => $e->getMessage()]);
+
             return false;
         }
     }
 
     public function setRelayState(Device $device, int $channel, string $state): bool
     {
+        Log::debug('setRelayState called.', [
+            'device_id' => $device->id,
+            'device_exists' => $device->exists,
+            'device_attributes' => $device->getAttributes(),
+        ]);
+
         return $this->sendCommand($device, 'set_relay_state', ['channel' => $channel, 'state' => $state]);
     }
 
@@ -90,7 +107,7 @@ class MqttPublishService
         $payload = json_encode($value);
 
         try {
-            if (!$this->mqtt->isConnected()) {
+            if (! $this->mqtt->isConnected()) {
                 $connectionSettings = (new \PhpMqtt\Client\ConnectionSettings)
                     ->setUsername($this->username)
                     ->setPassword($this->password);
@@ -109,6 +126,7 @@ class MqttPublishService
             );
 
             Log::info("Configuration '{$type}' sent to device {$device->id}", ['payload' => $value]);
+
             return true;
         } catch (\Exception $e) {
             MqttMessageLog::logOutgoing(
@@ -122,6 +140,7 @@ class MqttPublishService
             );
 
             Log::error("Failed to send configuration '{$type}' to device {$device->id}", ['error' => $e->getMessage()]);
+
             return false;
         }
     }

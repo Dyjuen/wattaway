@@ -11,7 +11,7 @@ class UpdateDeviceConfigurationRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()->can('update', $this->route('device'));
     }
 
     /**
@@ -33,7 +33,7 @@ class UpdateDeviceConfigurationRequest extends FormRequest
                 $rules['configuration.end_time'] = 'required|date_format:H:i';
                 break;
             case 'timer':
-                $rules['configuration.duration'] = 'required|integer|min:5|max:120';
+                $rules['configuration.duration'] = 'required|integer|min:1|max:120';
                 break;
             case 'watt_limit':
                 $rules['configuration.limit'] = 'required|integer|min:1|max:10000';

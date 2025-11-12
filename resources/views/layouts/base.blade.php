@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @auth('account')
+        <meta name="api-token" content="{{ Auth::user()->api_token }}">
+    @endauth
 
     <title>@yield('title', 'Wattaway')</title>
 

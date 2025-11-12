@@ -5,11 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Device;
 use App\Models\DeviceProvisioningToken;
-use Illuminate\Http\Request;
-
 use App\Services\QrCodeService;
-
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Http\Request;
 
 class DeviceController extends Controller
 {
@@ -47,7 +44,7 @@ class DeviceController extends Controller
     {
         $token = $device->provisioningToken;
 
-        if (!$token) {
+        if (! $token) {
             $token = DeviceProvisioningToken::generate($device->serial_number, $device->hardware_id);
             $device->update(['provisioning_token_id' => $token->id]);
             $device->load('provisioningToken'); // Reload the relationship

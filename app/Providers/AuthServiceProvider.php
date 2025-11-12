@@ -2,9 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\Account;
 use App\Models\Device;
 use App\Policies\DevicePolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -22,6 +25,14 @@ class AuthServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Auth::viaRequest('account-token', function (Request $request) {
+            $token = $request->bearerToken();
+
+            if ($token) {
+                return Account::where('api_token', $token)->first();
+            }
+
+            return null;
+        });
     }
 }

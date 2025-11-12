@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Device;
-use Illuminate\Http\Request;
-
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class DeviceController extends Controller
 {
     use AuthorizesRequests;
+
     public function index()
     {
         $account = auth()->user();
@@ -55,6 +54,9 @@ class DeviceController extends Controller
     public function show(Device $device)
     {
         $this->authorize('view', $device);
-        return view('devices.show', compact('device'));
+
+        $latestReading = $device->deviceReadings()->with('channelReadings')->latest('timestamp')->first();
+
+        return view('devices.show', compact('device', 'latestReading'));
     }
 }

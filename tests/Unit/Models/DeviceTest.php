@@ -2,10 +2,10 @@
 
 namespace Tests\Unit\Models;
 
-use Tests\TestCase;
-use App\Models\Device;
 use App\Models\Account;
+use App\Models\Device;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class DeviceTest extends TestCase
 {

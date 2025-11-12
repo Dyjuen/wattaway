@@ -2,12 +2,12 @@
 
 namespace Tests\Unit\Services;
 
-use Tests\TestCase;
 use App\Models\Device;
 use App\Services\MqttPublishService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use PhpMqtt\Client\MqttClient;
 use Mockery;
+use PhpMqtt\Client\MqttClient;
+use Tests\TestCase;
 
 class MqttPublishServiceTest extends TestCase
 {
@@ -17,7 +17,7 @@ class MqttPublishServiceTest extends TestCase
     {
         $device = Device::factory()->create(['id' => 1]);
 
-        $service = new MqttPublishService();
+        $service = new MqttPublishService;
 
         $mqttClientMock = Mockery::spy(MqttClient::class);
         $reflection = new \ReflectionClass($service);

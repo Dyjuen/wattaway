@@ -90,7 +90,7 @@ class DeviceProvisioningTokenTest extends TestCase
     public function test_get_qr_code_url_method(): void
     {
         $token = DeviceProvisioningToken::generate('WS123456789019', 'ESP32-ABCDEF123463');
-        $expectedUrl = config('app.url') . '/pair?token=' . $token->token;
+        $expectedUrl = config('app.url').'/pair?token='.$token->token;
 
         $this->assertEquals($expectedUrl, $token->getQrCodeUrl());
     }

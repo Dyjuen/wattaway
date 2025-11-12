@@ -2,16 +2,36 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
-
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
 class Account extends Authenticatable implements AuthenticatableContract
 {
     use HasApiTokens, HasFactory, Notifiable;
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($account) {
+            if (empty($account->api_token)) {
+                $account->api_token = self::generateUniqueApiToken();
+            }
+        });
+    }
+
+    private static function generateUniqueApiToken()
+    {
+        do {
+            $token = Str::random(60);
+        } while (self::where('api_token', $token)->exists());
+
+        return $token;
+    }
 
     protected $fillable = [
         'name',

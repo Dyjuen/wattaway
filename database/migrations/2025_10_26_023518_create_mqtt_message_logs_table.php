@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('ip_address')->nullable();
             $table->integer('response_code')->nullable(); // HTTP response code
             $table->timestamp('created_at')->useCurrent();
-            
+
             // Indexes for fast querying
             $table->index('device_id');
             $table->index('direction');

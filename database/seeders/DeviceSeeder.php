@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Esp32Message;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DeviceSeeder extends Seeder
@@ -35,7 +34,7 @@ class DeviceSeeder extends Seeder
         foreach ($esp32Devices as $deviceData) {
             // Create sample ESP32 message records to simulate device communication
             Esp32Message::create([
-                'endpoint' => '/esp32/configuration/' . $deviceData['ip_address'],
+                'endpoint' => '/esp32/configuration/'.$deviceData['ip_address'],
                 'user_agent' => 'DeviceSeeder',
                 'ip_address' => $deviceData['ip_address'],
                 'payload' => json_encode([
@@ -56,10 +55,10 @@ class DeviceSeeder extends Seeder
                     ],
                 ]),
                 'arduino_time' => now()->toIso8601String(),
-                'led_state' => 'online'
+                'led_state' => 'online',
             ]);
         }
 
-        $this->command->info('Created ' . count($esp32Devices) . ' sample ESP32 devices');
+        $this->command->info('Created '.count($esp32Devices).' sample ESP32 devices');
     }
 }

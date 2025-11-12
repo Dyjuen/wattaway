@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Account;
-use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -31,6 +30,7 @@ class AuthController extends Controller
             if (session()->has('provisioning_token')) {
                 $token = session('provisioning_token');
                 session()->forget('provisioning_token');
+
                 return redirect()->route('pairing.confirm', ['token' => $token]);
             }
 
@@ -90,7 +90,7 @@ class AuthController extends Controller
 
         $account = Auth::guard('account')->user();
 
-        if (!Hash::check($request->current_password, $account->password)) {
+        if (! Hash::check($request->current_password, $account->password)) {
             throw ValidationException::withMessages([
                 'current_password' => ['The provided password does not match your current password.'],
             ]);

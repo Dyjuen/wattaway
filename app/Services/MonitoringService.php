@@ -20,23 +20,21 @@ class MonitoringService
 
     /**
      * Updates a device's status based on a message from MQTT.
-     *
-     * @param integer $deviceId
-     * @param string $newStatus
-     * @return void
      */
     public function updateStatusFromMqtt(int $deviceId, string $newStatus): void
     {
         $device = Device::find($deviceId);
 
-        if (!$device) {
+        if (! $device) {
             Log::warning("Device not found for MQTT status update: {$deviceId}");
+
             return;
         }
 
         // Validate the status to prevent writing arbitrary values
         if ($newStatus !== 'online' && $newStatus !== 'offline') {
             Log::warning("Invalid status '{$newStatus}' received for device {$deviceId}");
+
             return;
         }
 

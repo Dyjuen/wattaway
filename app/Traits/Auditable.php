@@ -33,8 +33,8 @@ trait Auditable
     {
         AuditLog::create([
             'account_id' => auth()->id(),
-            'action' => class_basename($this) . '.' . $event,
-            'description' => class_basename($this) . " {$event}: {" . ($this->name ?? $this->id) . "}",
+            'action' => class_basename($this).'.'.$event,
+            'description' => class_basename($this)." {$event}: {".($this->name ?? $this->id).'}',
             'auditable_id' => $this->id,
             'auditable_type' => static::class,
             'context' => $context,

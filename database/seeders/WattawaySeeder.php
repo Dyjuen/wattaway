@@ -2,13 +2,12 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use App\Models\Account;
 use App\Models\Device;
 use App\Models\DeviceProvisioningToken;
 use App\Models\Esp32MessageLog;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class WattawaySeeder extends Seeder
 {
@@ -74,7 +73,7 @@ class WattawaySeeder extends Seeder
                 'direction' => 'outgoing',
                 'content' => 'Turn on device command sent',
                 'endpoint' => '/api/device/control',
-                'payload' => '{"command":"turn_on","device_id":' . $device->id . '}',
+                'payload' => '{"command":"turn_on","device_id":'.$device->id.'}',
             ],
             [
                 'direction' => 'incoming',
@@ -99,7 +98,7 @@ class WattawaySeeder extends Seeder
                     'device_name' => $device->name,
                     'timestamp' => now()->toISOString(),
                 ],
-                'ip_address' => '192.168.1.' . rand(100, 255),
+                'ip_address' => '192.168.1.'.rand(100, 255),
                 'endpoint' => $logData['endpoint'],
                 'payload' => $logData['payload'],
             ]);

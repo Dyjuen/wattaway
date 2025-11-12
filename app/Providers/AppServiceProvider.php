@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-
 use PhpMqtt\Client\MqttClient;
 
 class AppServiceProvider extends ServiceProvider
@@ -17,6 +16,7 @@ class AppServiceProvider extends ServiceProvider
             $host = config('mqtt.host');
             $port = config('mqtt.port');
             $clientId = config('mqtt.client_id');
+
             return new MqttClient($host, $port, $clientId);
         });
     }
@@ -29,4 +29,3 @@ class AppServiceProvider extends ServiceProvider
         //
     }
 }
-

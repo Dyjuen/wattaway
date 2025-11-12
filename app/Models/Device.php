@@ -9,8 +9,9 @@ use Illuminate\Support\Str;
 
 class Device extends Model
 {
-    use HasFactory;
     use Auditable;
+    use HasFactory;
+
     protected $fillable = [
         'account_id',
         'provisioning_token_id',
@@ -64,6 +65,11 @@ class Device extends Model
     public function schedules()
     {
         return $this->hasMany(DeviceSchedule::class);
+    }
+
+    public function deviceReadings()
+    {
+        return $this->hasMany(DeviceReading::class);
     }
 
     public function esp32MessageLogs()

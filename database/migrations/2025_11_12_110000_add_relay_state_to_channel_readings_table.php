@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('accounts', function (Blueprint $table) {
-            $table->string('api_token', 80)->after('password')
-                ->unique()
-                ->nullable()
-                ->default(null);
+        Schema::table('channel_readings', function (Blueprint $table) {
+            $table->string('relay_state', 8)->after('power')->default('off');
         });
     }
 
@@ -24,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('accounts', function (Blueprint $table) {
-            $table->dropColumn('api_token');
+        Schema::table('channel_readings', function (Blueprint $table) {
+            $table->dropColumn('relay_state');
         });
     }
 };

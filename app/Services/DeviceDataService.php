@@ -3,32 +3,27 @@
 namespace App\Services;
 
 use App\Models\Device;
-use App\Models\DeviceReading;
-use App\Models\ChannelReading;
 use App\Models\Esp32MessageLog;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class DeviceDataService
 {
     /**
      * Process and store incoming data from the MQTT pipeline.
-     *
-     * @param int $deviceId
-     * @param array $data
-     * @return void
      */
     public function logMqttMessage(int $deviceId, array $data): void
     {
         $device = Device::find($deviceId);
 
-        if (!$device) {
+        if (! $device) {
             Log::warning("Device not found during MQTT data processing: {$deviceId}");
+
             return;
         }
 
@@ -41,6 +36,7 @@ class DeviceDataService
 
         if ($validator->fails()) {
             Log::warning("Invalid MQTT data for device: {$deviceId}", ['errors' => $validator->errors()]);
+
             return;
         }
 
@@ -75,9 +71,6 @@ class DeviceDataService
     /**
      * Process and store incoming data for a device.
      *
-     * @param Device $device
-     * @param array $data
-     * @return void
      * @throws ValidationException
      */
     public function processIncomingData(Device $device, array $data): void
@@ -92,6 +85,7 @@ class DeviceDataService
             'channels.*.current' => 'required|numeric',
             'channels.*.current_raw' => 'required|integer',
             'channels.*.power' => 'required|numeric',
+            'channels.*.relay_state' => 'required|in:on,off',
         ]);
 
         $validatedData = $validator->validate();
@@ -112,6 +106,7 @@ class DeviceDataService
                     'current' => $channelData['current'],
                     'current_raw' => $channelData['current_raw'],
                     'power' => $channelData['power'],
+                    'relay_state' => $channelData['relay_state'],
                 ];
                 $totalPower += $channelData['power'];
             }
@@ -129,32 +124,25 @@ class DeviceDataService
 
     /**
      * Get the latest data log for a device.
-     *
-     * @param Device $device
-     * @return Esp32MessageLog|null
      */
     public function getDeviceLatestData(Device $device): ?Esp32MessageLog
     {
         return Cache::remember(
             "device:{$device->id}:latest_data",
             30,
-            fn() => $device->esp32MessageLogs()->latest()->first()
+            fn () => $device->esp32MessageLogs()->latest()->first()
         );
     }
 
     /**
      * Get the data history for a device for a given number of hours.
-     *
-     * @param Device $device
-     * @param int $hours
-     * @return Collection
      */
     public function getDeviceDataHistory(Device $device, int $hours = 24): Collection
     {
         return Cache::remember(
             "device:{$device->id}:history:{$hours}h",
             600,
-            fn() => $device->esp32MessageLogs()
+            fn () => $device->esp32MessageLogs()
                 ->where('created_at', '>=', now()->subHours($hours))
                 ->get()
         );
@@ -162,11 +150,6 @@ class DeviceDataService
 
     /**
      * Calculate the power consumption for a device between two dates.
-     *
-     * @param Device $device
-     * @param Carbon $start
-     * @param Carbon $end
-     * @return float
      */
     public function calculatePowerConsumption(Device $device, Carbon $start, Carbon $end): float
     {
@@ -183,10 +166,6 @@ class DeviceDataService
 
     /**
      * Check if the current power usage exceeds the device's configured threshold.
-     *
-     * @param Device $device
-     * @param float $currentPower
-     * @return bool
      */
     public function checkPowerThresholdAlert(Device $device, float $currentPower): bool
     {

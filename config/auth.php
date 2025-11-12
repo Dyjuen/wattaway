@@ -44,6 +44,10 @@ return [
             'driver' => 'session',
             'provider' => 'accounts',
         ],
+        'account_token' => [
+            'driver' => 'account-token',
+            'provider' => 'accounts',
+        ],
     ],
 
     /*

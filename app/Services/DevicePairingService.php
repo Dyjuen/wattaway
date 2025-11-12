@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\Device;
 use App\Models\Account;
 use App\Models\AuditLog;
+use App\Models\Device;
 use App\Models\DeviceProvisioningToken;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -21,12 +21,13 @@ class DevicePairingService
     {
         $token = DeviceProvisioningToken::where('token', $token)->first();
 
-        if (!$token) {
+        if (! $token) {
             return ['success' => false, 'error' => 'Token not found'];
         }
 
         if ($token->isExpired()) {
             $token->update(['status' => 'expired']);
+
             return ['success' => false, 'error' => 'Token has expired'];
         }
 
@@ -44,7 +45,7 @@ class DevicePairingService
                 'serial_number' => $token->serial_number,
                 'manufacturing_date' => $token->metadata['manufacturing_date'] ?? null,
                 'batch' => $token->metadata['batch'] ?? null,
-            ]
+            ],
         ];
     }
 
@@ -53,7 +54,7 @@ class DevicePairingService
         return DB::transaction(function () use ($account, $token, $customName) {
             $provisioningToken = DeviceProvisioningToken::where('token', $token)->pending()->first();
 
-            if (!$provisioningToken) {
+            if (! $provisioningToken) {
                 throw new \Exception('Invalid or already used token.');
             }
 
@@ -66,7 +67,7 @@ class DevicePairingService
                 [
                     'account_id' => $account->id,
                     'provisioning_token_id' => $provisioningToken->id,
-                    'name' => $customName ?? 'Smart Socket ' . $provisioningToken->serial_number,
+                    'name' => $customName ?? 'Smart Socket '.$provisioningToken->serial_number,
                     'hardware_id' => $provisioningToken->hardware_id,
                     'status' => 'pending_activation',
                     'api_token' => Str::random(64),
@@ -85,7 +86,7 @@ class DevicePairingService
                     'device_id' => $device->id,
                     'serial_number' => $device->serial_number,
                     'token' => $token,
-                ]
+                ],
             ]);
 
             return $device;
@@ -107,7 +108,7 @@ class DevicePairingService
                 'context' => [
                     'device_id' => $device->id,
                     'serial_number' => $device->serial_number,
-                ]
+                ],
             ]);
 
             $device->delete();

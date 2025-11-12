@@ -16,7 +16,7 @@ class QrCodeService
             ->errorCorrection('H')
             ->generate($token->getQrCodeUrl());
 
-        return 'data:image/png;base64,' . base64_encode((string) $qrCode);
+        return 'data:image/png;base64,'.base64_encode((string) $qrCode);
     }
 
     public function generatePrintableLabel(DeviceProvisioningToken $token): string

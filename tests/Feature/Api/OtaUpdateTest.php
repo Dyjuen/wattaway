@@ -2,10 +2,10 @@
 
 namespace Tests\Feature\Api;
 
-use Tests\TestCase;
 use App\Models\Device;
 use App\Models\FirmwareVersion;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class OtaUpdateTest extends TestCase
 {
@@ -20,7 +20,7 @@ class OtaUpdateTest extends TestCase
         $device = Device::factory()->create(['firmware_version_id' => $firmware->id]);
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $device->api_token,
+            'Authorization' => 'Bearer '.$device->api_token,
             'X-Firmware-Version' => '1.0.0',
         ])->getJson('/api/v1/ota/check');
 
@@ -40,7 +40,7 @@ class OtaUpdateTest extends TestCase
         $device = Device::factory()->create(['firmware_version_id' => $firmware->id]);
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $device->api_token,
+            'Authorization' => 'Bearer '.$device->api_token,
             'X-Firmware-Version' => '1.1.0',
         ])->getJson('/api/v1/ota/check');
 

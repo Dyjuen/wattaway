@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('accounts', function (Blueprint $table) {
-            $table->string('api_token', 80)->after('password')
-                ->unique()
-                ->nullable()
-                ->default(null);
+        Schema::table('device_schedules', function (Blueprint $table) {
+            $table->unsignedTinyInteger('channel')->after('name')->default(1);
         });
     }
 
@@ -24,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('accounts', function (Blueprint $table) {
-            $table->dropColumn('api_token');
+        Schema::table('device_schedules', function (Blueprint $table) {
+            $table->dropColumn('channel');
         });
     }
 };

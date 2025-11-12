@@ -17,8 +17,13 @@ class DeviceControlController extends Controller
         $this->mqttPublishService = $mqttPublishService;
     }
 
-    public function updateRelayState(Request $request, Device $device)
+    public function updateRelayState(Request $request, $deviceId)
     {
+        $device = Device::find($deviceId);
+        if (!$device) {
+            return response()->json(['success' => false, 'message' => 'Device not found.'], 404);
+        }
+
         $validator = Validator::make($request->all(), [
             'channel' => 'required|integer|min:1|max:3',
             'state' => 'required|string|in:on,off',
@@ -40,7 +45,7 @@ class DeviceControlController extends Controller
                 return response()->json(['success' => false, 'message' => 'Failed to send command to device.'], 500);
             }
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Failed to send command to device: ' . $e->getMessage()], 500);
+            return response()->json(['success' => false, 'message' => 'Failed to send command to device: '.$e->getMessage()], 500);
         }
     }
 }

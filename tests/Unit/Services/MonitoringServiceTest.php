@@ -2,12 +2,12 @@
 
 namespace Tests\Unit\Services;
 
-use Tests\TestCase;
+use App\Events\DeviceOffline;
 use App\Models\Device;
 use App\Services\MonitoringService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
-use App\Events\DeviceOffline;
+use Tests\TestCase;
 
 class MonitoringServiceTest extends TestCase
 {
@@ -22,7 +22,7 @@ class MonitoringServiceTest extends TestCase
             'status' => 'online',
         ]);
 
-        $service = new MonitoringService();
+        $service = new MonitoringService;
         $service->checkDeviceStatus();
 
         $device->refresh();

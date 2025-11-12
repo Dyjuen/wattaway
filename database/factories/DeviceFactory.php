@@ -20,11 +20,11 @@ class DeviceFactory extends Factory
     {
         return [
             'account_id' => Account::factory(),
-            'name' => fake()->words(2, true) . ' Socket',
+            'name' => fake()->words(2, true).' Socket',
             'description' => fake()->sentence(),
             'status' => 'offline',
-            'serial_number' => 'WS' . fake()->unique()->bothify('############'),
-            'hardware_id' => 'ESP32-' . fake()->unique()->bothify('############'),
+            'serial_number' => 'WS'.fake()->unique()->bothify('############'),
+            'hardware_id' => 'ESP32-'.fake()->unique()->bothify('############'),
             'api_token' => Str::random(64),
         ];
     }

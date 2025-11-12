@@ -54,6 +54,7 @@ class AdminController extends Controller
     public function devices()
     {
         $devices = Device::latest()->paginate(50);
+
         return view('admin.devices.index', compact('devices'));
     }
 }

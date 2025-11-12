@@ -6,7 +6,6 @@ namespace App\Console\Commands;
 
 use App\Models\DeviceProvisioningToken;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class GenerateProvisioningTokensCommand extends Command
@@ -31,7 +30,7 @@ class GenerateProvisioningTokensCommand extends Command
 
         for ($i = 1; $i <= $quantity; $i++) {
             $serial = sprintf('WS%s%04d', $batch, $i);
-            $hardwareId = 'ESP32-' . strtoupper(Str::random(12));
+            $hardwareId = 'ESP32-'.strtoupper(Str::random(12));
 
             $token = DeviceProvisioningToken::generate($serial, $hardwareId, [
                 'batch' => $batch,

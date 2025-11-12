@@ -18,7 +18,7 @@ class OtaController extends Controller
 
         $latestStableFirmware = FirmwareVersion::stable()->latest()->first();
 
-        if (!$latestStableFirmware || !$latestStableFirmware->isNewerThan($currentVersion)) {
+        if (! $latestStableFirmware || ! $latestStableFirmware->isNewerThan($currentVersion)) {
             return response()->json(['update_available' => false]);
         }
 
@@ -36,7 +36,7 @@ class OtaController extends Controller
 
     public function downloadFirmware(Request $request, FirmwareVersion $firmware)
     {
-        if (!$request->hasValidSignature()) {
+        if (! $request->hasValidSignature()) {
             abort(401);
         }
 
@@ -45,6 +45,6 @@ class OtaController extends Controller
 
         $device->update(['firmware_version' => $firmware->version]);
 
-        return Storage::download($firmware->file_path, $firmware->version . '.bin');
+        return Storage::download($firmware->file_path, $firmware->version.'.bin');
     }
 }

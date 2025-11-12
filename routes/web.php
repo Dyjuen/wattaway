@@ -1,8 +1,6 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\FirmwareController;
-
+use App\Http\Controllers\AuthController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -14,8 +12,8 @@ use App\Http\Controllers\Admin\FirmwareController;
 |
 */
 
-use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DevicePairingController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('home');
@@ -61,6 +59,7 @@ Route::middleware(['auth:account'])->group(function () {
 
     Route::get('/devices', function () {
         $devices = auth()->user()->devices;
+
         return view('devices.index', compact('devices'));
     })->name('devices.index');
     Route::get('/pairing/confirm', [DevicePairingController::class, 'showConfirmPairing'])->name('pairing.confirm');
@@ -68,5 +67,3 @@ Route::middleware(['auth:account'])->group(function () {
 });
 
 Route::get('/provision/{token}', [DevicePairingController::class, 'handlePublicScan'])->name('pairing.public-scan');
-
-

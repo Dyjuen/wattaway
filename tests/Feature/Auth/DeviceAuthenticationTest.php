@@ -2,10 +2,9 @@
 
 namespace Tests\Feature\Auth;
 
-use Tests\TestCase;
 use App\Models\Device;
-use App\Models\Account;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class DeviceAuthenticationTest extends TestCase
 {
@@ -16,7 +15,7 @@ class DeviceAuthenticationTest extends TestCase
         $device = Device::factory()->create();
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $device->api_token,
+            'Authorization' => 'Bearer '.$device->api_token,
         ])->postJson('/api/v1/device/data', [
             'voltage' => 220,
             'current' => 5,

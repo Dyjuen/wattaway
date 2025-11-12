@@ -25,7 +25,7 @@ class DevicePairingController extends Controller
 
         $result = $this->pairingService->validateToken($validated['token']);
 
-        if (!$result['success']) {
+        if (! $result['success']) {
             return response()->json($result, 400);
         }
 
@@ -50,7 +50,7 @@ class DevicePairingController extends Controller
                     'name' => $device->name,
                     'serial_number' => $device->serial_number,
                     'status' => $device->status,
-                ]
+                ],
             ], 201);
         } catch (\Exception $e) {
             return response()->json([

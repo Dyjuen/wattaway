@@ -41,7 +41,7 @@
 
             <!-- Timer controls -->
             <div class="flex items-center space-x-6">
-                <button onclick="adjustTimer('{{ $device->device_id }}', -5)"
+                <button onclick="adjustTimer('{{ $device->device_id }}', -1)"
                         class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-200 hover:scale-105">
                     <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
@@ -51,16 +51,16 @@
                 <div class="w-64">
                     <input type="range"
                            id="timer-duration-{{ $device->device_id }}"
-                           min="5"
+                           min="1"
                            max="120"
                            value="{{ $device->configurations['timer']['duration'] ?? 30 }}"
-                           step="5"
+                           step="1"
                            class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer slider"
                            oninput="updateTimerDisplay('{{ $device->device_id }}', this.value)"
                            style="background: linear-gradient(to right, rgba(59, 130, 246, 0.8) 0%, rgba(59, 130, 246, 0.8) 25%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.1) 100%);">
                 </div>
 
-                <button onclick="adjustTimer('{{ $device->device_id }}', 5)"
+                <button onclick="adjustTimer('{{ $device->device_id }}', 1)"
                         class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-200 hover:scale-105">
                     <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -70,7 +70,7 @@
 
             <!-- Time indicators -->
             <div class="flex justify-between w-64 mt-2 text-xs text-gray-400">
-                <span>5m</span>
+                <span>1m</span>
                 <span>1h</span>
                 <span>2h</span>
             </div>

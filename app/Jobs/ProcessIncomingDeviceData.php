@@ -2,17 +2,14 @@
 
 namespace App\Jobs;
 
+use App\Models\Device;
+use App\Services\DeviceDataService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Device;
-use App\Models\Esp32MessageLog;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
-use App\Services\DeviceDataService;
 use Throwable;
 
 class ProcessIncomingDeviceData implements ShouldQueue
@@ -20,6 +17,7 @@ class ProcessIncomingDeviceData implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $tries = 3;
+
     public $backoff = [10, 30, 60];
 
     public function __construct(
@@ -29,7 +27,8 @@ class ProcessIncomingDeviceData implements ShouldQueue
 
     public function handle(DeviceDataService $deviceDataService): void
     {
-        $deviceDataService->logMqttMessage($this->deviceId, $this->data);
+        $device = Device::findOrFail($this->deviceId);
+        $deviceDataService->processIncomingData($device, $this->data);
     }
 
     public function failed(Throwable $exception): void

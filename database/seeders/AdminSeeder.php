@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use App\Models\Account;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class AdminSeeder extends Seeder
 {
@@ -14,7 +13,7 @@ class AdminSeeder extends Seeder
         // Check if admin already exists
         $adminExists = Account::where('email', 'admin@wattaway.com')->exists();
 
-        if (!$adminExists) {
+        if (! $adminExists) {
             $account = Account::create([
                 'username' => 'admin',
                 'email' => 'admin@wattaway.com',

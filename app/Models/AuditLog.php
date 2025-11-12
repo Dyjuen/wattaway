@@ -9,7 +9,7 @@ class AuditLog extends Model
     const UPDATED_AT = null; // Only track creation time
 
     protected $fillable = [
-        'account_id', 'action', 'description', 'auditable_id', 'auditable_type', 'context', 'ip_address', 'user_agent'
+        'account_id', 'action', 'description', 'auditable_id', 'auditable_type', 'context', 'ip_address', 'user_agent',
     ];
 
     protected $casts = [

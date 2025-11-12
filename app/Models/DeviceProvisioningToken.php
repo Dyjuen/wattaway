@@ -65,7 +65,7 @@ class DeviceProvisioningToken extends Model
     public static function generate(string $serialNumber, string $hardwareId, array $metadata = []): self
     {
         return self::create([
-            'token' => 'WS-' . strtoupper(Str::random(12)),
+            'token' => 'WS-'.strtoupper(Str::random(12)),
             'serial_number' => $serialNumber,
             'hardware_id' => $hardwareId,
             'status' => 'pending',
@@ -76,7 +76,7 @@ class DeviceProvisioningToken extends Model
 
     public function isPending(): bool
     {
-        return $this->status === 'pending' && !$this->isExpired();
+        return $this->status === 'pending' && ! $this->isExpired();
     }
 
     public function isPaired(): bool
