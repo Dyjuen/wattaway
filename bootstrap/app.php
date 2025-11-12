@@ -27,6 +27,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle.device.commands' => \App\Http\Middleware\ThrottleDeviceCommands::class,
         ]);
 
+        $middleware->group('api', [
+            \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+        ]);
+
         // Register CORS middleware
         $middleware->append(\App\Http\Middleware\CorsMiddleware::class);
 

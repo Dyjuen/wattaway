@@ -174,6 +174,37 @@
                 </div>
             </x-glass-card>
         </div>
+
+        {{-- Device Configuration --}}
+        <div class="stagger-item mt-8">
+            <x-glass-card>
+                <h3 class="text-xl font-semibold mb-4">Scheduler</h3>
+                <x-device-settings.scheduler :device="$device" />
+                <div class="flex justify-end space-x-3 mt-4 pt-4 border-t border-white/10">
+                    <x-button variant="primary" onclick="saveConfiguration('{{ $device->id }}', 'scheduler')">Save Scheduler</x-button>
+                </div>
+            </x-glass-card>
+        </div>
+
+        <div class="stagger-item mt-8">
+            <x-glass-card>
+                <h3 class="text-xl font-semibold mb-4">Timer</h3>
+                <x-device-settings.timer :device="$device" />
+                <div class="flex justify-end space-x-3 mt-4 pt-4 border-t border-white/10">
+                    <x-button variant="primary" onclick="saveConfiguration('{{ $device->id }}', 'timer')">Save Timer</x-button>
+                </div>
+            </x-glass-card>
+        </div>
+
+        <div class="stagger-item mt-8">
+            <x-glass-card>
+                <h3 class="text-xl font-semibold mb-4">Watt Limit</h3>
+                <x-device-settings.watt-limit :device="$device" />
+                <div class="flex justify-end space-x-3 mt-4 pt-4 border-t border-white/10">
+                    <x-button variant="primary" onclick="saveConfiguration('{{ $device->id }}', 'watt_limit')">Save Watt Limit</x-button>
+                </div>
+            </x-glass-card>
+        </div>
     </main>
 @endsection
 
@@ -676,5 +707,145 @@
       // Initial badge
       setBadge('Idle', 'gray');
     })();
+</script>
+
+{{-- Device Configuration Scripts --}}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Timer functionality
+        window.adjustTimer = function(deviceId, adjustment) {
+            const slider = document.getElementById(`timer-duration-${deviceId}`);
+            const currentValue = parseInt(slider.value);
+            const newValue = Math.max(5, Math.min(120, currentValue + adjustment));
+            slider.value = newValue;
+            updateTimerDisplay(deviceId, newValue);
+        };
+
+        window.updateTimerDisplay = function(deviceId, minutes) {
+            const display = document.getElementById(`timer-display-${deviceId}`);
+            const arc = document.getElementById(`timer-arc-${deviceId}`);
+            const slider = document.getElementById(`timer-duration-${deviceId}`);
+
+            if (minutes >= 60) {
+                const hours = Math.floor(minutes / 60);
+                const remainingMinutes = minutes % 60;
+                display.textContent = `${hours}h ${remainingMinutes}m`;
+            } else {
+                display.textContent = `${minutes}m`;
+            }
+
+            // Update the SVG arc based on the percentage (5-120 minutes)
+            const percentage = Math.min(((minutes - 5) / (120 - 5)) * 100, 100);
+            const circumference = 2 * Math.PI * 19; // radius is 19
+            const dashArray = `${(percentage / 100) * circumference} ${circumference}`;
+
+            if (arc) {
+                arc.setAttribute('stroke-dasharray', dashArray);
+            }
+            if (slider) {
+                slider.style.background = `linear-gradient(to right, rgba(59, 130, 246, 0.8) 0%, rgba(59, 130, 246, 0.8) ${percentage}%, rgba(255,255,255,0.1) ${percentage}%, rgba(255,255,255,0.1) 100%)`;
+            }
+        };
+
+        // Save device configuration
+        window.saveConfiguration = async function(deviceId, type) {
+            const saveBtn = document.querySelector(`button[onclick="saveConfiguration('${deviceId}', '${type}')"]`);
+            const originalText = saveBtn ? saveBtn.textContent : 'Save';
+
+            try {
+                if (saveBtn) {
+                    saveBtn.textContent = 'Saving...';
+                    saveBtn.disabled = true;
+                }
+
+                let configData = {};
+                if (type === 'scheduler') {
+                    configData = {
+                        start_time: document.getElementById(`scheduler-start-${deviceId}`).value,
+                        end_time: document.getElementById(`scheduler-end-${deviceId}`).value,
+                        is_active: true
+                    };
+                } else if (type === 'timer') {
+                    configData = {
+                        duration: parseInt(document.getElementById(`timer-duration-${deviceId}`).value),
+                        is_active: true
+                    };
+                } else if (type === 'watt_limit') {
+                    configData = {
+                        limit: parseInt(document.getElementById(`watt-limit-${deviceId}`).value),
+                        is_active: true
+                    };
+                }
+
+                const response = await axios.post(`/api/v1/devices/${deviceId}/configuration/${type}`, { configuration: configData });
+
+                showNotification(`${type.replace('_', ' ')} configuration saved!`, 'success');
+
+                // Reload the configuration to show the saved values
+                await loadConfiguration(deviceId, type);
+
+            } catch (error) {
+                console.error(`Error saving ${type} configuration:`, error);
+                showNotification(error.response?.data?.message || `Failed to save ${type} configuration.`, 'error');
+            } finally {
+                if (saveBtn) {
+                    saveBtn.textContent = originalText;
+                    saveBtn.disabled = false;
+                }
+            }
+        };
+
+        // Load device configuration
+        window.loadConfiguration = async function(deviceId, type) {
+            try {
+                const response = await axios.get(`/api/v1/devices/${deviceId}/configuration`);
+                const config = response.data;
+
+                if (type === 'scheduler' && config.scheduler) {
+                    document.getElementById(`scheduler-start-${deviceId}`).value = config.scheduler.start_time || '08:00';
+                    document.getElementById(`scheduler-end-${deviceId}`).value = config.scheduler.end_time || '18:00';
+                }
+
+                if (type === 'timer' && config.timer) {
+                    const duration = config.timer.duration || 30;
+                    document.getElementById(`timer-duration-${deviceId}`).value = duration;
+                    updateTimerDisplay(deviceId, duration);
+                }
+
+                if (type === 'watt_limit' && config.watt_limit) {
+                    document.getElementById(`watt-limit-${deviceId}`).value = config.watt_limit.limit || 1000;
+                }
+
+                showNotification(`${type.replace('_', ' ')} configuration loaded!`, 'success');
+
+            } catch (error) {
+                console.error(`Error loading ${type} configuration:`, error);
+                showNotification(error.response?.data?.message || `Failed to load ${type} configuration.`, 'error');
+            }
+        };
+
+        // Initialize timer displays
+        document.querySelectorAll('[id^="timer-duration-"]').forEach(slider => {
+            const deviceId = slider.id.replace('timer-duration-', '');
+            updateTimerDisplay(deviceId, slider.value);
+            slider.addEventListener('input', (e) => updateTimerDisplay(deviceId, e.target.value));
+        });
+
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-24 right-4 px-6 py-3 rounded-lg z-50 shadow-lg text-white ${
+                type === 'success' ? 'bg-green-500' :
+                type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.transition = 'opacity 0.5s ease';
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+    });
 </script>
 @endpush

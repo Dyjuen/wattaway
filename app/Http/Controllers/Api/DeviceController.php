@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Http\Requests\ControlDeviceRequest;
 use App\Http\Requests\CreateScheduleRequest;
+use App\Http\Requests\UpdateDeviceConfigurationRequest;
 use App\Http\Resources\DeviceResource;
 use App\Http\Resources\DeviceReadingResource;
 use App\Models\Device;
@@ -98,5 +99,39 @@ class DeviceController extends Controller
                         ->get();
 
         return DeviceReadingResource::collection($readings);
+    }
+
+    public function updateConfiguration(UpdateDeviceConfigurationRequest $request, Device $device, string $type)
+    {
+        $this->authorize('update', $device);
+
+        $validated = $request->validated();
+        $configuration = $validated['configuration'];
+
+        $device->configurations()->updateOrCreate(
+            ['type' => $type],
+            ['configuration' => $configuration]
+        );
+
+        $this->mqttPublishService->publishConfiguration($device, $type, $configuration);
+
+        AuditLog::log(
+            action: 'device.configuration.update',
+            description: "Device {$device->name} {$type} configuration updated",
+            context: ['device_id' => $device->id, 'new_values' => [$type => $configuration]]
+        );
+
+        return response()->json(['message' => 'Device configuration updated successfully.']);
+    }
+
+    public function getConfiguration(Device $device)
+    {
+        $this->authorize('view', $device);
+
+        $configurations = $device->configurations->keyBy('type')->map(function ($config) {
+            return $config->configuration;
+        });
+
+        return response()->json($configurations);
     }
 }

@@ -83,4 +83,46 @@ class MqttPublishService
     {
         return $this->sendCommand($device, 'get_status');
     }
+
+    public function publishConfiguration(Device $device, string $type, array $value): bool
+    {
+        $topic = "wattaway/{$device->hardware_id}/config/{$type}";
+        $payload = json_encode($value);
+
+        try {
+            if (!$this->mqtt->isConnected()) {
+                $connectionSettings = (new \PhpMqtt\Client\ConnectionSettings)
+                    ->setUsername($this->username)
+                    ->setPassword($this->password);
+                $this->mqtt->connect($connectionSettings, true);
+            }
+
+            $this->mqtt->publish($topic, $payload, 1, true); // QoS 1, retained
+
+            MqttMessageLog::logOutgoing(
+                deviceId: $device->id,
+                type: 'config',
+                payload: $value,
+                topic: $topic,
+                status: 'success',
+                responseCode: 200
+            );
+
+            Log::info("Configuration '{$type}' sent to device {$device->id}", ['payload' => $value]);
+            return true;
+        } catch (\Exception $e) {
+            MqttMessageLog::logOutgoing(
+                deviceId: $device->id,
+                type: 'config',
+                payload: $value,
+                topic: $topic,
+                status: 'error',
+                responseCode: 500,
+                error: $e->getMessage()
+            );
+
+            Log::error("Failed to send configuration '{$type}' to device {$device->id}", ['error' => $e->getMessage()]);
+            return false;
+        }
+    }
 }

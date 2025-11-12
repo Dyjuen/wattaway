@@ -34,6 +34,8 @@ Route::prefix('v1')->group(function () {
         Route::get('/{device}/data', [DeviceController::class, 'getData']);
         Route::get('/{device}/history', [DeviceController::class, 'getHistory']);
         Route::get('/{device}/readings', [DeviceController::class, 'readings']);
+        Route::get('/{device}/configuration', [DeviceController::class, 'getConfiguration']);
+        Route::post('/{device}/configuration/{type}', [DeviceController::class, 'updateConfiguration']);
     });
 
     Route::middleware(['auth.device', 'throttle:10,1'])->prefix('ota')->group(function () {
