@@ -90,6 +90,15 @@ class DeviceController extends Controller
     {
         $this->authorize('view', $device);
 
+        // Eager load and transform configurations
+        $configurations = $device->configurations()->get()->keyBy('key')->map(function ($config) {
+            return $config->value;
+        });
+
+        // This is a bit of a hack, but it makes the view code work without major refactoring.
+        // We are overwriting the relationship collection with a keyed collection.
+        $device->configurations = $configurations;
+
         $latestReading = $device->deviceReadings()->with('channelReadings')->latest('timestamp')->first();
 
         return view('devices.show', compact('device', 'latestReading'));

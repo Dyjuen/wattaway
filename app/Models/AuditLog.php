@@ -28,15 +28,20 @@ class AuditLog extends Model
 
     public static function log(string $action, string $description, array $context = []): void
     {
+        $device = null;
+        if (isset($context['device_id'])) {
+            $device = Device::find($context['device_id']);
+        }
+
         static::create([
             'account_id' => auth()->id(),
-            'device_id' => $context['device_id'] ?? null,
             'action' => $action,
             'description' => $description,
+            'auditable_id' => $device ? $device->id : null,
+            'auditable_type' => $device ? get_class($device) : null,
+            'context' => $context,
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
-            'old_values' => $context['old_values'] ?? null,
-            'new_values' => $context['new_values'] ?? null,
         ]);
     }
 }

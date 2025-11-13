@@ -118,7 +118,7 @@ class MqttPublishService
 
             MqttMessageLog::logOutgoing(
                 deviceId: $device->id,
-                type: 'config',
+                type: 'command',
                 payload: $value,
                 topic: $topic,
                 status: 'success',
@@ -131,7 +131,7 @@ class MqttPublishService
         } catch (\Exception $e) {
             MqttMessageLog::logOutgoing(
                 deviceId: $device->id,
-                type: 'config',
+                type: 'command',
                 payload: $value,
                 topic: $topic,
                 status: 'error',

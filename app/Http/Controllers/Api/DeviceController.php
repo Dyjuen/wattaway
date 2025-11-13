@@ -12,11 +12,14 @@ use App\Models\AuditLog;
 use App\Models\Device;
 use App\Services\DeviceDataService;
 use App\Services\MqttPublishService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class DeviceController extends Controller
 {
+    use AuthorizesRequests;
+
     public function __construct(
         protected DeviceDataService $deviceDataService,
         protected MqttPublishService $mqttPublishService
@@ -120,8 +123,8 @@ class DeviceController extends Controller
         $configuration = $validated['configuration'];
 
         $device->configurations()->updateOrCreate(
-            ['type' => $type],
-            ['configuration' => $configuration]
+            ['key' => $type],
+            ['value' => $configuration]
         );
 
         $this->mqttPublishService->publishConfiguration($device, $type, $configuration);
@@ -135,12 +138,17 @@ class DeviceController extends Controller
         return response()->json(['message' => 'Device configuration updated successfully.']);
     }
 
-    public function getConfiguration(Device $device)
+    public function getConfiguration($deviceId)
     {
+        $device = Device::find($deviceId);
+        if (!$device) {
+            return response()->json(['message' => 'Device not found.'], 404);
+        }
+
         $this->authorize('view', $device);
 
-        $configurations = $device->configurations->keyBy('type')->map(function ($config) {
-            return $config->configuration;
+        $configurations = $device->configurations->keyBy('key')->map(function ($config) {
+            return $config->value;
         });
 
         return response()->json($configurations);
