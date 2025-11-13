@@ -320,7 +320,7 @@
     });
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.44.0/apexcharts.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const deviceId = {{ $device->id }};
@@ -397,7 +397,25 @@
         chart.render();
 
         function fetchData() {
-            axios.get(`/api/v1/devices/${deviceId}/readings?range=24h`)
+            const apiTokenEl = document.querySelector('meta[name="api-token"]');
+            if (!apiTokenEl) {
+                console.error('Error: API token meta tag not found. User might not be authenticated.');
+                chart.updateOptions({ noData: { text: 'Authentication error.' } });
+                return;
+            }
+            const apiToken = apiTokenEl.getAttribute('content');
+            if (!apiToken) {
+                console.error('Error: API token is missing or empty. Cannot authenticate API requests.');
+                chart.updateOptions({ noData: { text: 'Authentication token not found.' } });
+                return;
+            }
+
+            axios.get(`/api/v1/devices/${deviceId}/readings?range=24h`, {
+                headers: {
+                    'Authorization': `Bearer ${apiToken}`,
+                    'Accept': 'application/json'
+                }
+            })
                 .then(function (response) {
                     const readings = response.data.data;
 

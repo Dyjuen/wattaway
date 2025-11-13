@@ -166,67 +166,64 @@
 @endsection
 
 @push('scripts')
-    <script type="module">
-        import { Chart, registerables } from 'chart.js';
-        Chart.register(...registerables);
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.44.0/apexcharts.min.js"></script>
+    <script>
         document.addEventListener('DOMContentLoaded', function() {
             const energyUsageData = @json($energyUsageData);
 
             if (document.getElementById('energyUsageChart') && energyUsageData.data.length > 0) {
-                const ctx = document.getElementById('energyUsageChart').getContext('2d');
-
-                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-                gradient.addColorStop(0, 'rgba(59, 130, 246, 0.5)');
-                gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
-
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: energyUsageData.labels,
-                        datasets: [{
-                            label: 'Power (Watts)',
-                            data: energyUsageData.data,
-                            borderColor: 'rgba(59, 130, 246, 1)',
-                            backgroundColor: gradient,
-                            borderWidth: 2,
-                            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
-                            pointBorderColor: '#fff',
-                            pointHoverBackgroundColor: '#fff',
-                            pointHoverBorderColor: 'rgba(59, 130, 246, 1)',
-                            tension: 0.4,
-                            fill: true
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    color: 'rgba(255, 255, 255, 0.7)'
-                                },
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.1)'
-                                }
-                            },
-                            x: {
-                                ticks: {
-                                    color: 'rgba(255, 255, 255, 0.7)'
-                                },
-                                grid: {
-                                    display: false
-                                }
-                            }
-                        },
-                        plugins: {
-                            legend: {
-                                display: false
-                            }
-                        }
-                    }
+                const chartData = energyUsageData.labels.map((label, index) => {
+                    return {
+                        x: new Date(label).getTime(),
+                        y: energyUsageData.data[index]
+                    };
                 });
+
+                const options = {
+                    series: [{
+                        name: 'Power (Watts)',
+                        data: chartData
+                    }],
+                    chart: {
+                        type: 'area',
+                        height: 256,
+                        zoom: { enabled: false },
+                        toolbar: { show: false },
+                        background: 'transparent'
+                    },
+                    dataLabels: { enabled: false },
+                    stroke: { curve: 'smooth', width: 2 },
+                    xaxis: {
+                        type: 'datetime',
+                        labels: { style: { colors: '#E5E7EB' } }
+                    },
+                    yaxis: {
+                        title: { text: 'Power (Watts)', style: { color: '#D1D5DB' } },
+                        labels: { style: { colors: '#E5E7EB' } }
+                    },
+                    tooltip: {
+                        x: { format: 'dd MMM yyyy HH:mm' },
+                        theme: 'dark'
+                    },
+                    grid: { borderColor: 'rgba(255, 255, 255, 0.1)' },
+                    fill: {
+                        type: 'gradient',
+                        gradient: {
+                            shadeIntensity: 1,
+                            opacityFrom: 0.7,
+                            opacityTo: 0.1,
+                            stops: [0, 90, 100]
+                        }
+                    },
+                    noData: {
+                        text: 'Loading data...',
+                        style: { color: '#9CA3AF', fontSize: '14px' }
+                    }
+                };
+
+                const chart = new ApexCharts(document.querySelector("#energyUsageChart"), options);
+                chart.render();
+
             } else if (document.getElementById('energyUsageChart')) {
                 // Optional: Show a message if there's no data
                 const chartEl = document.getElementById('energyUsageChart');

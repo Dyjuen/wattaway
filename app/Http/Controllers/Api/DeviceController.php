@@ -88,8 +88,10 @@ class DeviceController extends Controller
         return $this->deviceDataService->getDeviceDataHistory($device, $validated['hours'] ?? 24);
     }
 
-    public function readings(Request $request, Device $device)
+    public function readings(Request $request, $deviceId)
     {
+        $device = Device::findOrFail($deviceId);
+
         $this->authorize('view', $device);
 
         $range = $request->query('range', '24h'); // Default to 24 hours
