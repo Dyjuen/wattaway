@@ -6,60 +6,40 @@ use App\Http\Controllers\Controller;
 use App\Models\FirmwareVersion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class FirmwareController extends Controller
 {
     public function index()
     {
-        $firmwareVersions = FirmwareVersion::latest()->paginate(20);
-
-        return view('admin.firmware.index', compact('firmwareVersions'));
-    }
-
-    public function create()
-    {
-        return view('admin.firmware.create');
+        $firmwares = FirmwareVersion::orderBy('created_at', 'desc')->get();
+        return view('admin.firmware.index', compact('firmwares'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'version' => 'required|string|regex:/^\d+\.\d+\.\d+$/|unique:firmware_versions',
-            'description' => 'required|string|max:5000',
-            'file' => 'required|file|mimes:bin|max:2048',
-            'is_stable' => 'boolean',
+            'version' => 'required|string|unique:firmware_versions,version',
+            'description' => 'nullable|string',
+            'firmware_file' => 'required|file|mimes:bin',
         ]);
 
-        $path = $request->file('file')->store('firmware');
+        $file = $request->file('firmware_file');
+        $version = $request->input('version');
+        $fileName = 'esp32-firmware-v' . Str::slug($version) . '.bin';
+        $path = $file->storeAs('firmware', $fileName, 'public');
 
         FirmwareVersion::create([
-            'version' => $request->version,
-            'description' => $request->description,
+            'version' => $version,
+            'description' => $request->input('description'),
             'file_path' => $path,
-            'file_size' => $request->file('file')->getSize(),
-            'checksum' => md5_file($request->file('file')->getRealPath()),
-            'is_stable' => $request->boolean('is_stable'),
-            'released_at' => now(),
         ]);
 
-        return redirect()->route('admin.firmware.index')->with('success', 'Firmware uploaded successfully.');
-    }
-
-    public function show(FirmwareVersion $firmware)
-    {
-        return view('admin.firmware.show', compact('firmware'));
-    }
-
-    public function destroy(FirmwareVersion $firmware)
-    {
-        Storage::delete($firmware->file_path);
-        $firmware->delete();
-
-        return redirect()->route('admin.firmware.index')->with('success', 'Firmware deleted successfully.');
+        return back()->with('success', 'Firmware uploaded successfully.');
     }
 
     public function download(FirmwareVersion $firmware)
     {
-        return Storage::download($firmware->file_path, $firmware->version.'.bin');
+        return Storage::disk('public')->download($firmware->file_path);
     }
 }

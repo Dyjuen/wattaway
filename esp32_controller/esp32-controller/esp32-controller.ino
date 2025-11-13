@@ -4,22 +4,20 @@
 #include <ArduinoJson.h>
 #include <time.h>
 #include <Preferences.h>
+#include <HTTPClient.h>
+#include <HTTPUpdate.h>
 
 // -- Firmware Version --
 #define FIRMWARE_VERSION "1.0.1"
 
 // -- API Configuration --
 #define API_URL "172.16.100.63:8000/api/v1"
+#define OTA_URL "172.16.100.63:8000/api/v1/ota/check"
+
 
 // -- MQTT Configuration --
 #define MQTT_HOST "172.16.100.63"
 #define MQTT_PORT 1883
-
-// TODO: These should be unique for each device
-#define DEVICE_ID "33"
-#define API_TOKEN "zT944wjUkYCO2JYVyYXdgEJeVHA60rxVoL1HLX6UDbU38SmEbkRKLlNQ5IZ9c2kA"
-
-// MQTT Topics
 #define MQTT_TOPIC_DATA "devices/" DEVICE_ID "/data"
 #define MQTT_TOPIC_COMMANDS "devices/" DEVICE_ID "/commands"
 #define MQTT_TOPIC_STATUS "devices/" DEVICE_ID "/status"
@@ -52,6 +50,8 @@ unsigned long lastMsg = 0;
 void reconnectMQTT();
 void publishData();
 const char* getTimestamp();
+void checkForUpdate();
+void performUpdate(String url);
 
 #define DEBUG_PRINTLN(x) Serial.println(x)
 #define DEBUG_PRINT(x) Serial.print(x)
@@ -247,6 +247,72 @@ const char* getWiFiStatusString(int status) {
   }
 }
 
+void performUpdate(String url) {
+    DEBUG_PRINTLN("Starting OTA update...");
+    
+    // Use WiFiClient for the update
+    WiFiClient client;
+    
+    // httpUpdate.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS); // Optional
+    t_httpUpdate_return ret = httpUpdate.update(client, url);
+
+    switch (ret) {
+        case HTTP_UPDATE_FAILED:
+            DEBUG_PRINTF("HTTP_UPDATE_FAILED Error (%d): %s\n", httpUpdate.getLastError(), httpUpdate.getLastErrorString().c_str());
+            break;
+
+        case HTTP_UPDATE_NO_UPDATES:
+            DEBUG_PRINTLN("HTTP_UPDATE_NO_UPDATES");
+            break;
+
+        case HTTP_UPDATE_OK:
+            DEBUG_PRINTLN("HTTP_UPDATE_OK");
+            // This will not be reached, as the device reboots on success
+            break;
+    }
+}
+
+void checkForUpdate() {
+  DEBUG_PRINTLN("Checking for firmware updates...");
+  
+  String currentVersion = FIRMWARE_VERSION;
+  String url = "http://" OTA_URL;
+
+  HTTPClient http;
+  http.begin(url);
+  http.addHeader("x-firmware-version", currentVersion);
+  http.addHeader("Authorization", "Bearer " API_TOKEN);
+
+
+  int httpCode = http.GET();
+  if (httpCode > 0) {
+    if (httpCode == HTTP_CODE_OK) {
+      String payload = http.getString();
+      DEBUG_PRINTLN(payload);
+
+      StaticJsonDocument<512> doc;
+      deserializeJson(doc, payload);
+
+      if (doc["update_available"]) {
+        String newVersion = doc["version"];
+        String updateUrl = doc["download_url"];
+        DEBUG_PRINT("Update available: ");
+        DEBUG_PRINTLN(newVersion);
+        DEBUG_PRINT("URL: ");
+        DEBUG_PRINTLN(updateUrl);
+        
+        // Perform the update
+        performUpdate(updateUrl);
+      } else {
+        DEBUG_PRINTLN("Device is up-to-date.");
+      }
+    }
+  } else {
+    DEBUG_PRINTF("Update check failed, error: %s\n", http.errorToString(httpCode).c_str());
+  }
+  http.end();
+}
+
 void setup()
 {
   // CRITICAL: For ESP32-C3 USB CDC, initialize Serial FIRST
@@ -391,6 +457,8 @@ void setup()
       DEBUG_PRINTLN("\n⚠ Failed to obtain time. Continuing anyway...");
     }
     
+    checkForUpdate();
+
     DEBUG_PRINT("\nConfiguring MQTT broker: ");
     DEBUG_PRINT(MQTT_HOST);
     DEBUG_PRINT(":");
