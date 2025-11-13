@@ -57,6 +57,15 @@ class Device extends Model
         ];
     }
 
+    public function getStatusAttribute($value)
+    {
+        if ($this->last_seen_at && $this->last_seen_at->gte(now()->subMinutes(config('wattaway.device_offline_threshold', 5)))) {
+            return 'online';
+        }
+
+        return 'offline';
+    }
+
     public function account()
     {
         return $this->belongsTo(Account::class);
