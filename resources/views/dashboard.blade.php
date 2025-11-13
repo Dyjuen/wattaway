@@ -50,7 +50,7 @@
                     </x-slot>
                 </x-stat-card>
 
-                <x-stat-card title="Energy Saved" value="{{ round($totalEnergySaved, 2) }} kWh" change="{{ round($energyChange, 1) }}%" changeType="{{ $energyChange > 0 ? 'increase' : 'decrease' }}">
+                <x-stat-card title="Peak Power (24h)" value="{{ round($peakPower ?? 0, 2) }} W">
                     <x-slot name="icon">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                     </x-slot>
@@ -87,17 +87,11 @@
                         </div>
                     </x-glass-card>
 
-                    <!-- Energy Usage Chart Placeholder -->
+                    <!-- Energy Usage Chart -->
                     <x-glass-card class="stagger-item">
-                        <h2 class="text-2xl font-bold mb-6">Energy Usage Analytics</h2>
-                        <div class="bg-white/5 rounded-xl h-64 flex items-center justify-center border border-white/10">
-                            <div class="text-center">
-                                <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                </svg>
-                                <p class="text-gray-400">Energy usage chart will be displayed here</p>
-                                <p class="text-sm text-gray-500 mt-2">Connect your devices to see real-time analytics</p>
-                            </div>
+                        <h2 class="text-2xl font-bold mb-6">Energy Usage Analytics (Last 24 Hours)</h2>
+                        <div class="bg-white/5 rounded-xl p-4 border border-white/10">
+                            <canvas id="energyUsageChart" style="height: 256px;"></canvas>
                         </div>
                     </x-glass-card>
                 </div>
@@ -140,7 +134,7 @@
                     <x-glass-card class="stagger-item">
                         <h3 class="text-xl font-bold mb-4">Recent Activity</h3>
                         <div class="space-y-4">
-                            @foreach ($recentActivities as $activity)
+                            @forelse ($recentActivities as $activity)
                                 <div class="flex items-start space-x-3 stagger-item">
                                     <div class="w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
                                     <div class="flex-1">
@@ -148,7 +142,9 @@
                                         <p class="text-xs text-gray-400">{{ $activity->created_at->diffForHumans() }}</p>
                                     </div>
                                 </div>
-                            @endforeach
+                            @empty
+                                <p class="text-sm text-gray-400">No recent activity to show.</p>
+                            @endforelse
                         </div>
                     </x-glass-card>
                 </div>
@@ -170,10 +166,79 @@
 @endsection
 
 @push('scripts')
-    <script>
-        // Immediate background image preloader
+    <script type="module">
+        import { Chart, registerables } from 'chart.js';
+        Chart.register(...registerables);
+
         document.addEventListener('DOMContentLoaded', function() {
-            // Preload the background image immediately
+            const energyUsageData = @json($energyUsageData);
+
+            if (document.getElementById('energyUsageChart') && energyUsageData.data.length > 0) {
+                const ctx = document.getElementById('energyUsageChart').getContext('2d');
+
+                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, 'rgba(59, 130, 246, 0.5)');
+                gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: energyUsageData.labels,
+                        datasets: [{
+                            label: 'Power (Watts)',
+                            data: energyUsageData.data,
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            backgroundColor: gradient,
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(59, 130, 246, 1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.7)'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.7)'
+                                },
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            } else if (document.getElementById('energyUsageChart')) {
+                // Optional: Show a message if there's no data
+                const chartEl = document.getElementById('energyUsageChart');
+                const parent = chartEl.parentElement;
+                parent.innerHTML = `<div class="text-center py-16">
+                                        <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                                        <p class="text-gray-400">Not enough data to display chart.</p>
+                                        <p class="text-sm text-gray-500 mt-2">Check back later after your devices have reported some usage.</p>
+                                    </div>`;
+            }
+
+            // Immediate background image preloader
             const bgImage = new Image();
             bgImage.onload = function() {
                 document.body.classList.add('bg-loaded');

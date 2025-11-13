@@ -32,7 +32,7 @@
 
                     <!-- Desktop Action Buttons -->
                     <div class="hidden md:flex items-center space-x-4">
-                        @if(request()->routeIs('dashboard') || request()->routeIs('settings') || request()->routeIs('information'))
+                        @if(request()->routeIs('dashboard') || request()->routeIs('settings') || request()->routeIs('information') || request()->routeIs('devices.index') || request()->routeIs('devices.show'))
                             <form method="POST" action="{{ route('logout') }}" class="inline">
                                 @csrf
                                 <button type="submit" class="bg-red-500 hover:bg-red-600 text-white font-semibold px-6 py-2 rounded-full transition-colors">
@@ -87,7 +87,7 @@
 
                         <!-- Mobile Action Buttons -->
                         <div class="mt-4 pt-4 border-t border-white/10 space-y-3">
-                            @if(request()->routeIs('dashboard'))
+                            @if(request()->routeIs('dashboard') || request()->routeIs('settings') || request()->routeIs('information') || request()->routeIs('devices.index') || request()->routeIs('devices.show'))
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors">
