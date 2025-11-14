@@ -21,8 +21,6 @@ return Application::configure(basePath: dirname(__DIR__))
         }
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->prepend(\App\Http\Middleware\LogRequest::class);
-
         $middleware->alias([
             'auth.device' => \App\Http\Middleware\AuthenticateDevice::class,
             'admin' => \App\Http\Middleware\EnsureUserIsAdmin::class,
