@@ -14,6 +14,13 @@ class DeviceController extends Controller
         private readonly QrCodeService $qrCodeService
     ) {}
 
+    public function index()
+    {
+        $devices = Device::orderBy('created_at', 'desc')->paginate(50);
+
+        return view('admin.devices.index', compact('devices'));
+    }
+
     public function create()
     {
         return view('admin.devices.create');
