@@ -14,4 +14,9 @@ class MessageController extends Controller
 
         return view('admin.messages.index', compact('messages'));
     }
+
+    public function show(MqttMessageLog $message)
+    {
+        return view('admin.messages.show', compact('message'));
+    }
 }

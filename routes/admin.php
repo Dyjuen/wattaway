@@ -17,13 +17,18 @@ Route::middleware(['auth', EnsureUserIsAdmin::class])->prefix('admin')->name('ad
 
     // Device Management
     Route::get('/devices', [AdminDeviceController::class, 'index'])->name('devices.index');
+    Route::get('/devices/create', [AdminDeviceController::class, 'create'])->name('devices.create');
+    Route::post('/devices', [AdminDeviceController::class, 'store'])->name('devices.store');
     Route::get('/devices/{device}', [AdminDeviceController::class, 'show'])->name('devices.show');
 
     // Message Logs
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+    Route::get('/messages/{message}', [MessageController::class, 'show'])->name('messages.show');
 
     // Provisioning Tokens
     Route::get('/provisioning-tokens', [ProvisioningTokenController::class, 'index'])->name('provisioning-tokens.index');
+    Route::get('/provisioning-tokens/{token}/qr', [ProvisioningTokenController::class, 'qrCode'])->name('provisioning-tokens.qr');
+    Route::post('/provisioning-tokens/{token}/revoke', [ProvisioningTokenController::class, 'revoke'])->name('provisioning-tokens.revoke');
 
     // Firmware Management
     Route::get('/firmware', [FirmwareController::class, 'index'])->name('firmware.index');
