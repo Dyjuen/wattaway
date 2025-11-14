@@ -56,10 +56,10 @@ class OtaController extends Controller
             abort(401);
         }
 
-        $device = $request->user();
-        Log::info("Device {$device->id} is downloading firmware version {$firmware->version}");
-
-        $device->update(['firmware_version' => $firmware->version]);
+        // The download route is not authenticated, so we cannot get a device from the request.
+        // The security is handled by the signed URL's signature.
+        // Log::info("A device is downloading firmware version {$firmware->version}");
+        // $device->update(['firmware_version' => $firmware->version]);
 
         return Storage::download($firmware->file_path, $firmware->version.'.bin');
     }
