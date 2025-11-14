@@ -44,4 +44,17 @@ class FirmwareController extends Controller
     {
         return Storage::disk('public')->download($firmware->file_path);
     }
+
+    public function destroy(FirmwareVersion $firmware)
+    {
+        // Delete the file from storage
+        if (Storage::disk('public')->exists($firmware->file_path)) {
+            Storage::disk('public')->delete($firmware->file_path);
+        }
+
+        // Delete the database record
+        $firmware->delete();
+
+        return back()->with('success', 'Firmware version ' . $firmware->version . ' deleted successfully.');
+    }
 }
