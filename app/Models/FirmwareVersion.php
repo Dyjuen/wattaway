@@ -38,10 +38,8 @@ class FirmwareVersion extends Model
         return $query->where('is_stable', true);
     }
 
-    public function scopeLatest($query)
-    {
-        return $query->orderBy('version', 'desc');
-    }
+    // The scopeLatest method was removed because it used an incorrect lexicographical sort.
+    // Correct semantic version sorting is now handled in the OtaController.
 
     public function isNewerThan(string $version): bool
     {

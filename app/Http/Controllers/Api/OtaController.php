@@ -20,7 +20,19 @@ class OtaController extends Controller
             return response()->json(['message' => 'x-firmware-version header is required.'], 400);
         }
 
-        $latestStableFirmware = FirmwareVersion::stable()->latest()->first();
+        $stableFirmwares = FirmwareVersion::stable()->get();
+
+        if ($stableFirmwares->isEmpty()) {
+            return response()->json(['update_available' => false]);
+        }
+
+        // Manually find the latest version to ensure correct semantic version comparison
+        $latestStableFirmware = null;
+        foreach ($stableFirmwares as $firmware) {
+            if ($latestStableFirmware === null || version_compare($firmware->version, $latestStableFirmware->version, '>')) {
+                $latestStableFirmware = $firmware;
+            }
+        }
 
         if (! $latestStableFirmware || ! $latestStableFirmware->isNewerThan($currentVersion)) {
             return response()->json(['update_available' => false]);
