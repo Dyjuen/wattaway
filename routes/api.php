@@ -39,7 +39,7 @@ Route::prefix('v1')->group(function () {
     });
 
     // The download route is protected by the signed URL signature, not the device API token.
-    Route::get('/v1/ota/download/{firmware}', [OtaController::class, 'downloadFirmware'])->name('api.ota.download');
+    Route::get('/ota/download/{firmware}', [OtaController::class, 'downloadFirmware'])->name('api.ota.download');
 });
 
 // Authenticated user routes
