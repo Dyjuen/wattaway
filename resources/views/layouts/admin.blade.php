@@ -33,7 +33,7 @@
                         <a href="{{ route('admin.messages.index') }}" class="px-4 py-2 rounded hover:bg-indigo-700">
                             <i class="fas fa-message mr-2"></i>Messages
                         </a>
-                        <a href="{{ route('admin.devices') }}" class="px-4 py-2 rounded hover:bg-indigo-700">
+                        <a href="{{ route('admin.devices.index') }}" class="px-4 py-2 rounded hover:bg-indigo-700">
                             <i class="fas fa-plug mr-2"></i>Devices
                         </a>
                         <a href="{{ route('admin.provisioning-tokens.index') }}" class="px-4 py-2 rounded hover:bg-indigo-700">
