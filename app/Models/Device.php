@@ -4,10 +4,10 @@ namespace App\Models;
 
 use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Str;
 
-class Device extends Model
+class Device extends Authenticatable
 {
     use Auditable;
     use HasFactory;
