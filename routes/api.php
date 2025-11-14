@@ -36,8 +36,10 @@ Route::prefix('v1')->group(function () {
 
     Route::middleware(['auth.device', 'throttle:10,1'])->prefix('ota')->group(function () {
         Route::get('/check', [OtaController::class, 'checkUpdate']);
-        Route::get('/download/{firmware}', [OtaController::class, 'downloadFirmware'])->name('api.ota.download');
     });
+
+    // The download route is protected by the signed URL signature, not the device API token.
+    Route::get('/v1/ota/download/{firmware}', [OtaController::class, 'downloadFirmware'])->name('api.ota.download');
 });
 
 // Authenticated user routes
