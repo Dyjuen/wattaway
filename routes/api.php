@@ -19,7 +19,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function () {
-    Route::middleware(['auth.device', 'throttle:120,1'])->group(function () {});
+    Route::middleware(['auth.device', 'throttle:120,1'])->group(function () {
+        // This group is intentionally empty.
+    });
 
     Route::middleware(['auth:account_token'])->prefix('devices')->group(function () {
         Route::get('/', [DeviceController::class, 'index']);
@@ -34,13 +36,16 @@ Route::prefix('v1')->group(function () {
         Route::post('/{device}/configuration/{type}', [DeviceController::class, 'updateConfiguration']);
     });
 
+    // OTA check route requires device authentication
     Route::middleware(['auth.device', 'throttle:10,1'])->prefix('ota')->group(function () {
         Route::get('/check', [OtaController::class, 'checkUpdate']);
     });
-
-    // The download route is protected by the signed URL signature, not the device API token.
-    Route::get('/ota/download/{firmware}', [OtaController::class, 'downloadFirmware'])->name('api.ota.download');
 });
+
+// The OTA download route is separate because it is protected by a signed URL, not an API token.
+// It still needs the /api/v1 prefix, which is applied by the RouteServiceProvider.
+Route::get('/v1/ota/download/{firmware}', [OtaController::class, 'downloadFirmware'])->name('api.ota.download');
+
 
 // Authenticated user routes
 Route::middleware('auth:account_token')->prefix('v1')->group(function () {
