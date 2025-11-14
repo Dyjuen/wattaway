@@ -57,4 +57,18 @@ class FirmwareController extends Controller
 
         return back()->with('success', 'Firmware version ' . $firmware->version . ' deleted successfully.');
     }
+
+    public function triggerOtaUpdate(MqttPublishService $mqttService)
+    {
+        $devices = \App\Models\Device::all();
+        $successCount = 0;
+
+        foreach ($devices as $device) {
+            if ($mqttService->triggerOtaCheck($device)) {
+                $successCount++;
+            }
+        }
+
+        return back()->with('success', "OTA update command sent to {$successCount} out of " . count($devices) . ' devices.');
+    }
 }

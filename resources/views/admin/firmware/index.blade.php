@@ -62,7 +62,15 @@
     <!-- Firmware List -->
     <div class="lg:col-span-2">
         <div class="bg-white rounded-lg shadow p-6">
-            <h2 class="text-2xl font-bold mb-4">Available Firmware</h2>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Available Firmware</h2>
+                <form action="{{ route('admin.firmware.trigger-ota') }}" method="POST" onsubmit="return confirm('This will send an update command to ALL online devices. Are you sure?');">
+                    @csrf
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        <i class="fas fa-sync-alt mr-2"></i>Force OTA Update Check
+                    </button>
+                </form>
+            </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">

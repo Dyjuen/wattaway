@@ -8,15 +8,18 @@
 #include <HTTPUpdate.h>
 
 // -- Firmware Version --
-#define FIRMWARE_VERSION "1.0.1"
+#define FIRMWARE_VERSION "1.0.2"
+
+#define DEVICE_ID "1"
+#define API_TOKEN "1iYsdb9Dahw9NGv2HWQ6Ilm2kzYuanBKaHHYu9fAzfJtIxwxunMa1sMBZcWikmgC"
 
 // -- API Configuration --
-#define API_URL "172.16.100.63:8000/api/v1"
-#define OTA_URL "172.16.100.63:8000/api/v1/ota/check"
+#define API_URL "wattaway.id/api/v1"
+#define OTA_URL "wattaway.id/api/v1/ota/check"
 
 
 // -- MQTT Configuration --
-#define MQTT_HOST "172.16.100.63"
+#define MQTT_HOST "wattaway.id"
 #define MQTT_PORT 1883
 #define MQTT_TOPIC_DATA "devices/" DEVICE_ID "/data"
 #define MQTT_TOPIC_COMMANDS "devices/" DEVICE_ID "/commands"
@@ -35,8 +38,8 @@
 
 // Relay Controls
 #define RELAY1_PIN         5   // GPIO5 - Relay 1
-#define RELAY2_PIN         7   // GPIO7 - Relay 2
-#define RELAY3_PIN         10  // GPIO10 - Relay 3
+#define RELAY2_PIN         10   // GPIO7 - Relay 2
+#define RELAY3_PIN         7  // GPIO10 - Relay 3
 
 #define MSG_PUBLISH_INTERVAL 30000 // 30 seconds
 
@@ -55,6 +58,7 @@ void performUpdate(String url);
 
 #define DEBUG_PRINTLN(x) Serial.println(x)
 #define DEBUG_PRINT(x) Serial.print(x)
+#define DEBUG_PRINTF(format, ...) Serial.printf(format, ##__VA_ARGS__)
 
 // -- SENSOR CALIBRATION CONSTANTS --
 // Voltage Sensor (ZMPT101B) - This is a scaling factor applied after RMS calculation.
@@ -210,6 +214,10 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
       sendAck(command, "success");
       delay(1000);
       ESP.restart();
+  }
+  else if (strcmp(command, "check_for_update") == 0) {
+      sendAck(command, "success");
+      checkForUpdate();
   }
 }
 

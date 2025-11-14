@@ -1,26 +1,24 @@
 <?php
 
-use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DeviceController as AdminDeviceController;
+use App\Http\Controllers\Admin\FirmwareController;
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['web', 'auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
-    Route::get('/messages', [AdminController::class, 'messages'])->name('messages.index');
-    Route::get('/messages/{message}', [AdminController::class, 'showMessage'])->name('messages.show');
-    Route::get('/devices', [AdminController::class, 'devices'])->name('devices');
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::resource('firmware', \App\Http\Controllers\Admin\FirmwareController::class);
-    Route::get('firmware/{firmware}/download', [\App\Http\Controllers\Admin\FirmwareController::class, 'download'])
-        ->name('firmware.download');
+    // User Management
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
 
-    Route::resource('provisioning-tokens', \App\Http\Controllers\Admin\ProvisioningTokenController::class)
-        ->only(['index', 'show']);
-    Route::post('provisioning-tokens/{provisioning_token}/revoke', [\App\Http\Controllers\Admin\ProvisioningTokenController::class, 'revoke'])
-        ->name('provisioning-tokens.revoke');
-    Route::get('provisioning-tokens/{provisioning_token}/qr', [\App\Http\Controllers\Admin\ProvisioningTokenController::class, 'generateQr'])
-        ->name('provisioning-tokens.qr');
-    Route::post('provisioning-tokens/export', [\App\Http\Controllers\Admin\ProvisioningTokenController::class, 'export'])
-        ->name('provisioning-tokens.export');
+    // Device Management
+    Route::get('/devices', [AdminDeviceController::class, 'index'])->name('devices.index');
+    Route::get('/devices/{device}', [AdminDeviceController::class, 'show'])->name('devices.show');
 
-    Route::resource('devices', \App\Http\Controllers\Admin\DeviceController::class)->only(['create', 'store', 'show']);
+    // Firmware Management
+    Route::get('/firmware', [FirmwareController::class, 'index'])->name('firmware.index');
+    Route::post('/firmware', [FirmwareController::class, 'store'])->name('firmware.store');
+    Route::delete('/firmware/{firmware}', [FirmwareController::class, 'destroy'])->name('firmware.destroy');
+    Route::post('/firmware/trigger-ota', [FirmwareController::class, 'triggerOtaUpdate'])->name('firmware.trigger-ota');
 });

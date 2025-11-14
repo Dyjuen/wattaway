@@ -101,6 +101,11 @@ class MqttPublishService
         return $this->sendCommand($device, 'get_status');
     }
 
+    public function triggerOtaCheck(Device $device): bool
+    {
+        return $this->sendCommand($device, 'check_for_update');
+    }
+
     public function publishConfiguration(Device $device, string $type, array $value): bool
     {
         $topic = "wattaway/{$device->hardware_id}/config/{$type}";
