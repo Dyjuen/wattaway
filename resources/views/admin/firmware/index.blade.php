@@ -80,7 +80,13 @@
                                 <td class="px-4 py-2 text-sm">{{ Str::limit($firmware->description, 50) }}</td>
                                 <td class="px-4 py-2 text-sm">{{ $firmware->created_at->diffForHumans() }}</td>
                                 <td class="px-4 py-2 text-sm">
-                                    <a href="#" class="text-red-600 hover:text-red-900">Delete</a>
+                                    <form action="{{ route('admin.firmware.destroy', $firmware) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete version {{ $firmware->version }}?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-600 hover:text-red-900 focus:outline-none">
+                                            Delete
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         @empty
