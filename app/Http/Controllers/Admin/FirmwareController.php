@@ -33,6 +33,8 @@ class FirmwareController extends Controller
             'version' => $version,
             'description' => $request->input('description'),
             'file_path' => $path,
+            'file_size' => $file->getSize(),
+            'checksum' => md5_file($file->getRealPath()),
         ]);
 
         return back()->with('success', 'Firmware uploaded successfully.');
