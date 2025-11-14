@@ -22,8 +22,8 @@
         <main id="top" class="hero-section flex-grow w-full max-w-7xl mx-auto flex flex-col items-center justify-center text-center mt-16 z-10 px-6 stagger-container">
             <!-- Hero Section -->
             <h2 class="text-2xl md:text-3xl text-gray-300 hero-subtitle">Welcome!</h2>
-            <h1 class="font-brand md:text-9xl font-black my-4 hero-title" style="text-shadow: 0 5px 15px rgba(0,0,0,0.3);">
-                <img data-src="{{ asset('images/dist/wattaway.svg') }}" src="{{ asset('images/dist/placeholders/wattaway.svg') }}" alt="WattAway" class="lazyload h-20 md:h-28 lg:h-36 w-auto inline-block" width="959" height="144" decoding="async" style="filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3));">
+            <h1 class="font-brand md:text-9xl font-black my-4 hero-title">
+                <img data-src="{{ asset('images/dist/wattaway.svg') }}" src="{{ asset('images/dist/placeholders/wattaway.svg') }}" alt="WattAway" class="lazyload h-20 md:h-28 lg:h-36 w-auto inline-block" width="959" height="144" decoding="async">
             </h1>
 
             <div class="relative md:mt-4 w-full flex flex-col md:flex-row justify-center items-center">
@@ -64,10 +64,10 @@
         <!-- Product Section -->
         <section id="product" class="has-radial-gradient relative w-full z-10 mt-16 py-20 overflow-hidden stagger-container">
             <div class="relative max-w-7xl mx-auto px-4">
-                <div class="absolute top-8 right-20 text-black/40 opacity-50 transform -rotate-12" style="font-size: 8rem; filter: blur(2px);"> &#9789; </div>
-                <div class="absolute top-4 right-8 text-black/40 opacity-50 transform rotate-12" style="font-size: 5rem; filter: blur(2px);">&#9789;</div>
-                <div class="absolute bottom-24 left-16 text-black/40 opacity-50 transform -rotate-12" style="font-size: 6rem; filter: blur(2px);">&#9789;</div>
-                <div class="absolute bottom-8 right-32 text-black/40 opacity-50 transform rotate-12" style="font-size: 7rem; filter: blur(2px);">&#9789;</div>
+                <div class="absolute top-8 right-20 text-black/40 opacity-50 transform -rotate-12 product-smiley-1"> &#9789; </div>
+                <div class="absolute top-4 right-8 text-black/40 opacity-50 transform rotate-12 product-smiley-2">&#9789;</div>
+                <div class="absolute bottom-24 left-16 text-black/40 opacity-50 transform -rotate-12 product-smiley-3">&#9789;</div>
+                <div class="absolute bottom-8 right-32 text-black/40 opacity-50 transform rotate-12 product-smiley-4">&#9789;</div>
 
                 <h2 class="text-3xl md:text-4xl font-bold text-white mb-12 relative z-10 stagger-item">Wattaway offers smart <br> solutions for modern living</h2>
 
@@ -91,7 +91,7 @@
                         <div x-data="{ currentSlide: 0, slides: 3 }" x-init="setInterval(() => { currentSlide = (currentSlide + 1) % slides }, 5000)" class="bg-white/5 backdrop-blur-md w-full h-56 rounded-3xl flex items-center justify-center shadow-lg border border-white/10 overflow-hidden relative hover:bg-white/10 hover:border-white/20 hover:shadow-3xl hover:scale-105 transition-all duration-300 ease-out">
                             <!-- Sliding Gallery Container -->
                             <div class="w-full h-full relative">
-                                <div class="flex transition-transform duration-500 ease-in-out h-full" :style="`transform: translateX(-${currentSlide * 100}%)`">
+                                <div class="flex transition-transform duration-500 ease-in-out h-full" style="transform: translateX(-${currentSlide * 100}%)">
                                     <div class="w-full h-full flex-shrink-0">
                                         <img data-src="{{ asset('images/dist/gallery1.jpeg') }}" src="{{ asset('images/dist/placeholders/gallery1.jpeg') }}" alt="Gallery Image 1" class="lazyload w-full h-full object-cover" width="384" height="224" decoding="async">
                                     </div>
@@ -125,8 +125,8 @@
         <!-- About Us Section -->
         <section id="about" class="has-radial-gradient relative w-full z-10 mt-16 py-40 overflow-hidden stagger-container">
             <div class="relative max-w-7xl mx-auto px-4">
-                <div class="absolute top-8 left-8 text-black/40 opacity-50 transform -rotate-12" style="font-size: 6rem; filter: blur(2px);">&#9789;</div>
-                <div class="absolute bottom-8 right-8 text-black/40 opacity-50 transform rotate-12" style="font-size: 7rem; filter: blur(2px);">&#9789;</div>
+                <div class="absolute top-8 left-8 text-black/40 opacity-50 transform -rotate-12 about-smiley-1">&#9789;</div>
+                <div class="absolute bottom-8 right-8 text-black/40 opacity-50 transform rotate-12 about-smiley-2">&#9789;</div>
                 
                 <div class="relative z-10 max-w-3xl mx-auto text-center">
                     <div class="bg-white/5 backdrop-blur-md rounded-3xl p-8 md:p-12 shadow-lg border border-white/10 stagger-item">
@@ -223,7 +223,7 @@
                         </div>
                     </a>
                  </div>
-                 <div class="mt-16 text-black/40 opacity-50 stagger-item" style="font-size: 8rem; filter: blur(2px);">&#9789;</div>
+                 <div class="mt-16 text-black/40 opacity-50 stagger-item contact-smiley">&#9789;</div>
              </div>
         </section>
     </div>
