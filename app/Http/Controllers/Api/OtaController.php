@@ -16,6 +16,10 @@ class OtaController extends Controller
         $device = $request->user();
         $currentVersion = $request->header('x-firmware-version');
 
+        if (! $currentVersion) {
+            return response()->json(['message' => 'x-firmware-version header is required.'], 400);
+        }
+
         $latestStableFirmware = FirmwareVersion::stable()->latest()->first();
 
         if (! $latestStableFirmware || ! $latestStableFirmware->isNewerThan($currentVersion)) {
