@@ -3,8 +3,8 @@ import 'lazysizes';
 import 'lazysizes/plugins/parent-fit/ls.parent-fit';
 
 window.lazySizesConfig = window.lazySizesConfig || {};
-window.lazySizesConfig.expand = 100;
-window.lazySizesConfig.expFactor = 1;
+window.lazySizesConfig.expand = 300;
+window.lazySizesConfig.expFactor = 1.5;
 
 
 import './bootstrap';

@@ -2,10 +2,6 @@
 
 @section('title', 'WattAway - Effortless Energy Management')
 
-@push('styles')
-    <link rel="stylesheet" href="{{ asset('css/animations.css') }}">
-@endpush
-
 @section('content')
 <div class="loading-overlay">
     <img src="{{ asset('images/wattaway.svg') }}" alt="WattAway Logo" class="loading-logo h-28">
@@ -28,7 +24,7 @@
 
             <div class="relative md:mt-4 w-full flex flex-col md:flex-row justify-center items-center">
                 <!-- Mascot Image -->
-                <img data-src="{{ asset('images/dist/mascot.svg') }}" src="{{ asset('images/dist/placeholders/mascot.svg') }}" alt="WattAway Mascot" class="lazyload w-[28rem] h-[28rem] md:w-[50rem] md:h-[50rem] object-contain z-0 hero-mascot stagger-item" width="800" height="800" decoding="async">
+                <img data-src="{{ asset('images/dist/mascot.png') }}" src="{{ asset('images/dist/placeholders/mascot.png') }}" alt="WattAway Mascot" class="lazyload w-[28rem] h-[28rem] md:w-[50rem] md:h-[50rem] object-contain z-0 hero-mascot stagger-item" width="800" height="800" decoding="async">
 
                 <!-- Left Text Box -->
                 <div class="hidden md:block absolute md:left-8 lg:left-[5%] top-1/2 -translate-y-1/4 bg-black/20 backdrop-blur-md border border-white/10 rounded-3xl p-6 max-w-xs shadow-2xl transform z-10 stagger-item hover:bg-black/30 hover:border-white/20 hover:shadow-3xl hover:scale-105 transition-all duration-300 ease-out">
@@ -71,55 +67,56 @@
 
                 <h2 class="text-3xl md:text-4xl font-bold text-white mb-12 relative z-10 stagger-item">Wattaway offers smart <br> solutions for modern living</h2>
 
-                <div class="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-10 items-start">
-                    
-                    <div class="flex flex-col items-center text-center space-y-6 stagger-item">
-                        <div class="bg-white/5 backdrop-blur-md w-full max-w-sm h-56 rounded-3xl flex items-center justify-center shadow-lg border border-white/10 overflow-hidden hover:bg-white/10 hover:border-white/20 hover:shadow-3xl hover:scale-105 transition-all duration-300 ease-out">
-                            <img data-src="{{ asset('images/dist/product.png') }}" src="{{ asset('images/dist/placeholders/product.png') }}" alt="Wattaway Product" class="lazyload w-full h-full object-cover" width="384" height="224" decoding="async">
-                        </div>
-                        <div class="relative w-36 h-36 flex items-center justify-center">
-                            <svg class="w-full h-full" viewBox="0 0 100 100">
-                                <circle class="text-white/10" stroke-width="8" stroke="currentColor" fill="transparent" r="45" cx="50" cy="50" />
-                                <circle class="text-purple-400" stroke-width="8" stroke="currentColor" fill="transparent" r="45" cx="50" cy="50" stroke-dasharray="283" stroke-dashoffset="206" stroke-linecap="round" transform="rotate(-90 50 50)" />
-                            </svg>
-                            <span class="absolute text-3xl font-bold text-white">27%</span>
-                        </div>
-                        <p class="max-w-xs text-gray-300">Our smart socket is designed to monitor daily electricity usage and give you full control directly from your smartphone</p>
-                    </div>
-
-                    <div class="flex flex-col items-center text-center space-y-6 stagger-item">
-                        <div x-data="{ currentSlide: 0, slides: 3 }" x-init="setInterval(() => { currentSlide = (currentSlide + 1) % slides }, 5000)" class="bg-white/5 backdrop-blur-md w-full h-56 rounded-3xl flex items-center justify-center shadow-lg border border-white/10 overflow-hidden relative hover:bg-white/10 hover:border-white/20 hover:shadow-3xl hover:scale-105 transition-all duration-300 ease-out">
-                            <!-- Sliding Gallery Container -->
-                            <div class="w-full h-full relative">
-                                <div class="flex transition-transform duration-500 ease-in-out h-full" style="transform: translateX(-${currentSlide * 100}%)">
-                                    <div class="w-full h-full flex-shrink-0">
-                                        <img data-src="{{ asset('images/dist/gallery1.jpeg') }}" src="{{ asset('images/dist/placeholders/gallery1.jpeg') }}" alt="Gallery Image 1" class="lazyload w-full h-full object-cover" width="384" height="224" decoding="async">
+                                <div x-data="{ currentSlide: 0, slides: 2 }" class="relative z-10 w-full">
+                                    <!-- Desktop: Grid -->
+                                    <div class="hidden md:grid md:grid-cols-2 gap-10 items-start">
+                                        <!-- Card 1 -->
+                                        <div class="flex flex-col items-center text-center space-y-6 stagger-item">
+                                            <div class="bg-white/5 backdrop-blur-md w-full max-w-sm h-56 rounded-3xl flex items-center justify-center shadow-lg border border-white/10 overflow-hidden hover:bg-white/10 hover:border-white/20 hover:shadow-3xl hover:scale-105 transition-all duration-300 ease-out">
+                                                <img data-src="{{ asset('images/dist/product.png') }}" src="{{ asset('images/dist/placeholders/product.png') }}" alt="Wattaway Product" class="lazyload w-full h-full object-cover" width="384" height="224" decoding="async">
+                                            </div>
+                                            <div class="relative w-36 h-36 flex items-center justify-center">
+                                                <svg class="w-full h-full" viewBox="0 0 100 100">
+                                                    <circle class="text-white/10" stroke-width="8" stroke="currentColor" fill="transparent" r="45" cx="50" cy="50" />
+                                                    <circle class="text-purple-400" stroke-width="8" stroke="currentColor" fill="transparent" r="45" cx="50" cy="50" stroke-dasharray="283" stroke-dashoffset="206" stroke-linecap="round" transform="rotate(-90 50 50)" />
+                                                </svg>
+                                                <span class="absolute text-3xl font-bold text-white">27%</span>
+                                            </div>
+                                            <p class="max-w-xs text-gray-300">Our smart socket is designed to monitor daily electricity usage and give you full control directly from your smartphone</p>
+                                        </div>
+                                        <!-- Card 2 -->
+                                        <div class="flex flex-col items-center text-center space-y-6 stagger-item">
+                                            <div x-data="{ currentSlide: 0, slides: 3 }" x-init="setInterval(() => { currentSlide = (currentSlide + 1) % slides }, 5000)" class="bg-white/5 backdrop-blur-md w-full max-w-sm h-56 rounded-3xl flex items-center justify-center shadow-lg border border-white/10 overflow-hidden relative hover:bg-white/10 hover:border-white/20 hover:shadow-3xl hover:scale-105 transition-all duration-300 ease-out">
+                                                                            <!-- Sliding Gallery Container -->
+                                                                            <div class="w-full h-full relative">
+                                                                                <div class="flex transition-transform duration-500 ease-in-out h-full" :style="`transform: translateX(-${currentSlide * 100}%)`">
+                                                                                    <div class="w-full h-full flex-shrink-0">
+                                                                                        <img data-src="{{ asset('images/dist/gallery1.jpeg') }}" src="{{ asset('images/dist/placeholders/gallery1.jpeg') }}" alt="Gallery Image 1" class="lazyload w-full h-full object-cover" width="384" height="224" decoding="async">
+                                                                                    </div>
+                                                                                    <div class="w-full h-full flex-shrink-0">
+                                                                                        <img data-src="{{ asset('images/dist/gallery2.jpeg') }}" src="{{ asset('images/dist/placeholders/gallery2.jpeg') }}" alt="Gallery Image 2" class="lazyload w-full h-full object-cover" width="384" height="224" decoding="async">
+                                                                                    </div>
+                                                                                    <div class="w-full h-full flex-shrink-0">
+                                                                                        <img data-src="{{ asset('images/dist/gallery3.jpeg') }}" src="{{ asset('images/dist/placeholders/gallery3.jpeg') }}" alt="Gallery Image 3" class="lazyload w-full h-full object-cover" width="384" height="224" decoding="async">
+                                                                                    </div>
+                                                                                </div>
+                                                                                <!-- Navigation Dots -->
+                                                                                <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                                                                                    <template x-for="i in slides" :key="i">
+                                                                                        <button @click="currentSlide = i - 1" class="w-3 h-3 rounded-full transition-colors" :class="{'bg-white': currentSlide === i - 1, 'bg-white/50 hover:bg-white/80': currentSlide !== i - 1}"></button>
+                                                                                    </template>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>                                            <div x-data="{ isOn: true }" @click="isOn = !isOn" class="toggle-switch" :class="{ 'on': isOn, 'off': !isOn }">
+                                                <div class="toggle-switch-handle">
+                                                    <span x-text="isOn ? 'ON' : 'OFF'"></span>
+                                                </div>
+                                                <span class="toggle-switch-text on" x-show="!isOn">ON</span>
+                                                <span class="toggle-switch-text off" x-show="isOn">OFF</span>
+                                            </div>
+                                            <p class="max-w-xs text-gray-300">With remote on/off functionality, Wattaway helps extend the life of your electronic devices—effortlessly and safely</p>
+                                        </div>
                                     </div>
-                                    <div class="w-full h-full flex-shrink-0">
-                                        <img data-src="{{ asset('images/dist/gallery2.jpeg') }}" src="{{ asset('images/dist/placeholders/gallery2.jpeg') }}" alt="Gallery Image 2" class="lazyload w-full h-full object-cover" width="384" height="224" decoding="async">
-                                    </div>
-                                    <div class="w-full h-full flex-shrink-0">
-                                        <img data-src="{{ asset('images/dist/gallery3.jpeg') }}" src="{{ asset('images/dist/placeholders/gallery3.jpeg') }}" alt="Gallery Image 3" class="lazyload w-full h-full object-cover" width="384" height="224" decoding="async">
-                                    </div>
-                                </div>
-                                <!-- Navigation Dots -->
-                                <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                                    <template x-for="i in slides" :key="i">
-                                        <button @click="currentSlide = i - 1" class="w-3 h-3 rounded-full transition-colors" :class="{'bg-white': currentSlide === i - 1, 'bg-white/50 hover:bg-white/80': currentSlide !== i - 1}"></button>
-                                    </template>
-                                </div>
-                            </div>
-                        </div>
-                        <div x-data="{ isOn: true }" class="bg-[#4a2c2a] p-2 rounded-full w-48 flex items-center justify-between shadow-lg border border-white/10" :class="{ 'on': isOn, 'off': !isOn }">
-                            <button @click="isOn = !isOn" class="text-white px-8 py-3 rounded-full font-semibold shadow-md transition-all duration-300" :class="{ 'bg-[#d47f5a]': isOn, 'bg-gray-600': !isOn }">
-                                <span x-text="isOn ? 'ON' : 'OFF'"></span>
-                            </button>
-                            <span class="text-white/50 px-6 font-semibold" x-text="isOn ? 'OFF' : 'ON'"></span>
-                        </div>
-                         <p class="max-w-xs text-gray-300">With remote on/off functionality, Wattaway helps extend the life of your electronic devices—effortlessly and safely</p>
-                    </div>
-                </div>
-            </div>
         </section>
 
         <!-- About Us Section -->
@@ -148,6 +145,7 @@
                         <div class="absolute bottom-0 -right-48 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-4 max-w-[220px] shadow-2xl rotate-12 transform stagger-item hover:scale-110 hover:bg-white/10 hover:shadow-3xl hover:border-white/20 transition-all duration-300 ease-out">
                             <p class="text-sm text-gray-300">To bring our brand to life, we're developing a mascot: <span class="font-semibold text-purple-300">a friendly bat-robot.</span> It's not just a character; it embodies Wattaway's core values of vigilance, protection, and future-forward thinking.</p>
                         </div>
+                    </div>
                     </div>
                 </div>
             </div>
