@@ -32,6 +32,7 @@ git pull origin main
 # Install dependencies
 echo "📦 Installing dependencies..."
 composer install --no-dev --optimize-autoloader
+npm run build
 
 # Run migrations
 echo "🗄️  Running database migrations..."
