@@ -6,10 +6,10 @@
 <div class="loading-overlay">
     <img src="{{ asset('images/wattaway.svg') }}" alt="WattAway Logo" class="loading-logo h-28">
 </div>
-<div class="antialiased bg-[#0B0F2A] text-white">
+<div class="antialiased bg-[#070C27] text-white">
     <div class="relative min-h-screen flex flex-col items-center">
         <!-- Background Color -->
-        <div class="absolute top-0 left-0 w-full h-full bg-[#070C27] z-0"></div>
+        <div class="absolute top-0 left-0 w-full h-full z-0"></div>
 
         <!-- Navigation Bar -->
         <x-navbar />
@@ -107,7 +107,8 @@
                                                                                     </template>
                                                                                 </div>
                                                                             </div>
-                                                                        </div>                                            <div x-data="{ isOn: true }" @click="isOn = !isOn" class="toggle-switch" :class="{ 'on': isOn, 'off': !isOn }">
+                                                                        </div>                                            
+                                                <div x-data="{ isOn: true }" @click="isOn = !isOn" class="toggle-switch" :class="{ 'on': isOn, 'off': !isOn }">
                                                 <div class="toggle-switch-handle">
                                                     <span x-text="isOn ? 'ON' : 'OFF'"></span>
                                                 </div>
@@ -152,7 +153,7 @@
         </section>
 
         <!-- Contact Section -->
-        <section id="contact" class="w-full mx-auto z-10 text-center stagger-container">
+        <section id="contact" class="relative w-full z-10 mt-16 py-20 text-center stagger-container">
              <!-- Bat Wing Background PNG is now in the normal document flow -->
              <img data-src="{{ asset('images/dist/batwings.png') }}" src="{{ asset('images/dist/placeholders/batwings.png') }}" alt="Bat Wing Background" class="lazyload mx-auto w-full h-auto opacity-40 stagger-item" decoding="async">
              
