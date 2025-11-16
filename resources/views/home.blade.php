@@ -79,11 +79,40 @@
 
                 
 
-                                                <div x-data="{ currentSlide: 0, slides: 2 }" x-init="setInterval(() => { currentSlide = (currentSlide + 1) % slides }, 5000)" class="relative z-10 w-full">
+                                                <div x-data="{
+                                                        currentSlide: 0, 
+                                                        slides: 2,
+                                                        isSwiping: false,
+                                                        startX: 0,
+                                                        offsetX: 0,
+                                                        handleTouchStart(e) {
+                                                            this.isSwiping = true;
+                                                            this.startX = e.touches[0].pageX;
+                                                            this.$refs.track.style.transition = 'none';
+                                                        },
+                                                        handleTouchMove(e) {
+                                                            if (!this.isSwiping) return;
+                                                            let currentX = e.touches[0].pageX;
+                                                            this.offsetX = currentX - this.startX;
+                                                            this.$refs.track.style.transform = `translateX(calc(-${this.currentSlide * 100}% + ${this.offsetX}px))`;
+                                                        },
+                                                        handleTouchEnd() {
+                                                            this.isSwiping = false;
+                                                            this.$refs.track.style.transition = 'transform 0.5s ease-in-out';
+                                                            const threshold = this.$refs.container.offsetWidth / 4;
+                                                            if (this.offsetX < -threshold) {
+                                                                if (this.currentSlide < this.slides - 1) this.currentSlide++;
+                                                            } else if (this.offsetX > threshold) {
+                                                                if (this.currentSlide > 0) this.currentSlide--;
+                                                            }
+                                                            this.$refs.track.style.transform = `translateX(-${this.currentSlide * 100}%)`;
+                                                            this.offsetX = 0;
+                                                        }
+                                                    }" x-init="setInterval(() => { if (!isSwiping) { currentSlide = (currentSlide + 1) % slides } }, 5000)" class="relative z-10 w-full">
                         <!-- Mobile: Carousel -->
                         <div class="md:hidden">
-                            <div class="relative overflow-hidden">
-                                <div class="flex transition-transform duration-500 ease-in-out" :style="`transform: translateX(-${currentSlide * 100}%)`">
+                            <div class="relative overflow-hidden" x-ref="container">
+                                <div class="flex" x-ref="track" @touchstart.passive="handleTouchStart" @touchmove.passive="handleTouchMove" @touchend="handleTouchEnd">
                                     <!-- Card 1 -->
                                     <div class="w-full flex-shrink-0">
                                         <div class="flex flex-col items-center text-center space-y-6 stagger-item p-4">
@@ -196,10 +225,39 @@
                 <div class="absolute top-8 left-8 text-black/40 opacity-50 transform -rotate-12 about-smiley-1">&#9789;</div>
                 <div class="absolute bottom-8 right-8 text-black/40 opacity-50 transform rotate-12 about-smiley-2">&#9789;</div>
                 
-                <div x-data="{ currentSlide: 0, slides: 2 }" x-init="setInterval(() => { currentSlide = (currentSlide + 1) % slides }, 7000)" class="relative z-10 w-full">
+                <div x-data="{
+                        currentSlide: 0, 
+                        slides: 2,
+                        isSwiping: false,
+                        startX: 0,
+                        offsetX: 0,
+                        handleTouchStart(e) {
+                            this.isSwiping = true;
+                            this.startX = e.touches[0].pageX;
+                            this.$refs.aboutTrack.style.transition = 'none';
+                        },
+                        handleTouchMove(e) {
+                            if (!this.isSwiping) return;
+                            let currentX = e.touches[0].pageX;
+                            this.offsetX = currentX - this.startX;
+                            this.$refs.aboutTrack.style.transform = `translateX(calc(-${this.currentSlide * 100}% + ${this.offsetX}px))`;
+                        },
+                        handleTouchEnd() {
+                            this.isSwiping = false;
+                            this.$refs.aboutTrack.style.transition = 'transform 0.5s ease-in-out';
+                            const threshold = this.$refs.aboutContainer.offsetWidth / 4;
+                            if (this.offsetX < -threshold) {
+                                if (this.currentSlide < this.slides - 1) this.currentSlide++;
+                            } else if (this.offsetX > threshold) {
+                                if (this.currentSlide > 0) this.currentSlide--;
+                            }
+                            this.$refs.aboutTrack.style.transform = `translateX(-${this.currentSlide * 100}%)`;
+                            this.offsetX = 0;
+                        }
+                    }" x-init="setInterval(() => { if (!isSwiping) { currentSlide = (currentSlide + 1) % slides } }, 7000)" class="relative z-10 w-full">
                     <div class="relative max-w-3xl mx-auto">
-                        <div class="relative overflow-hidden">
-                            <div class="flex items-stretch transition-transform duration-500 ease-in-out" :style="`transform: translateX(-${currentSlide * 100}%)`">
+                        <div class="relative overflow-hidden" x-ref="aboutContainer">
+                            <div class="flex items-stretch" x-ref="aboutTrack" @touchstart.passive="handleTouchStart" @touchmove.passive="handleTouchMove" @touchend="handleTouchEnd">
                                 <!-- Slide 1 -->
                                 <div class="w-full flex-shrink-0">
                                     <div class="relative z-10 h-full text-center">
