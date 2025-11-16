@@ -82,7 +82,7 @@
         <div class="login-container w-full max-w-md">
             <!-- Logo and Title -->
             <div class="text-center mb-8 animate-slide-up">
-                <img data-src="{{ asset('images/dist/logo.png') }}" src="{{ asset('images/dist/placeholders/logo.png') }}" alt="Wattaway Logo" class="lazyload w-16 h-16 mx-auto mb-4 rounded-full">
+                <img data-src="{{ asset('images/dist/logo.png') }}" src="{{ asset('images/dist/placeholders/logo.png') }}" alt="Wattaway Logo" class="lazyload w-16 h-16 mx-auto mb-4 rounded-full hero-mascot">
                 <h1 class="font-brand text-4xl font-black text-white mb-2">Wattaway</h1>
                 <p class="text-gray-300">Welcome back! Please sign in to continue.</p>
             </div>
@@ -205,11 +205,7 @@
                 element.style.transform = 'translateY(0)';
             });
 
-            // Add floating animation to logo
-            const logo = document.querySelector('img[alt="Wattaway Logo"]');
-            if (logo) {
-                logo.style.animation = 'float 3s ease-in-out infinite';
-            }
+            
 
             // Form validation feedback
             const form = document.querySelector('form');

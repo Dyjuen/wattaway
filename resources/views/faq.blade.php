@@ -67,7 +67,7 @@
             <h2 class="text-center text-3xl sm:text-4xl font-bold text-white mb-2 animate-slide-up">Frequently Asked Questions</h2>
             <p class="text-center text-gray-400 mb-10 animate-slide-up">Find answers to common questions about the Wattaway Smart Socket.</p>
             
-            <div class="space-y-4" x-data="{ open: '' }">
+            <div class="space-y-2 md:space-y-4" x-data="{ open: '' }">
                 <!-- FAQ Item 1 -->
                 <div class="faq-item stagger-item bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg overflow-hidden">
                     <button @click="open = open === 'faq-1' ? '' : 'faq-1'" class="faq-button w-full text-left p-5 flex justify-between items-center focus:outline-none">

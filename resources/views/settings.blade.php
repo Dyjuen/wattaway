@@ -188,10 +188,10 @@
                     const sectionName = this.getAttribute('data-section');
 
                     // Remove active class from all buttons
-                    navButtons.forEach(btn => btn.classList.remove('active', 'bg-white/10'));
+                    navButtons.forEach(btn => btn.classList.remove('active'));
 
                     // Add active class to clicked button
-                    this.classList.add('active', 'bg-white/10');
+                    this.classList.add('active');
 
                     // Hide all sections
                     sections.forEach(section => section.classList.add('hidden'));
@@ -201,20 +201,7 @@
                 });
             });
 
-            // Save button functionality
-            document.getElementById('saveBtn').addEventListener('click', function() {
-                // Add saving animation
-                this.textContent = 'Saving...';
-                this.disabled = true;
-
-                setTimeout(() => {
-                    this.textContent = 'Save Changes';
-                    this.disabled = false;
-
-                    // Show success message
-                    showNotification('Settings saved successfully!', 'success');
-                }, 2000);
-            });
+            
 
             // Notification system
             function showNotification(message, type = 'info') {

@@ -6,6 +6,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @auth('account')
         <meta name="api-token" content="{{ Auth::user()->api_token }}">
+        <script>
+            window.apiToken = "{{ Auth::user()->api_token }}";
+        </script>
     @endauth
 
     <title>@yield('title', 'Wattaway')</title>

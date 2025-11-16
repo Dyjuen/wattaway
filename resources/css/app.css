@@ -28,7 +28,7 @@ body {
 @media (min-width: 768px) {
     .has-radial-gradient {
         background-image: radial-gradient(ellipse, #84145C, #070c27 60%);
-        background-size: 100% 900px;
+        background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
     }

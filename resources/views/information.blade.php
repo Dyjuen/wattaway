@@ -248,32 +248,7 @@
             alert('Live chat feature would open here. For demo purposes, this is a placeholder.');
         }
 
-        // Contact form submission
-        document.getElementById('contactForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-
-            submitBtn.textContent = 'Sending...';
-            submitBtn.disabled = true;
-
-            setTimeout(() => {
-                submitBtn.textContent = 'Message Sent!';
-                submitBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
-                submitBtn.classList.add('bg-green-500');
-
-                // Reset form
-                e.target.reset();
-
-                setTimeout(() => {
-                    submitBtn.textContent = originalText;
-                    submitBtn.disabled = false;
-                    submitBtn.classList.remove('bg-green-500');
-                    submitBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
-                }, 3000);
-            }, 2000);
-        });
+        
 
         // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {

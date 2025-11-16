@@ -95,7 +95,7 @@
         <div class="register-container w-full max-w-md">
             <!-- Logo and Title -->
             <div class="text-center mb-8 animate-slide-up">
-                <img data-src="{{ asset('images/dist/mascot.png') }}" src="{{ asset('images/dist/placeholders/mascot.png') }}" alt="Wattaway Mascot" class="lazyload w-20 h-20 mx-auto mb-4 rounded-full">
+                <img data-src="{{ asset('images/dist/mascot.png') }}" src="{{ asset('images/dist/placeholders/mascot.png') }}" alt="Wattaway Mascot" class="lazyload w-20 h-20 mx-auto mb-4 rounded-full hero-mascot">
                 <h1 class="font-brand text-4xl font-black text-white mb-2">Join Wattaway</h1>
                 <p class="text-gray-300">Create your account to get started with smart energy management.</p>
             </div>
@@ -244,11 +244,7 @@
                 element.style.transform = 'translateY(0)';
             });
 
-            // Add floating animation to mascot
-            const mascot = document.querySelector('img[alt="Wattaway Mascot"]');
-            if (mascot) {
-                mascot.style.animation = 'float 3s ease-in-out infinite';
-            }
+            
 
             // Form validation feedback
             const form = document.querySelector('form');

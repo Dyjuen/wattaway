@@ -48,7 +48,7 @@
                     </svg>
                 </button>
 
-                <div class="w-64">
+                <div class="w-full max-w-xs">
                     <input type="range"
                            id="timer-duration-{{ $device->id }}"
                            min="1"
@@ -69,7 +69,7 @@
             </div>
 
             <!-- Time indicators -->
-            <div class="flex justify-between w-64 mt-2 text-xs text-gray-400">
+            <div class="flex justify-between w-full max-w-xs mt-2 text-xs text-gray-400">
                 <span>1m</span>
                 <span>1h</span>
                 <span>2h</span>

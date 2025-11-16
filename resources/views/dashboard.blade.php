@@ -284,24 +284,7 @@
                 staggerObserver.observe(container);
             });
 
-            // Toggle device switches
-            const switches = document.querySelectorAll('button[class*="bg-green-500"], button[class*="bg-gray-600"]');
-            switches.forEach(switchBtn => {
-                switchBtn.addEventListener('click', function() {
-                    const isOn = this.classList.contains('bg-green-500');
-                    if (isOn) {
-                        this.classList.remove('bg-green-500');
-                        this.classList.add('bg-gray-600');
-                        this.querySelector('div').classList.remove('right-0.5');
-                        this.querySelector('div').classList.add('left-0.5');
-                    } else {
-                        this.classList.remove('bg-gray-600');
-                        this.classList.add('bg-green-500');
-                        this.querySelector('div').classList.remove('left-0.5');
-                        this.querySelector('div').classList.add('right-0.5');
-                    }
-                });
-            });
+            
         });
     </script>
 @endpush
