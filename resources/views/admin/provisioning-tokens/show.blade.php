@@ -13,10 +13,10 @@
                 <p class="text-gray-600 dark:text-gray-400"><strong>Expires At:</strong> {{ $token->expires_at?->format('Y-m-d H:i') ?? 'N/A' }}</p>
                 <p class="text-gray-600 dark:text-gray-400"><strong>Paired At:</strong> {{ $token->paired_at?->format('Y-m-d H:i') ?? 'N/A' }}</p>
                 @if ($token->device)
-                    <p class="text-gray-600 dark:text-gray-400"><strong>Paired Device:</strong> <a href="#" class="text-blue-500">{{ $token->device->name }} ({{ $token->device->serial_number }})</a></p>
+                    <p class="text-gray-600 dark:text-gray-400"><strong>Paired Device:</strong> <a href="#" class="text-[#FBB03B]">{{ $token->device->name }} ({{ $token->device->serial_number }})</a></p>
                 @endif
                 @if ($token->pairedByAccount)
-                    <p class="text-gray-600 dark:text-gray-400"><strong>Paired By:</strong> <a href="#" class="text-blue-500">{{ $token->pairedByAccount->username }}</a></p>
+                    <p class="text-gray-600 dark:text-gray-400"><strong>Paired By:</strong> <a href="#" class="text-[#FBB03B]">{{ $token->pairedByAccount->username }}</a></p>
                 @endif
                 <p class="text-gray-600 dark:text-gray-400"><strong>Created At:</strong> {{ $token->created_at?->format('Y-m-d H:i') }}</p>
                 <p class="text-gray-600 dark:text-gray-400"><strong>Updated At:</strong> {{ $token->updated_at?->format('Y-m-d H:i') }}</p>
@@ -24,7 +24,7 @@
             <div class="flex flex-col items-center justify-center">
                 <h3 class="text-xl font-semibold mb-2">QR Code</h3>
                 <img src="{{ route('admin.provisioning-tokens.qr', $token) }}" alt="QR Code for {{ $token->token }}" class="w-48 h-48 border border-gray-300 p-2 rounded-lg">
-                <a href="{{ route('admin.provisioning-tokens.qr', $token) }}" download="{{ $token->token }}_qr.png" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Download QR</a>
+                <a href="{{ route('admin.provisioning-tokens.qr', $token) }}" download="{{ $token->token }}_qr.png" class="mt-4 px-4 py-2 bg-[#FBB03B] text-white rounded-md hover:bg-[#FBB03B]">Download QR</a>
             </div>
         </div>
 

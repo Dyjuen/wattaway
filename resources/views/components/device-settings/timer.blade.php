@@ -3,8 +3,8 @@
 <div id="timer-{{ $device->id }}">
     <div class="bg-white/5 rounded-lg p-6 border border-white/10">
         <div class="flex items-center mb-6">
-            <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center mr-3">
-                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-8 h-8 rounded-full bg-[#FBB03B]/20 flex items-center justify-center mr-3">
+                <svg class="w-4 h-4 text-[#FBB03B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
@@ -23,7 +23,7 @@
                     <circle id="timer-arc-{{ $device->id }}"
                             cx="21" cy="21" r="19"
                             fill="none"
-                            stroke="rgba(59, 130, 246, 0.8)"
+                            stroke="rgba(251, 176, 59, 0.8)"
                             stroke-width="3"
                             stroke-linecap="round"
                             stroke-dasharray="30 90"
@@ -33,7 +33,7 @@
                 <!-- Center content -->
                 <div class="absolute inset-0 flex items-center justify-center">
                     <div class="text-center">
-                        <div id="timer-display-{{ $device->id }}" class="text-2xl font-bold text-blue-400 mb-1">30m</div>
+                        <div id="timer-display-{{ $device->id }}" class="text-2xl font-bold text-[#FBB03B] mb-1">30m</div>
                         <div class="text-xs text-gray-400">Duration</div>
                     </div>
                 </div>
@@ -57,7 +57,7 @@
                            step="1"
                            class="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer slider"
                            oninput="updateTimerDisplay('{{ $device->id }}', this.value)"
-                           style="background: linear-gradient(to right, rgba(59, 130, 246, 0.8) 0%, rgba(59, 130, 246, 0.8) 25%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.1) 100%);">
+                           style="background: linear-gradient(to right, rgba(251, 176, 59, 0.8) 0%, rgba(251, 176, 59, 0.8) 25%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.1) 100%);">
                 </div>
 
                 <button onclick="adjustTimer('{{ $device->id }}', 1)"

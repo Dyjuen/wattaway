@@ -84,15 +84,6 @@
                 @foreach ($devices as $device)
                     <div class="stagger-item">
                         <x-glass-card class="flex flex-col h-full">
-                            <div class="relative">
-                                <img data-src="{{ asset('images/product.png') }}" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="WattAway Product Image" class="lazyload rounded-lg mb-4 aspect-video object-cover">
-                                <div class="absolute top-2 right-2">
-                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $device->status === 'online' ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-800' }}">
-                                        {{ ucfirst($device->status) }}
-                                    </span>
-                                </div>
-                            </div>
-
                             <div class="flex-grow">
                                 <h3 class="text-xl font-bold mb-2">{{ $device->name }}</h3>
                                 <p class="text-sm text-gray-400 mb-1"><strong>Serial:</strong> {{ $device->serial_number }}</p>

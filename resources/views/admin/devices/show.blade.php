@@ -19,7 +19,7 @@
                 @if ($qrCodeDataUri)
                     <h3 class="text-xl font-semibold mb-2">Pairing QR Code</h3>
                     <img src="{{ $qrCodeDataUri }}" alt="QR Code" class="w-48 h-48 border border-gray-300 p-2 rounded-lg">
-                    <a href="{{ $qrCodeDataUri }}" download="{{ $device->serial_number }}_qr.png" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">Download QR Code</a>
+                    <a href="{{ $qrCodeDataUri }}" download="{{ $device->serial_number }}_qr.png" class="mt-4 px-4 py-2 bg-[#FBB03B] text-white rounded-md hover:bg-[#FBB03B]">Download QR Code</a>
                 @endif
             </div>
         </div>
@@ -47,7 +47,7 @@
 
         <div class="mt-6 flex justify-end">
             <a href="{{ route('admin.devices.create') }}" class="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 mr-2">Create Another Device</a>
-            <a href="{{ route('admin.provisioning-tokens.index') }}" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">View All Tokens</a>
+            <a href="{{ route('admin.provisioning-tokens.index') }}" class="px-4 py-2 bg-[#FBB03B] text-white rounded-md hover:bg-[#FBB03B]">View All Tokens</a>
         </div>
     </div>
 </div>

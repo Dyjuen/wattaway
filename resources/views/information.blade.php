@@ -153,8 +153,8 @@
                             <h3 class="text-2xl font-bold mb-6">Get in Touch</h3>
                             <div class="space-y-6">
                                 <div class="flex items-start space-x-4 stagger-item">
-                                    <div class="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div class="w-12 h-12 bg-[#FBB03B]/20 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <svg class="w-6 h-6 text-[#FBB03B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                                         </svg>
                                     </div>
@@ -210,8 +210,8 @@
                                     <span class="font-semibold">Closed</span>
                                 </div>
                             </div>
-                            <div class="mt-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg stagger-item">
-                                <p class="text-sm text-blue-400">Emergency support available 24/7 for critical issues</p>
+                            <div class="mt-6 p-4 bg-[#FBB03B]/10 border border-[#FBB03B]/20 rounded-lg stagger-item">
+                                <p class="text-sm text-[#FBB03B]">Emergency support available 24/7 for critical issues</p>
                             </div>
                         </div>
                     </div>

@@ -6,8 +6,8 @@
             <p class="text-gray-300 text-sm font-medium">{{ $title }}</p>
             <p class="text-3xl font-bold mt-2">{{ $value }}</p>
         </div>
-        <div class="p-3 bg-blue-500/20 rounded-full">
-            <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="p-3 bg-[#FBB03B]/20 rounded-full">
+            <svg class="w-8 h-8 text-[#FBB03B]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {{ $icon }}
             </svg>
         </div>

@@ -24,7 +24,7 @@
                         <td class="px-4 py-2 text-sm text-gray-500">{{ $message->created_at->format('Y-m-d H:i:s') }}</td>
                         <td class="px-4 py-2 text-sm">
                             @if($message->direction === 'incoming')
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-[#FBB03B] text-white">
                                     IN
                                 </span>
                             @else

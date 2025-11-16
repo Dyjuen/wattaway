@@ -48,6 +48,7 @@ Route::middleware(['auth:account'])->group(function () {
     })->name('settings');
 
     Route::post('/settings/password', [AuthController::class, 'updatePassword'])->name('password.update');
+    Route::post('/settings/profile', [AuthController::class, 'updateProfile'])->name('profile.update');
 
     Route::get('/information', function () {
         return view('information');

@@ -39,7 +39,7 @@
                             <div>
                                 <label for="device_name" class="block text-sm font-medium text-gray-300 mb-2">Device Name (Optional)</label>
                                 <input id="device_name" type="text" 
-                                       class="w-full bg-white/10 border rounded-lg py-3 px-4 text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none @error('device_name') border-red-500/50 @enderror" 
+                                       class="w-full bg-white/10 border rounded-lg py-3 px-4 text-white placeholder-gray-400 focus:ring-2 focus:ring-[#FBB03B] focus:outline-none @error('device_name') border-red-500/50 @enderror" 
                                        name="device_name" value="{{ old('device_name') }}" 
                                        placeholder="e.g., Living Room Lamp" autocomplete="device_name" autofocus>
 
@@ -51,7 +51,7 @@
                             </div>
 
                             <div>
-                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 text-lg">
+                                <button type="submit" class="w-full bg-[#FBB03B] hover:bg-[#FBB03B] text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 text-lg">
                                     {{ __('Pair Device') }}
                                 </button>
                             </div>

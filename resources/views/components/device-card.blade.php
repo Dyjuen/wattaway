@@ -10,7 +10,7 @@
             </div>
         </div>
         <div class="flex items-center space-x-2">
-            <a href="{{ route('devices.show', $device) }}" class="text-sm text-blue-400 hover:text-blue-300">Details</a>
+            <a href="{{ route('devices.show', $device) }}" class="text-sm text-[#FBB03B] hover:text-[#FBB03B]">Details</a>
         </div>
     </div>
     <div class="flex justify-between items-center text-sm">

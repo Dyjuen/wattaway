@@ -136,14 +136,24 @@
                     <!-- Profile Settings -->
                     <x-glass-card id="profile-section" class="mb-6 stagger-item">
                         <h2 class="text-2xl font-bold mb-6">Profile Settings</h2>
-                        <form class="space-y-6">
+                        <form method="POST" action="{{ route('profile.update') }}" class="space-y-6">
+                            @csrf
                             <div class="stagger-item">
                                 <label class="block text-sm font-medium mb-2">Username</label>
-                                <x-input type="text" name="username" id="username" value="{{ $account->username }}" readonly />
+                                <x-input type="text" name="username" id="username" value="{{ old('username', $account->username) }}" />
+                                @error('username')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                             <div class="stagger-item">
                                 <label class="block text-sm font-medium mb-2">Email Address</label>
-                                <x-input type="email" name="email" id="email" value="{{ $account->email }}" />
+                                <x-input type="email" name="email" id="email" value="{{ old('email', $account->email) }}" />
+                                @error('email')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div class="flex justify-end">
+                                <x-button type="submit" variant="primary">Save</x-button>
                             </div>
                         </form>
                     </x-glass-card>
@@ -156,14 +166,23 @@
                             <div>
                                 <label class="block text-sm font-medium mb-2">Current Password</label>
                                 <x-input type="password" name="current_password" id="current_password" placeholder="Enter current password" />
+                                @error('current_password')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                             <div>
                                 <label class="block text-sm font-medium mb-2">New Password</label>
                                 <x-input type="password" name="new_password" id="new_password" placeholder="Enter new password" />
+                                @error('new_password')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                             <div>
                                 <label class="block text-sm font-medium mb-2">Confirm New Password</label>
                                 <x-input type="password" name="new_password_confirmation" id="new_password_confirmation" placeholder="Confirm new password" />
+                                @error('new_password_confirmation')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
                             </div>
                             <div class="flex justify-end">
                                 <x-button type="submit" variant="primary">Save</x-button>
@@ -201,14 +220,12 @@
                 });
             });
 
-            
-
             // Notification system
             function showNotification(message, type = 'info') {
                 const notification = document.createElement('div');
                 notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg z-50 ${
                     type === 'success' ? 'bg-green-500' :
-                    type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                    type === 'error' ? 'bg-red-500' : 'bg-[#FBB03B]'
                 } text-white`;
                 notification.textContent = message;
 
@@ -218,6 +235,16 @@
                     notification.remove();
                 }, 3000);
             }
+
+            @if(session('success'))
+                showNotification("{{ session('success') }}", 'success');
+            @endif
+
+            @if($errors->any())
+                @foreach ($errors->all() as $error)
+                    showNotification("{{ $error }}", 'error');
+                @endforeach
+            @endif
         });
     </script>
 @endpush

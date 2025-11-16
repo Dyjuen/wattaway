@@ -6,6 +6,7 @@ use App\Models\Account;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -100,5 +101,32 @@ class AuthController extends Controller
         $account->save();
 
         return redirect()->route('settings')->with('success', 'Password updated successfully.');
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $account = Auth::guard('account')->user();
+
+        $request->validate([
+            'username' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('accounts')->ignore($account->id),
+            ],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('accounts')->ignore($account->id),
+            ],
+        ]);
+
+        $account->username = $request->username;
+        $account->email = $request->email;
+        $account->save();
+
+        return redirect()->route('settings')->with('success', 'Profile updated successfully.');
     }
 }

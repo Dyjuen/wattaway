@@ -95,6 +95,24 @@
             height: 40px;
             color: #FDBA74; /* Orange-300 */
         }
+
+        input[type=range]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 20px;
+          height: 20px;
+          background: #FBB03B;
+          cursor: pointer;
+          border-radius: 50%;
+        }
+
+        input[type=range]::-moz-range-thumb {
+          width: 20px;
+          height: 20px;
+          background: #FBB03B;
+          cursor: pointer;
+          border-radius: 50%;
+        }
     </style>
 @endpush
 
@@ -226,7 +244,7 @@
                 <h3 class="text-xl font-semibold mb-4">ESP32 Wi-Fi Setup (BLE)</h3>
 
                 <!-- Browser/HTTPS Support Notice -->
-                <div class="bg-blue-500/10 border border-blue-400/20 text-blue-200 rounded-lg p-4 mb-6 text-sm">
+                <div class="bg-[#FBB03B]/10 border border-[#FBB03B]/20 text-[#FBB03B] rounded-lg p-4 mb-6 text-sm">
                     <p class="mb-1">Web Bluetooth works in Chromium-based browsers (Chrome, Edge, Android Chrome).</p>
                     <p>Page must be served over <span class="font-medium">HTTPS</span> or <span class="font-medium">localhost</span>.</p>
                 </div>
@@ -384,7 +402,7 @@
           green: 'bg-green-100 text-green-800',
           red: 'bg-red-100 text-red-800',
           yellow: 'bg-yellow-100 text-yellow-800',
-          blue: 'bg-blue-100 text-blue-800'
+          blue: 'bg-[#FBB03B] text-white'
         };
         el.statusBadge.className = `px-2 py-1 text-xs rounded ${map[color] || map.gray}`;
         el.statusBadge.textContent = text;
@@ -415,7 +433,7 @@
           const m = msg.toLowerCase();
           if (m.includes('connected')) setBadge('Connected', 'green');
           else if (m.includes('connecting')) setBadge('Connecting…', 'yellow');
-          else if (m.includes('waiting')) setBadge('Waiting', 'blue');
+          else if (m.includes('waiting')) setBadge('Waiting', 'yellow');
           else if (m.includes('fail') || m.includes('invalid')) setBadge('Error', 'red');
           else setBadge(msg.substring(0, 18) || '—', 'gray');
         } catch (e) {
@@ -427,7 +445,7 @@
         try {
           if (!supportsWebBluetooth()) return;
 
-          setBadge('Selecting…', 'blue');
+          setBadge('Selecting…', 'yellow');
           device = await navigator.bluetooth.requestDevice({
             filters: [{ services: [SERVICE_UUID] }],
             optionalServices: [SERVICE_UUID]
@@ -483,7 +501,7 @@
         if (on) {
           el.scanHint.classList.remove('hidden');
           el.scanBtn.disabled = true;
-          setBadge('Scanning…', 'blue');
+          setBadge('Scanning…', 'yellow');
         } else {
           el.scanHint.classList.add('hidden');
           el.scanBtn.disabled = false;
@@ -799,7 +817,7 @@
                 arc.setAttribute('stroke-dasharray', dashArray);
             }
             if (slider) {
-                slider.style.background = `linear-gradient(to right, rgba(59, 130, 246, 0.8) 0%, rgba(59, 130, 246, 0.8) ${percentage}%, rgba(255,255,255,0.1) ${percentage}%, rgba(255,255,255,0.1) 100%)`;
+                slider.style.background = `linear-gradient(to right, rgba(251, 176, 59, 0.8) 0%, rgba(251, 176, 59, 0.8) ${percentage}%, rgba(255,255,255,0.1) ${percentage}%, rgba(255,255,255,0.1) 100%)`;
             }
         };
 
@@ -893,7 +911,7 @@
             const notification = document.createElement('div');
             notification.className = `fixed top-24 right-4 px-6 py-3 rounded-lg z-50 shadow-lg text-white ${
                 type === 'success' ? 'bg-green-500' :
-                type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                type === 'error' ? 'bg-red-500' : 'bg-[#FBB03B]'
             }`;
             notification.textContent = message;
             document.body.appendChild(notification);

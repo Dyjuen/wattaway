@@ -12,9 +12,9 @@
         <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-8">
             <h2 class="text-xl font-semibold mb-4">Manual Token Entry</h2>
             <div class="flex items-center">
-                <input type="text" id="token-input" placeholder="WS-XXXXXXXXXXXX" class="w-full px-4 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase"
+                <input type="text" id="token-input" placeholder="WS-XXXXXXXXXXXX" class="w-full px-4 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-[#FBB03B] uppercase"
                     pattern="^WS-[A-Z0-9]{12}$" maxlength="15">
-                <button id="pair-button" class="bg-blue-500 text-white px-4 py-2 rounded-r-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button id="pair-button" class="bg-[#FBB03B] text-white px-4 py-2 rounded-r-md hover:bg-[#FBB03B] focus:outline-none focus:ring-2 focus:ring-[#FBB03B]">
                     Pair
                 </button>
             </div>
@@ -25,7 +25,7 @@
             <p class="mb-2"><strong>Serial Number:</strong> <span id="serial-number"></span></p>
             <div class="mb-4">
                 <label for="device-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Custom Device Name</label>
-                <input type="text" id="device-name" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="device-name" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#FBB03B]">
             </div>
             <button id="confirm-pairing-button" class="w-full bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500">
                 Confirm Pairing
@@ -71,7 +71,7 @@
 
         function showToast(message, type = 'info') {
             toast.textContent = message;
-            toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white ${type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'}`;
+            toast.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg text-white ${type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-[#FBB03B]'}`;
             toast.classList.remove('hidden');
             setTimeout(() => {
                 toast.classList.add('hidden');

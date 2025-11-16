@@ -5,7 +5,7 @@ use App\Http\Controllers\Admin\DeviceController as AdminDeviceController;
 use App\Http\Controllers\Admin\FirmwareController;
 use App\Http\Controllers\Admin\MessageController;
 use App\Http\Controllers\Admin\ProvisioningTokenController;
-use App\Http\Controllers\Admin\UserController;
+// use App\Http\Controllers\Admin\UserController;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
 
@@ -17,7 +17,7 @@ Route::middleware(['auth', EnsureUserIsAdmin::class])->prefix('admin')->name('ad
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // User Management
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    // Route::get('/users', [UserController::class, 'index'])->name('users.index');
 
     // Device Management
     Route::get('/devices', [AdminDeviceController::class, 'index'])->name('devices.index');

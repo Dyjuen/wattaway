@@ -33,10 +33,10 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-500 text-sm">Messages Today</p>
-                <p class="text-3xl font-bold text-blue-600">{{ $stats['messages_today'] }}</p>
+                <p class="text-3xl font-bold text-[#FBB03B]">{{ $stats['messages_today'] }}</p>
             </div>
-            <div class="bg-blue-100 rounded-full p-3">
-                <i class="fas fa-envelope text-blue-600 text-2xl"></i>
+            <div class="bg-[#FBB03B] rounded-full p-3">
+                <i class="fas fa-envelope text-white text-2xl"></i>
             </div>
         </div>
     </div>
@@ -78,7 +78,7 @@
                     </td>
                     <td class="px-4 py-2 text-sm">
                         @if($message->direction === 'incoming')
-                            <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                            <span class="px-2 py-1 bg-[#FBB03B] text-white rounded text-xs">
                                 <i class="fas fa-arrow-down"></i> Incoming
                             </span>
                         @else

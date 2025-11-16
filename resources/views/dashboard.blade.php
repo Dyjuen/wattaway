@@ -136,7 +136,7 @@
                         <div class="space-y-4">
                             @forelse ($recentActivities as $activity)
                                 <div class="flex items-start space-x-3 stagger-item">
-                                    <div class="w-2 h-2 bg-blue-400 rounded-full mt-2"></div>
+                                    <div class="w-2 h-2 bg-[#FBB03B] rounded-full mt-2"></div>
                                     <div class="flex-1">
                                         <p class="text-sm">{{ $activity->description }}</p>
                                         <p class="text-xs text-gray-400">{{ $activity->created_at->diffForHumans() }}</p>

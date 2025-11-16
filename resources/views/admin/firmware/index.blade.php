@@ -66,7 +66,7 @@
                 <h2 class="text-2xl font-bold">Available Firmware</h2>
                 <form action="{{ route('admin.firmware.trigger-ota') }}" method="POST" onsubmit="return confirm('This will send an update command to ALL online devices. Are you sure?');">
                     @csrf
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    <button type="submit" class="px-4 py-2 bg-[#FBB03B] text-white rounded-md hover:bg-[#FBB03B]">
                         <i class="fas fa-sync-alt mr-2"></i>Force OTA Update Check
                     </button>
                 </form>
