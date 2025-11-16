@@ -4,7 +4,7 @@
 
 @section('content')
 <div class="loading-overlay">
-    <img src="{{ asset('images/wattaway.svg') }}" alt="WattAway Logo" class="loading-logo h-28">
+    <img src="{{ asset('images/wattaway.png') }}" alt="WattAway Logo" class="loading-logo h-28">
 </div>
 <div class="antialiased bg-[#070C27] text-white">
     <div class="relative min-h-screen flex flex-col items-center">
@@ -19,7 +19,7 @@
             <!-- Hero Section -->
             <h2 class="text-2xl md:text-3xl text-gray-300 hero-subtitle">Welcome!</h2>
             <h1 class="font-brand md:text-9xl font-black my-4 hero-title">
-                <img data-src="{{ asset('images/dist/wattaway.svg') }}" src="{{ asset('images/dist/placeholders/wattaway.svg') }}" alt="WattAway" class="lazyload h-20 md:h-28 lg:h-36 w-auto inline-block" width="959" height="144" decoding="async">
+                <img data-src="{{ asset('images/dist/wattaway.png') }}" src="{{ asset('images/dist/placeholders/wattaway.png') }}" alt="WattAway" class="lazyload h-20 md:h-28 lg:h-36 w-auto inline-block" width="959" height="144" decoding="async">
             </h1>
 
             <div class="relative md:mt-4 w-full flex flex-col md:flex-row justify-center items-center">
