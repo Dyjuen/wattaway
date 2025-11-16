@@ -17,9 +17,10 @@
                     </div>
                     @elseif(request()->is('/faq'))
                     <div class="hidden md:flex items-center space-x-10 text-gray-300">
-                        <a href="{{ url('/#top') }}" data-section="home" class="nav-link hover:text-white transition-colors">Home</a>
-                        <a href="/faq#top" data-section="top" class="nav-link hover:text-white transition-colors">FAQ Intro</a>
-                        <a href="/faq#faq" data-section="faq" class="nav-link hover:text-white transition-colors">FAQ</a>
+                        <a href="{{ url('/#top') }}" data-section="top" class="nav-link hover:text-white transition-colors">Home Page</a>
+                        <a href="{{ url('/#product') }}" data-section="product" class="nav-link hover:text-white transition-colors">Product</a>
+                        <a href="{{ url('/#about') }}" data-section="about" class="nav-link hover:text-white transition-colors">About Us</a>
+                        <a href="{{ url('/#contact') }}" data-section="contact" class="nav-link hover:text-white transition-colors">Contact</a>
                     </div>
                     @elseif(request()->routeIs('dashboard') || request()->routeIs('settings') || request()->routeIs('information') || request()->routeIs('devices.index') || request()->routeIs('devices.show'))
                     <div class="hidden md:flex items-center space-x-10 text-gray-300">
@@ -72,9 +73,10 @@
                         </div>
                         @elseif(request()->is('/faq'))
                         <div class="space-y-3">
-                            <a href="{{ url('/#top') }}" data-section="home" class="block px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">Home</a>
-                            <a href="/faq#top" data-section="top" class="block px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">FAQ Intro</a>
-                            <a href="/faq#faq" data-section="faq" class="block px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">FAQ</a>
+                            <a href="{{ url('/#top') }}" data-section="top" class="block px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">Home Page</a>
+                            <a href="{{ url('/#product') }}" data-section="product" class="block px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">Product</a>
+                            <a href="{{ url('/#about') }}" data-section="about" class="block px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">About Us</a>
+                            <a href="{{ url('/#contact') }}" data-section="contact" class="block px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors">Contact</a>
                         </div>
                         @elseif(request()->routeIs('dashboard') || request()->routeIs('settings') || request()->routeIs('information') || request()->routeIs('devices.index') || request()->routeIs('devices.show'))
                         <div class="space-y-3">

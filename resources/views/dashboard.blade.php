@@ -2,7 +2,7 @@
 
 @section('title', 'Dashboard - WattAway')
 
-@section('body-class', 'antialiased text-white dashboard-bg min-h-screen')
+@section('body-class', 'antialiased text-white dashboard-bg')
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/animations.css') }}">

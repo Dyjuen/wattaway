@@ -58,7 +58,7 @@
     </style>
 @endpush
 
-@section('body-class', 'antialiased text-white info-bg min-h-screen')
+@section('body-class', 'antialiased text-white info-bg')
 
 @section('content')
     <img data-src="{{ asset('images/dist/bg-main.png') }}" src="{{ asset('images/dist/placeholders/bg-main.png') }}" alt="Background" class="lazyload">
