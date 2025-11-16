@@ -1,6 +1,6 @@
 @extends('layouts.base')
 
-@section('title', '{{ $device->name }} - WattAway')
+@section('title', $device->name . ' - WattAway')
 
 @push('styles')
     <link rel="preload" as="image" href="{{ asset('images/bg-main.png') }}">
@@ -129,6 +129,23 @@
             </x-glass-card>
         </div>
 
+
+        {{-- Power Consumption Stats --}}
+        <div class="stagger-item mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <x-glass-card class="flex flex-col justify-center items-center p-6">
+                <h3 class="text-lg font-medium text-gray-300 mb-2">Power Consumed Today</h3>
+                <p class="text-4xl font-bold text-white">
+                    {{ number_format($powerConsumedToday ?? 0, 2) }} <span class="text-2xl text-gray-400">kWh</span>
+                </p>
+            </x-glass-card>
+            <x-glass-card class="flex flex-col justify-center items-center p-6">
+                <h3 class="text-lg font-medium text-gray-300 mb-2">Power Consumed This Month</h3>
+                <p class="text-4xl font-bold text-white">
+                    {{ number_format($powerConsumedThisMonth ?? 0, 2) }} <span class="text-2xl text-gray-400">kWh</span>
+                </p>
+            </x-glass-card>
+        </div>
+
         {{-- Relay Controls --}}
         <div class="stagger-item mt-8">
             @php
@@ -172,12 +189,33 @@
             </x-glass-card>
         </div>
 
-        {{-- Chart Section --}}
+        {{-- Device Configuration --}}
         <div class="stagger-item mt-8">
             <x-glass-card>
-                <h3 class="text-xl font-semibold mb-4">Real-time Power Consumption (24h)</h3>
-                <div class="p-4 rounded-lg">
-                    <div id="power-chart" style="height: 300px;"></div>
+                <h3 class="text-xl font-semibold mb-4">Scheduler</h3>
+                <x-device-settings.scheduler :device="$device" />
+                <div class="flex justify-end space-x-3 mt-4 pt-4 border-t border-white/10">
+                    <x-button variant="primary" onclick="saveConfiguration('{{ $device->id }}', 'scheduler')">Save Scheduler</x-button>
+                </div>
+            </x-glass-card>
+        </div>
+
+        <div class="stagger-item mt-8">
+            <x-glass-card>
+                <h3 class="text-xl font-semibold mb-4">Timer</h3>
+                <x-device-settings.timer :device="$device" />
+                <div class="flex justify-end space-x-3 mt-4 pt-4 border-t border-white/10">
+                    <x-button variant="primary" onclick="saveConfiguration('{{ $device->id }}', 'timer')">Save Timer</x-button>
+                </div>
+            </x-glass-card>
+        </div>
+
+        <div class="stagger-item mt-8">
+            <x-glass-card>
+                <h3 class="text-xl font-semibold mb-4">Watt Limit</h3>
+                <x-device-settings.watt-limit :device="$device" />
+                <div class="flex justify-end space-x-3 mt-4 pt-4 border-t border-white/10">
+                    <x-button variant="primary" onclick="saveConfiguration('{{ $device->id }}', 'watt_limit')">Save Watt Limit</x-button>
                 </div>
             </x-glass-card>
         </div>
@@ -261,37 +299,6 @@
                 </div>
             </x-glass-card>
         </div>
-
-        {{-- Device Configuration --}}
-        <div class="stagger-item mt-8">
-            <x-glass-card>
-                <h3 class="text-xl font-semibold mb-4">Scheduler</h3>
-                <x-device-settings.scheduler :device="$device" />
-                <div class="flex justify-end space-x-3 mt-4 pt-4 border-t border-white/10">
-                    <x-button variant="primary" onclick="saveConfiguration('{{ $device->id }}', 'scheduler')">Save Scheduler</x-button>
-                </div>
-            </x-glass-card>
-        </div>
-
-        <div class="stagger-item mt-8">
-            <x-glass-card>
-                <h3 class="text-xl font-semibold mb-4">Timer</h3>
-                <x-device-settings.timer :device="$device" />
-                <div class="flex justify-end space-x-3 mt-4 pt-4 border-t border-white/10">
-                    <x-button variant="primary" onclick="saveConfiguration('{{ $device->id }}', 'timer')">Save Timer</x-button>
-                </div>
-            </x-glass-card>
-        </div>
-
-        <div class="stagger-item mt-8">
-            <x-glass-card>
-                <h3 class="text-xl font-semibold mb-4">Watt Limit</h3>
-                <x-device-settings.watt-limit :device="$device" />
-                <div class="flex justify-end space-x-3 mt-4 pt-4 border-t border-white/10">
-                    <x-button variant="primary" onclick="saveConfiguration('{{ $device->id }}', 'watt_limit')">Save Watt Limit</x-button>
-                </div>
-            </x-glass-card>
-        </div>
     </main>
 @endsection
 
@@ -320,144 +327,7 @@
     });
 </script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/apexcharts/3.44.0/apexcharts.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const deviceId = {{ $device->id }};
 
-        const options = {
-            series: [],
-            chart: {
-                type: 'area',
-                height: 300,
-                zoom: {
-                    enabled: false
-                },
-                toolbar: {
-                    show: false
-                },
-                animations: {
-                    enabled: true,
-                    easing: 'linear',
-                    dynamicAnimation: {
-                        speed: 1000
-                    }
-                },
-                background: 'transparent' // Make chart background transparent
-            },
-            dataLabels: {
-                enabled: false
-            },
-            stroke: {
-                curve: 'smooth',
-                width: 2
-            },
-            xaxis: {
-                type: 'datetime',
-                labels: {
-                    style: {
-                        colors: '#E5E7EB' // Lighter gray for dark theme
-                    }
-                }
-            },
-            yaxis: {
-                title: {
-                    text: 'Power (Watts)',
-                    style: {
-                        color: '#D1D5DB' // Lighter gray
-                    }
-                },
-                labels: {
-                    style: {
-                        colors: '#E5E7EB' // Lighter gray
-                    }
-                }
-            },
-            tooltip: {
-                x: {
-                    format: 'dd MMM yyyy HH:mm'
-                },
-                theme: 'dark'
-            },
-            grid: {
-                borderColor: 'rgba(255, 255, 255, 0.1)' // Lighter grid lines
-            },
-            noData: {
-                text: 'Loading data...',
-                align: 'center',
-                verticalAlign: 'middle',
-                style: {
-                    color: '#9CA3AF',
-                    fontSize: '14px',
-                }
-            }
-        };
-
-        const chart = new ApexCharts(document.querySelector("#power-chart"), options);
-        chart.render();
-
-        function fetchData() {
-            const apiTokenEl = document.querySelector('meta[name="api-token"]');
-            if (!apiTokenEl) {
-                console.error('Error: API token meta tag not found. User might not be authenticated.');
-                chart.updateOptions({ noData: { text: 'Authentication error.' } });
-                return;
-            }
-            const apiToken = apiTokenEl.getAttribute('content');
-            if (!apiToken) {
-                console.error('Error: API token is missing or empty. Cannot authenticate API requests.');
-                chart.updateOptions({ noData: { text: 'Authentication token not found.' } });
-                return;
-            }
-
-            axios.get(`/api/v1/devices/${deviceId}/readings?range=24h`, {
-                headers: {
-                    'Authorization': `Bearer ${apiToken}`,
-                    'Accept': 'application/json'
-                }
-            })
-                .then(function (response) {
-                    const readings = response.data.data;
-
-                    if (readings.length === 0) {
-                        chart.updateOptions({
-                            noData: {
-                                text: 'No data available for the last 24 hours.',
-                            }
-                        });
-                        return;
-                    }
-
-                    chart.updateSeries([
-                        {
-                            name: 'Channel 1 Power',
-                            data: readings.map(r => ({ x: r.timestamp, y: r.channels.find(c => c.channel === 1)?.power || 0 }))
-                        },
-                        {
-                            name: 'Channel 2 Power',
-                            data: readings.map(r => ({ x: r.timestamp, y: r.channels.find(c => c.channel === 2)?.power || 0 }))
-                        },
-                        {
-                            name: 'Channel 3 Power',
-                            data: readings.map(r => ({ x: r.timestamp, y: r.channels.find(c => c.channel === 3)?.power || 0 }))
-                        }
-                    ]);
-                })
-                .catch(function (error) {
-                    console.error('Error fetching chart data:', error);
-                    chart.updateOptions({
-                        noData: {
-                            text: 'Could not load chart data.',
-                        }
-                    })
-                });
-        }
-
-        fetchData();
-        // Refresh data every 30 seconds
-        setInterval(fetchData, 30000);
-    });
-</script>
 
 {{-- BLE Wi-Fi Setup Script --}}
 <script>
