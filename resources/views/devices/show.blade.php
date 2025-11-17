@@ -190,7 +190,21 @@
                             </div>
                         @endforeach
                     @else
-                        <p class="text-gray-400 text-center py-4">No detailed power data available.</p>
+                        @foreach ([1, 2, 3] as $channel)
+                            <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                                <span class="text-gray-300 font-medium">Relay {{ $channel }}</span>
+                                <div class="text-right">
+                                    <span class="font-bold text-white text-lg">
+                                        {{ number_format(0, 2) }}
+                                        <span class="text-sm text-gray-400">W</span>
+                                    </span>
+                                    <div class="text-xs text-gray-500">
+                                        {{ number_format(0, 3) }} A @ {{ number_format(0, 1) }} V
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                        <p class="text-gray-400 text-center py-2 text-xs">No live data available. Showing placeholder values.</p>
                     @endif
                 </div>
             </x-glass-card>
