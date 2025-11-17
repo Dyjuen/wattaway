@@ -164,6 +164,38 @@
             </x-glass-card>
         </div>
 
+        {{-- Detailed Power Consumption --}}
+        <div class="stagger-item mt-8">
+            <x-glass-card>
+                <h3 class="text-xl font-semibold mb-4">Detailed Power Consumption</h3>
+                <div class="space-y-4">
+                    @if ($latestReading && $latestReading->channelReadings->isNotEmpty())
+                        @php
+                            // Sort by channel number to ensure consistent order
+                            $sortedChannels = $latestReading->channelReadings->sortBy('channel');
+                        @endphp
+                        @foreach ($sortedChannels as $channelReading)
+                            <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
+                                <span class="text-gray-300 font-medium">Relay {{ $channelReading->channel }}</span>
+                                <div class="text-right">
+                                    <span class="font-bold text-white text-lg">
+                                        {{-- Power (W) = Voltage (V) * Current (A) --}}
+                                        {{ number_format($latestReading->voltage * $channelReading->current, 2) }}
+                                        <span class="text-sm text-gray-400">W</span>
+                                    </span>
+                                    <div class="text-xs text-gray-500">
+                                        {{ number_format($channelReading->current, 3) }} A @ {{ number_format($latestReading->voltage, 1) }} V
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    @else
+                        <p class="text-gray-400 text-center py-4">No detailed power data available.</p>
+                    @endif
+                </div>
+            </x-glass-card>
+        </div>
+
         {{-- Relay Controls --}}
         <div class="stagger-item mt-8">
             @php
