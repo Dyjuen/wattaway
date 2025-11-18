@@ -2,7 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\Esp32Message;
+use App\Models\Device;
+use App\Models\Esp32MessageLog;
 use Illuminate\Database\Seeder;
 
 class DeviceSeeder extends Seeder
@@ -12,34 +13,23 @@ class DeviceSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create sample ESP32 devices (IP addresses) for testing
-        $esp32Devices = [
-            [
-                'ip_address' => '192.168.1.100',
-                'device_name' => 'Living Room Socket',
-                'location' => 'Living Room',
-            ],
-            [
-                'ip_address' => '192.168.1.101',
-                'device_name' => 'Kitchen Socket',
-                'location' => 'Kitchen',
-            ],
-            [
-                'ip_address' => '192.168.1.102',
-                'device_name' => 'Bedroom Socket',
-                'location' => 'Bedroom',
-            ],
-        ];
+        $devices = Device::all();
 
-        foreach ($esp32Devices as $deviceData) {
-            // Create sample ESP32 message records to simulate device communication
-            Esp32Message::create([
-                'endpoint' => '/esp32/configuration/'.$deviceData['ip_address'],
-                'user_agent' => 'DeviceSeeder',
-                'ip_address' => $deviceData['ip_address'],
+        if ($devices->isEmpty()) {
+            $this->command->info('No devices found, skipping ESP32 message log seeding in DeviceSeeder.');
+            return;
+        }
+
+        foreach ($devices as $device) {
+            Esp32MessageLog::create([
+                'device_id' => $device->id,
+                'content' => 'Device configuration message',
+                'direction' => 'incoming',
+                'ip_address' => '192.168.1.' . rand(100, 200),
+                'endpoint' => '/esp32/configuration/' . $device->id,
                 'payload' => json_encode([
-                    'device_name' => $deviceData['device_name'],
-                    'location' => $deviceData['location'],
+                    'device_name' => $device->name,
+                    'location' => $device->description, // using description as location
                     'timer' => [
                         'duration' => 30,
                         'is_active' => true,
@@ -54,11 +44,11 @@ class DeviceSeeder extends Seeder
                         'is_active' => true,
                     ],
                 ]),
-                'arduino_time' => now()->toIso8601String(),
-                'led_state' => 'online',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
         }
 
-        $this->command->info('Created '.count($esp32Devices).' sample ESP32 devices');
+        $this->command->info('Created additional ESP32 message logs for existing devices.');
     }
 }

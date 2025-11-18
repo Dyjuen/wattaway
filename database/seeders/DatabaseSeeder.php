@@ -13,9 +13,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             AdminSeeder::class,
-        ]);
-        $this->call([
             WattawaySeeder::class,
+            DeviceSeeder::class,
+            DeviceReadingSeeder::class,
         ]);
     }
 }

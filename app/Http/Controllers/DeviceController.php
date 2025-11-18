@@ -19,20 +19,27 @@ class DeviceController extends Controller
         $activeNow = $account->devices()->where('last_seen_at', '>=', now()->subMinutes(10))->count();
 
         // Correctly calculate energy for this month by joining tables
-        $thisMonthEnergy = DB::table('channel_readings')
+        $thisMonthPowerSum = DB::table('channel_readings')
             ->join('device_readings', 'channel_readings.device_reading_id', '=', 'device_readings.id')
             ->join('devices', 'device_readings.device_id', '=', 'devices.id')
             ->where('devices.account_id', $account->id)
             ->whereMonth('channel_readings.created_at', now()->month)
             ->sum('channel_readings.power');
+        
+        // Convert power sum to kWh. Each reading is for a 30-second interval.
+        // Energy (Wh) = Power (W) * Time (h)
+        // Energy (kWh) = (Sum of Power * 30s / 3600s/h) / 1000
+        $thisMonthEnergy = ($thisMonthPowerSum * 30 / 3600) / 1000;
 
         // Correctly calculate energy for last month by joining tables
-        $lastMonthEnergy = DB::table('channel_readings')
+        $lastMonthPowerSum = DB::table('channel_readings')
             ->join('device_readings', 'channel_readings.device_reading_id', '=', 'device_readings.id')
             ->join('devices', 'device_readings.device_id', '=', 'devices.id')
             ->where('devices.account_id', $account->id)
             ->whereMonth('channel_readings.created_at', now()->subMonthNoOverflow()->month)
             ->sum('channel_readings.power');
+
+        $lastMonthEnergy = ($lastMonthPowerSum * 30 / 3600) / 1000;
 
         $recentActivities = $account->auditLogs()->latest()->take(5)->get();
         $devicesChange = $account->devices()->where('created_at', '>=', now()->subDays(30))->count();
@@ -50,14 +57,14 @@ class DeviceController extends Controller
             ->where('channel_readings.created_at', '>=', now()->subDay())
             ->max('channel_readings.power');
 
-        // Data for Energy Usage Chart
-        $energyUsage = DB::table('channel_readings')
+        // Data for Energy Usage Chart (in Wh)
+        $energyUsageQuery = DB::table('channel_readings')
             ->join('device_readings', 'channel_readings.device_reading_id', '=', 'device_readings.id')
             ->join('devices', 'device_readings.device_id', '=', 'devices.id')
             ->where('devices.account_id', $account->id)
             ->where('channel_readings.created_at', '>=', now()->subDay())
             ->select(
-                DB::raw('SUM(channel_readings.power) as total_power'),
+                DB::raw('SUM(channel_readings.power) as total_power_sum'),
                 DB::raw("DATE_FORMAT(channel_readings.created_at, '%H:00') as hour")
             )
             ->groupBy('hour')
@@ -65,8 +72,11 @@ class DeviceController extends Controller
             ->get();
 
         $energyUsageData = [
-            'labels' => $energyUsage->pluck('hour'),
-            'data' => $energyUsage->pluck('total_power'),
+            'labels' => $energyUsageQuery->pluck('hour'),
+            'data' => $energyUsageQuery->pluck('total_power_sum')->map(function ($powerSum) {
+                // Convert hourly power sum to Watt-hours
+                return ($powerSum * 30) / 3600;
+            }),
         ];
 
         // This variable is no longer used in the view but is kept to avoid breaking other parts if they depend on it.
