@@ -111,6 +111,22 @@ class DeviceController extends Controller
 
         $latestReading = $device->deviceReadings()->with('channelReadings')->latest('timestamp')->first();
 
-        return view('devices.show', compact('device', 'latestReading'));
+        // Calculate Power Consumed Today for this specific device
+        $todayPowerSum = DB::table('channel_readings')
+            ->join('device_readings', 'channel_readings.device_reading_id', '=', 'device_readings.id')
+            ->where('device_readings.device_id', $device->id)
+            ->whereDate('channel_readings.created_at', today())
+            ->sum('channel_readings.power');
+        $powerConsumedToday = ($todayPowerSum * 30 / 3600) / 1000; // kWh
+
+        // Calculate Power Consumed This Month for this specific device
+        $thisMonthPowerSum = DB::table('channel_readings')
+            ->join('device_readings', 'channel_readings.device_reading_id', '=', 'device_readings.id')
+            ->where('device_readings.device_id', $device->id)
+            ->whereMonth('channel_readings.created_at', now()->month)
+            ->sum('channel_readings.power');
+        $powerConsumedThisMonth = ($thisMonthPowerSum * 30 / 3600) / 1000; // kWh
+
+        return view('devices.show', compact('device', 'latestReading', 'powerConsumedToday', 'powerConsumedThisMonth'));
     }
 }
