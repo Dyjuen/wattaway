@@ -176,7 +176,7 @@
                         @endphp
                         @foreach ($sortedChannels as $channelReading)
                             <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                                <span class="text-gray-300 font-medium">Relay {{ $channelReading->channel }}</span>
+                                <span class="text-gray-300 font-medium">Plug {{ $channelReading->channel }}</span>
                                 <div class="text-right">
                                     <span class="font-bold text-white text-lg">
                                         {{-- Power (W) = Voltage (V) * Current (A) --}}
@@ -192,7 +192,7 @@
                     @else
                         @foreach ([1, 2, 3] as $channel)
                             <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg">
-                                <span class="text-gray-300 font-medium">Relay {{ $channel }}</span>
+                                <span class="text-gray-300 font-medium">Plug {{ $channel }}</span>
                                 <div class="text-right">
                                     <span class="font-bold text-white text-lg">
                                         {{ number_format(0, 2) }}
@@ -246,7 +246,7 @@
                             >
                                 {{ strtoupper($state) }}
                             </button>
-                            <span class="block mt-2 text-sm font-medium">RELAY {{ $channel }}</span>
+                            <span class="block mt-2 text-sm font-medium">Plug {{ $channel }}</span>
                         </div>
                     @endforeach
                 </div>
